@@ -1,9 +1,9 @@
 # Publish — Skill Library
 
 > **Auto-generated** by `generate_readme.py` — run `py generate_readme.py` after any skill change.
-> Last generated: 2026-09-01 21:12:16
+> Last generated: 2026-09-01 21:40:29
 >
-> **7 categories · 56 skills**
+> **7 categories · 61 skills**
 
 ---
 
@@ -98,16 +98,21 @@ Skills about improving the agent and the human using it: creating and refining s
 | [podcast-interrogation](self-improvement/podcast-interrogation/SKILL.md) | A two-phase conversational skill for extracting and developing thoughts through dialogue. Use this skill when the user wants to think BY talking rather than writing — when they find it hard to formulate ideas alone but can answer questions easily. Triggers on phrases like "interrogate me", "intervi… |
 | [reflection-journal](self-improvement/reflection-journal/SKILL.md) | A thinking instrument for self-knowledge that compounds across sessions. Captures raw brain dumps, stores and tags them over time, and surfaces patterns in your thinking that are invisible in the moment. Use for end-of-day/week/month reflection, "what patterns do you see in my thinking", journal en… |
 
-## swe — 7 skills
+## swe — 12 skills
 
 Software engineering workflows: batch task execution, autonomous "engage" mode, dogfooding/real-world product testing, UI redesign experiments, micropatching forks, and deep Rust development guides. For building, shipping, and keeping code honest.
 
 | Skill | Description |
 |---|---|
+| [anubis](swe/anubis/SKILL.md) | Use this skill when you need a critical analysis of code to identify problems, architectural issues, technical debt, and areas for improvement. Use it for code reviews, security audits, quality checks, and performance assessments. |
+| [bastet](swe/bastet/SKILL.md) | Use this skill when you need to manage current repository and keep it nice and organized. Use it for repo audits, setup automation, dev environment configuration, README improvements, CI/CD review, documentation maintenance, testing/verification strategy, deployment & backup review, and ensuring co… |
 | [batch-task-executor](swe/batch-task-executor/SKILL.md) | Experimental workflow skill for coordinating many related tasks from any source. Use when the user asks to mass-process, batch-execute, fan out, parallelize, audit, review, summarize, migrate, or solve a list of tasks from a file, issue tracker, pasted list, directory, table, CSV, markdown checklis… |
 | [calm-down](swe/calm-down/SKILL.md) | Invoke this skill ONLY when you are actively making edits or executing a plan and the user shows clear frustration with the direction things are going: repeated swearing (3+ expletives in a message), phrases like "that's not what I wanted", "you did it again", "wrong", "stop", "undo that", "you don… |
+| [code-docs](swe/code-docs/SKILL.md) | Documentation Keeper — owns the canonical product overview, behavior specs, architecture docs, and project verification strategy. Can search and answer about anything in the codebase, edit docs, and bring them in sync with actual code and verification evidence. |
 | [dogfood-tester](swe/dogfood-simulator/SKILL.md) | Autonomous dogfooding and real-world product testing focused on MEANING — what users are actually trying to do, where they get confused, and why the product fails them. Use this skill whenever the user wants to test their own product, find missing features, discover gaps, simulate real user experie… |
 | [engage](swe/engage/SKILL.md) | Autonomous execution mode triggered by the word "engage". Use when the user has finished planning and wants the agent to execute autonomously without further questions until the workflow is fully complete. The agent must build, test, verify, and deliver proof of work — never exiting with an incompl… |
+| [horus](swe/horus/SKILL.md) | CTO and main entry point to the repo. Keeps context, writes plans, and orchestrates workers. |
 | [micropatch](swe/micropatch/SKILL.md) | Use this skill when the user wants to capture, document, re-apply, or maintain customizations made to a forked upstream project as semantic MicroPatches. Trigger when the user wants to extract intentional fork changes, carry a feature forward onto a newer upstream release, sync a long-lived fork wi… |
+| [osiris](swe/osiris/SKILL.md) | Test engineer and maintainer. Specializes in all sorts of testing for the app. Use this skill to design test plans, write tests, assess coverage, review test quality, and expose testing gaps. |
 | [rust-complete-dev-guide](swe/rust-complete-dev-guide/SKILL.md) | Mega Rust Skill — a progressive-disclosure router into 14 reference modules and 7 domain mini-skills covering ownership, lifetimes, concurrency, async, error handling, type-driven design, testing, performance, anti-patterns, DDD, resource lifecycle, mental models, and domain-specific patterns. Use… |
 | [ui-multiple-design-experiment](swe/ui-multiple-design-experiment/SKILL.md) | Generate 5 divergent redesigns of an existing interface from code and/or a screenshot. Use this skill whenever the user wants to explore multiple UI directions, get design variations, see different takes on the same interface, or says anything like "give me 5 versions", "show me variations", "explo… |
