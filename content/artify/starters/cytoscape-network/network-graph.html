@@ -1,0 +1,487 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Network Graph</title>
+  <!--
+    ============================================================
+    CYTOSCAPE.JS STARTER — Network/graph visualization
+    ============================================================
+
+    WHAT IT DOES:
+    Interactive node-link graph with automatic layout. Drag nodes,
+    zoom, pan, click for details. Purpose-built for relationship
+    maps, dependency graphs, knowledge graphs, org charts.
+
+    WHY NOT D3? D3 can do graphs but you manage everything manually
+    (force simulation, dragging, zooming, hit detection). Cytoscape
+    gives you all of that out of the box with a much simpler API.
+
+    HOW TO CUSTOMIZE:
+    1. Replace the `elements` array with your nodes and edges
+    2. Change the layout: cose, circle, grid, breadthfirst, concentric, cola
+    3. Style nodes/edges in the `style` array
+    4. Add interactions: tap, hover, select events
+
+    CYTOSCAPE CORE API:
+
+    // Init
+    const cy = cytoscape({
+      container: document.getElementById('cy'),
+      elements: [ ...nodes and edges... ],
+      style: [ ...node and edge styles... ],
+      layout: { name: 'cose' },
+    });
+
+    // === ELEMENTS FORMAT ===
+    // Nodes:
+    { data: { id: 'n1', label: 'Node 1', weight: 50, color: '#3b82f6' } }
+    // Edges:
+    { data: { source: 'n1', target: 'n2', label: 'connects', weight: 2 } }
+    // Or shorthand:
+    cy.add({ group: 'nodes', data: { id: 'newNode', label: 'New' }, position: { x: 100, y: 200 } })
+    cy.add({ group: 'edges', data: { source: 'n1', target: 'newNode' } })
+
+    // === LAYOUTS ===
+    cy.layout({ name: 'cose' }).run()          // force-directed (default, good for most)
+    cy.layout({ name: 'circle' }).run()        // nodes in a circle
+    cy.layout({ name: 'grid' }).run()          // grid arrangement
+    cy.layout({ name: 'breadthfirst' }).run()  // tree-like, uses roots option
+    cy.layout({ name: 'concentric' }).run()    // concentric rings
+    cy.layout({ name: 'cola' }).run()          // force-directed with constraints (add cola CDN)
+    cy.layout({ name: 'dagre' }).run()         // DAG layout (add dagre CDN)
+
+    // === SELECTING ===
+    cy.nodes()                          // all nodes
+    cy.edges()                          // all edges
+    cy.$('#n1')                         // by ID
+    cy.$('node[type="server"]')         // by data property
+    cy.nodes('[weight > 30]')           // by numeric filter
+    cy.edges('[source = "n1"]')         // edges from node
+    ele.data('key') / ele.data('key', 'val')  // get/set data
+
+    // === STYLING (selectors) ===
+    { selector: 'node', style: { ... } }
+    { selector: 'edge', style: { ... } }
+    { selector: ':selected', style: { ... } }
+    { selector: ':parent', style: { ... } }  // compound nodes
+    { selector: 'node.highlighted', style: { ... } }  // class-based
+
+    // Common style properties:
+    // label: 'data(label)' — use data field as label
+    // background-color, width, height, shape
+    // border-width, border-color
+    // line-color, width (for edges)
+    // font-size, font-family, color (for labels)
+    // text-valign, text-halign
+    // text-wrap, text-max-width
+
+    // === EVENTS ===
+    cy.on('tap', 'node', (evt) => { const node = evt.target; })
+    cy.on('tap', 'edge', (evt) => { ... })
+    cy.on('mouseover', 'node', (evt) => { ... })
+    cy.on('mouseout', 'node', (evt) => { ... })
+    cy.on('dragfree', 'node', (evt) => { ... })  // after drag ends
+    cy.on('zoom', () => { ... })
+    cy.on('pan', () => { ... })
+
+    // === MANIPULATION ===
+    cy.add(element)                    // add element
+    cy.remove(selector)                // remove elements
+    cy.elements().remove()             // remove all
+    node.position({ x, y })           // move node
+    node.addClass('highlighted')       // add CSS class
+    node.removeClass('highlighted')
+    node.neighborhood()                // connected nodes + edges
+    node.connectedEdges()
+
+    // === ZOOM/PAN ===
+    cy.zoom(level)                     // set zoom
+    cy.zoom({ level, position })      // zoom to point
+    cy.fit()                           // fit all elements
+    cy.center()                        // center view
+    cy.pan({ x, y })                   // pan
+    cy.extent()                        // bounding box
+
+    // === EXPORT ===
+    cy.png()                           // data URL
+    cy.jpg()
+    cy.json()                          // serialize graph
+
+    // LAYOUT OPTIONS (cose):
+    {
+      name: 'cose',
+      animate: true,
+      animationDuration: 500,
+      nodeRepulsion: () => 4500,
+      idealEdgeLength: () => 100,
+      componentSpacing: 100,
+      nestingFactor: 1.2,
+    }
+
+    MORE DOCS: https://js.cytoscape.org/
+
+    ============================================================
+  -->
+  <script src="https://cdn.jsdelivr.net/npm/cytoscape@3/dist/cytoscape.min.js"></script>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      background: #0f172a;
+      color: #e2e8f0;
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+      height: 100vh;
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+    }
+
+    /* Header */
+    .header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0.5rem 1rem;
+      background: #1e293b;
+      border-bottom: 1px solid #334155;
+      flex-wrap: wrap;
+      gap: 0.5rem;
+    }
+    .header h1 { font-size: 1.1rem; font-weight: 600; }
+    .controls { display: flex; gap: 0.25rem; flex-wrap: wrap; }
+    .controls button {
+      padding: 0.35rem 0.7rem;
+      background: #334155;
+      border: none;
+      border-radius: 6px;
+      color: #94a3b8;
+      cursor: pointer;
+      font-size: 0.8rem;
+    }
+    .controls button:hover { background: #475569; color: #e2e8f0; }
+    .controls button.active { background: #3b82f6; color: #fff; }
+
+    /* Graph fills remaining */
+    #cy { flex: 1; background: #0a0a0a; }
+
+    /* Side panel */
+    .panel {
+      position: fixed;
+      right: 0;
+      top: 0;
+      bottom: 0;
+      width: 280px;
+      background: #1e293b;
+      border-left: 1px solid #334155;
+      padding: 1rem;
+      transform: translateX(100%);
+      transition: transform 0.25s ease;
+      z-index: 100;
+      overflow-y: auto;
+    }
+    .panel.open { transform: translateX(0); }
+    .panel h2 { font-size: 1rem; font-weight: 600; margin-bottom: 1rem; }
+    .panel .field { margin-bottom: 0.75rem; }
+    .panel .field label { display: block; font-size: 0.75rem; color: #64748b; margin-bottom: 0.2rem; }
+    .panel .field .value { font-size: 0.9rem; color: #e2e8f0; word-break: break-all; }
+    .panel .close {
+      position: absolute;
+      top: 0.75rem;
+      right: 0.75rem;
+      background: none;
+      border: none;
+      color: #64748b;
+      cursor: pointer;
+      font-size: 1.2rem;
+    }
+
+    /* Status */
+    .status {
+      padding: 0.3rem 1rem;
+      background: #1e293b;
+      border-top: 1px solid #334155;
+      font-size: 0.75rem;
+      color: #64748b;
+      display: flex;
+      justify-content: space-between;
+    }
+  </style>
+</head>
+<body>
+
+  <div class="header">
+    <h1>Network Graph</h1>
+    <div class="controls">
+      <button id="layout-cose" class="active" onclick="runLayout('cose')">Force</button>
+      <button id="layout-circle" onclick="runLayout('circle')">Circle</button>
+      <button id="layout-grid" onclick="runLayout('grid')">Grid</button>
+      <button id="layout-bf" onclick="runLayout('breadthfirst')">Tree</button>
+      <button id="layout-conc" onclick="runLayout('concentric')">Concentric</button>
+      <span style="width:1px;height:20px;background:#334155;margin:0 0.5rem;"></span>
+      <button onclick="cy.fit()">Fit</button>
+      <button onclick="cy.center()">Center</button>
+      <button onclick="resetGraph()">Reset</button>
+    </div>
+  </div>
+
+  <div id="cy"></div>
+
+  <!-- Detail panel -->
+  <div class="panel" id="panel">
+    <button class="close" onclick="closePanel()">×</button>
+    <h2 id="panel-title">Details</h2>
+    <div id="panel-content"></div>
+  </div>
+
+  <div class="status">
+    <span id="statusText">Ready</span>
+    <span id="stats"></span>
+  </div>
+
+  <script>
+    // ============================================================
+    // SAMPLE DATA — replace with your nodes and edges
+    // Format: { data: { id, label, ...props } } for nodes
+    //         { data: { source, target, label, ...props } } for edges
+    // ============================================================
+    const sampleElements = {
+      nodes: [
+        { data: { id: 'api',       label: 'API Gateway',    type: 'server',   region: 'us-east' } },
+        { data: { id: 'auth',      label: 'Auth Service',   type: 'service',  region: 'us-east' } },
+        { data: { id: 'users',     label: 'User Service',   type: 'service',  region: 'us-east' } },
+        { data: { id: 'orders',    label: 'Order Service',  type: 'service',  region: 'us-west' } },
+        { data: { id: 'payments',  label: 'Payment Service',type: 'service',  region: 'us-west' } },
+        { data: { id: 'notify',    label: 'Notification',   type: 'service',  region: 'eu-west' } },
+        { data: { id: 'db-users',  label: 'Users DB',       type: 'database', region: 'us-east' } },
+        { data: { id: 'db-orders', label: 'Orders DB',      type: 'database', region: 'us-west' } },
+        { data: { id: 'cache',     label: 'Redis Cache',    type: 'cache',    region: 'us-east' } },
+        { data: { id: 'queue',     label: 'Message Queue',  type: 'queue',    region: 'us-east' } },
+        { data: { id: 'cdn',       label: 'CDN',            type: 'server',   region: 'global' } },
+        { data: { id: 'monitor',   label: 'Monitoring',     type: 'service',  region: 'us-east' } },
+      ],
+      edges: [
+        { data: { source: 'cdn',      target: 'api',       label: 'routes' } },
+        { data: { source: 'api',      target: 'auth',      label: 'validates' } },
+        { data: { source: 'api',      target: 'users',     label: 'proxies' } },
+        { data: { source: 'api',      target: 'orders',    label: 'proxies' } },
+        { data: { source: 'users',    target: 'db-users',  label: 'reads/writes' } },
+        { data: { source: 'users',    target: 'cache',     label: 'caches' } },
+        { data: { source: 'orders',   target: 'db-orders', label: 'reads/writes' } },
+        { data: { source: 'orders',   target: 'payments',  label: 'triggers' } },
+        { data: { source: 'orders',   target: 'queue',     label: 'publishes' } },
+        { data: { source: 'queue',    target: 'notify',    label: 'consumes' } },
+        { data: { source: 'payments', target: 'queue',     label: 'publishes' } },
+        { data: { source: 'auth',     target: 'cache',     label: 'sessions' } },
+        { data: { source: 'monitor',  target: 'api',       label: 'watches' } },
+        { data: { source: 'monitor',  target: 'orders',    label: 'watches' } },
+      ],
+    };
+
+    // ============================================================
+    // STYLE MAP — color nodes by type
+    // ============================================================
+    const typeColors = {
+      server:   '#3b82f6',
+      service:  '#8b5cf6',
+      database: '#ef4444',
+      cache:    '#f59e0b',
+      queue:    '#10b981',
+    };
+
+    const typeShapes = {
+      server:   'round-rectangle',
+      service:  'ellipse',
+      database: 'barrel',
+      cache:    'diamond',
+      queue:    'hexagon',
+    };
+
+    // ============================================================
+    // INIT CYTOSCAPE
+    // ============================================================
+    const cy = cytoscape({
+      container: document.getElementById('cy'),
+
+      elements: sampleElements,
+
+      style: [
+        // Node base style
+        {
+          selector: 'node',
+          style: {
+            label: 'data(label)',
+            'background-color': (ele) => typeColors[ele.data('type')] || '#64748b',
+            'background-opacity': 0.9,
+            'border-width': 2,
+            'border-color': '#0f172a',
+            'width': 60,
+            'height': 40,
+            'shape': (ele) => typeShapes[ele.data('type')] || 'round-rectangle',
+            'font-size': '10px',
+            'font-family': '-apple-system, sans-serif',
+            'color': '#e2e8f0',
+            'text-valign': 'bottom',
+            'text-margin-y': 6,
+            'text-wrap': 'wrap',
+            'text-max-width': '100px',
+          },
+        },
+        // Edge style
+        {
+          selector: 'edge',
+          style: {
+            'width': 2,
+            'line-color': '#334155',
+            'target-arrow-color': '#334155',
+            'target-arrow-shape': 'triangle',
+            'curve-style': 'bezier',
+            'label': 'data(label)',
+            'font-size': '8px',
+            'color': '#64748b',
+            'text-rotation': 'autorotate',
+            'text-margin-y': -8,
+          },
+        },
+        // Selected state
+        {
+          selector: ':selected',
+          style: {
+            'border-width': 3,
+            'border-color': '#3b82f6',
+            'background-opacity': 1,
+            'line-color': '#3b82f6',
+            'target-arrow-color': '#3b82f6',
+          },
+        },
+        // Highlighted (neighborhood)
+        {
+          selector: '.highlighted',
+          style: {
+            'border-color': '#f59e0b',
+            'line-color': '#f59e0b',
+            'target-arrow-color': '#f59e0b',
+          },
+        },
+        // Dimmed
+        {
+          selector: '.dimmed',
+          style: {
+            'opacity': 0.2,
+          },
+        },
+      ],
+
+      layout: {
+        name: 'cose',
+        animate: true,
+        animationDuration: 500,
+        nodeRepulsion: () => 4500,
+        idealEdgeLength: () => 120,
+        componentSpacing: 100,
+        nestingFactor: 1.2,
+      },
+
+      // Interaction options
+      minZoom: 0.2,
+      maxZoom: 4,
+      wheelSensitivity: 0.3,
+    });
+
+    // ============================================================
+    // LAYOUT SWITCHING
+    // ============================================================
+    function runLayout(name) {
+      // Update active button
+      document.querySelectorAll('.controls button[id^="layout-"]').forEach(b => b.classList.remove('active'));
+      const btn = document.getElementById(`layout-${name === 'breadthfirst' ? 'bf' : name === 'concentric' ? 'conc' : name}`);
+      if (btn) btn.classList.add('active');
+
+      const layoutOpts = {
+        cose:         { name: 'cose', animate: true, nodeRepulsion: () => 4500, idealEdgeLength: () => 120 },
+        circle:       { name: 'circle', animate: true, spacingFactor: 1.5 },
+        grid:         { name: 'grid', animate: true, rows: 3, cols: 4 },
+        breadthfirst: { name: 'breadthfirst', animate: true, directed: true, spacingFactor: 1.5 },
+        concentric:   { name: 'concentric', animate: true, concentric: (n) => n.degree(), levelWidth: () => 2 },
+      };
+
+      cy.layout(layoutOpts[name] || { name, animate: true }).run();
+      setStatus(`Layout: ${name}`);
+    }
+
+    // ============================================================
+    // CLICK — show detail panel
+    // ============================================================
+    cy.on('tap', 'node', (evt) => {
+      const node = evt.target;
+      const data = node.data();
+
+      // Highlight neighborhood
+      cy.elements().removeClass('highlighted dimmed');
+      const neighborhood = node.neighborhood().add(node);
+      cy.elements().not(neighborhood).addClass('dimmed');
+      neighborhood.addClass('highlighted');
+
+      // Show panel
+      document.getElementById('panel-title').textContent = data.label || data.id;
+      document.getElementById('panel-content').innerHTML = `
+        <div class="field"><label>ID</label><div class="value">${data.id}</div></div>
+        <div class="field"><label>Type</label><div class="value">${data.type || '—'}</div></div>
+        <div class="field"><label>Region</label><div class="value">${data.region || '—'}</div></div>
+        <div class="field"><label>Connections</label><div class="value">${node.degree()} (${node.connectedEdges().length} edges)</div></div>
+        <div class="field"><label>Neighbors</label><div class="value">${node.neighborhood('node').map(n => n.data('label')).join(', ') || '—'}</div></div>
+      `;
+      document.getElementById('panel').classList.add('open');
+    });
+
+    cy.on('tap', 'edge', (evt) => {
+      const edge = evt.target;
+      const data = edge.data();
+
+      document.getElementById('panel-title').textContent = data.label || 'Edge';
+      document.getElementById('panel-content').innerHTML = `
+        <div class="field"><label>From</label><div class="value">${edge.source().data('label')}</div></div>
+        <div class="field"><label>To</label><div class="value">${edge.target().data('label')}</div></div>
+        <div class="field"><label>Relationship</label><div class="value">${data.label || '—'}</div></div>
+      `;
+      document.getElementById('panel').classList.add('open');
+    });
+
+    // Clear highlight on background tap
+    cy.on('tap', (evt) => {
+      if (evt.target === cy) {
+        cy.elements().removeClass('highlighted dimmed');
+        closePanel();
+      }
+    });
+
+    function closePanel() {
+      document.getElementById('panel').classList.remove('open');
+    }
+
+    // ============================================================
+    // RESET
+    // ============================================================
+    function resetGraph() {
+      cy.json({ elements: sampleElements });
+      runLayout('cose');
+      closePanel();
+      setStatus('Graph reset');
+    }
+
+    // ============================================================
+    // STATUS
+    // ============================================================
+    function setStatus(msg) {
+      document.getElementById('statusText').textContent = msg;
+    }
+
+    function updateStats() {
+      document.getElementById('stats').textContent =
+        `${cy.nodes().length} nodes · ${cy.edges().length} edges`;
+    }
+    updateStats();
+  </script>
+
+</body>
+</html>

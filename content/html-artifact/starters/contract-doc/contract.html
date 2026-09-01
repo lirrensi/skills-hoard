@@ -1,0 +1,533 @@
+<!--
+  ============================================================
+  CONTRACT / LEGAL DOCUMENT TEMPLATE
+  ============================================================
+
+  WHAT THIS IS:
+  A self-contained HTML contract document with redline-style
+  track-changes, clause annotations, and a negotiation-ready
+  layout. Replaces static PDF contracts with something you can
+  actually edit, review, and sign in-browser.
+
+  USE CASES:
+  - Software license agreements
+  - NDAs and confidentiality agreements
+  - Service level agreements (SLAs)
+  - Employment contracts
+  - Vendor/partner agreements
+  - Any multi-clause legal document requiring review
+
+  HOW TO CUSTOMIZE:
+  1. Edit the `contract` object in the Alpine x-data block
+     to change title, parties, dates, and clauses.
+  2. Each clause has: number, title, body, importance, annotations[],
+     and optional redline/deleted/added fields for track-changes.
+  3. Importance levels: 'standard', 'important', 'critical'
+  4. To add redline changes, set clause.redline = true and populate
+     clause.deleted (removed text) and clause.added (new text).
+  5. Annotations array: [{ note: 'text', author: 'name' }]
+  6. Status values: 'draft', 'review', 'final'
+
+  CORE CONCEPTS:
+  - Track-changes: global toggle reveals strikethrough (deleted)
+    and underline (added) text, mimicking Word's review mode.
+  - Annotations: per-clause notes toggled inline, also shown in
+    a floating sidebar for quick review.
+  - Importance badges: color-coded pills (gray/amber/red) so
+    reviewers can triage clauses at a glance.
+  - Sticky TOC: sidebar navigation stays visible while scrolling.
+  - Print styles: `@media print` rules strip interactive UI and
+    produce a clean, legible printed contract.
+
+  GOTCHAS:
+  - Tailwind CDN: fine for prototyping; for production, build
+    with PostCSS and purge unused classes.
+  - Alpine x-data is inline JSON — no trailing commas, use
+    double quotes for strings.
+  - Print: browsers vary on @page support; test in Chrome and
+    Firefox before shipping.
+  - Signature fields are client-side only; integrate with
+    DocuSign/HelloSign for legal validity.
+  - Large contracts (50+ clauses) may need pagination or
+    virtual scrolling for performance.
+  ============================================================
+-->
+<!DOCTYPE html>
+<html lang="en" class="scroll-smooth">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Contract — Software License Agreement</title>
+
+  <!-- Tailwind CSS (CDN) -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            dark:   { bg: '#0d1117', card: '#161b22', border: '#30363d' },
+            accent: '#58a6ff',
+            txt:    '#e6edf3'
+          }
+        }
+      }
+    }
+  </script>
+
+  <!-- Alpine.js (CDN) -->
+  <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
+
+  <style>
+    /* ---------- BASE DARK THEME ---------- */
+    body { background: #0d1117; color: #e6edf3; }
+
+    /* ---------- CLAUSE HIGHLIGHT ON NAV ---------- */
+    .clause-highlight { animation: flash-bg 1.2s ease-out; }
+    @keyframes flash-bg {
+      0%   { background: rgba(88,166,255,.18); }
+      100% { background: transparent; }
+    }
+
+    /* ---------- REDLINE STYLES ---------- */
+    .redline-del  { text-decoration: line-through; color: #f85149; background: rgba(248,81,73,.08); }
+    .redline-add  { text-decoration: underline;  color: #3fb950; background: rgba(63,185,80,.08); }
+
+    /* ---------- PRINT STYLES ---------- */
+    @media print {
+      body              { background: #fff !important; color: #000 !important; font-size: 11pt; }
+      .no-print         { display: none !important; }
+      .print-break      { page-break-before: always; }
+      #toc-sidebar      { display: none !important; }
+      #annotation-panel { display: none !important; }
+      .clause-card      { border: 1px solid #ccc !important; background: #fff !important;
+                          box-shadow: none !important; margin-bottom: 12pt; }
+      .redline-del      { color: #b00 !important; background: none !important; }
+      .redline-add      { color: #060 !important; background: none !important; }
+      a                 { color: #000 !important; text-decoration: none !important; }
+      @page             { margin: 1.5cm; }
+    }
+  </style>
+</head>
+
+<body class="min-h-screen antialiased"
+      x-data="contractApp()"
+      x-init="init()">
+
+  <!-- ==================== TOP BAR ==================== -->
+  <header class="no-print sticky top-0 z-50 border-b border-dark-border bg-dark-bg/95 backdrop-blur">
+    <div class="max-w-screen-2xl mx-auto flex items-center justify-between px-5 py-3 gap-4 flex-wrap">
+
+      <!-- Left: title + status -->
+      <div class="flex items-center gap-3">
+        <span class="text-lg font-semibold text-txt tracking-tight" x-text="contract.title"></span>
+
+        <!-- Status pill -->
+        <span class="text-xs font-medium px-2.5 py-0.5 rounded-full"
+              :class="{
+                'bg-gray-600 text-gray-200': contract.status === 'draft',
+                'bg-amber-500/20 text-amber-400': contract.status === 'review',
+                'bg-emerald-500/20 text-emerald-400': contract.status === 'final'
+              }"
+              x-text="statusLabel(contract.status)"></span>
+
+        <!-- Version -->
+        <span class="text-xs text-gray-500" x-text="'v' + contract.version"></span>
+      </div>
+
+      <!-- Right: controls -->
+      <div class="flex items-center gap-3">
+        <!-- Track-changes toggle -->
+        <label class="flex items-center gap-2 text-sm cursor-pointer select-none">
+          <span class="text-gray-400">Track Changes</span>
+          <button @click="showRedline = !showRedline"
+                  :class="showRedline ? 'bg-accent' : 'bg-gray-700'"
+                  class="relative inline-flex h-5 w-9 items-center rounded-full transition-colors">
+            <span class="sr-only">Toggle track changes</span>
+            <span :class="showRedline ? 'translate-x-4' : 'translate-x-1'"
+                  class="inline-block h-3.5 w-3.5 rounded-full bg-white transition-transform"></span>
+          </button>
+        </label>
+
+        <!-- Annotation toggle -->
+        <label class="flex items-center gap-2 text-sm cursor-pointer select-none">
+          <span class="text-gray-400">Annotations</span>
+          <button @click="showAnnotations = !showAnnotations"
+                  :class="showAnnotations ? 'bg-accent' : 'bg-gray-700'"
+                  class="relative inline-flex h-5 w-9 items-center rounded-full transition-colors">
+            <span class="sr-only">Toggle annotations</span>
+            <span :class="showAnnotations ? 'translate-x-4' : 'translate-x-1'"
+                  class="inline-block h-3.5 w-3.5 rounded-full bg-white transition-transform"></span>
+          </button>
+        </label>
+
+        <!-- Print -->
+        <button @click="window.print()"
+                class="flex items-center gap-1.5 text-sm px-3 py-1.5 rounded-md bg-dark-card border border-dark-border hover:border-accent/50 transition-colors">
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round"
+                  d="M6 9V2h12v7M6 18H4a2 2 0 01-2-2v-5a2 2 0 012-2h16a2 2 0 012 2v5a2 2 0 01-2 2h-2M6 14h12v8H6z"/>
+          </svg>
+          Print
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <!-- ==================== MAIN LAYOUT ==================== -->
+  <div class="max-w-screen-2xl mx-auto flex">
+
+    <!-- ========== LEFT: TABLE OF CONTENTS ========== -->
+    <aside id="toc-sidebar"
+           class="no-print sticky top-14 w-64 shrink-0 h-[calc(100vh-3.5rem)] overflow-y-auto border-r border-dark-border p-4 hidden lg:block">
+      <h2 class="text-xs font-semibold uppercase tracking-wider text-gray-500 mb-3">Contents</h2>
+      <nav class="space-y-1">
+        <template x-for="(c, i) in contract.clauses" :key="c.number">
+          <a :href="'#clause-' + c.number"
+             class="flex items-center gap-2 px-2.5 py-1.5 rounded-md text-sm text-gray-400 hover:text-txt hover:bg-dark-card transition-colors group">
+            <span class="text-xs font-mono text-gray-600 group-hover:text-accent" x-text="c.number"></span>
+            <span class="truncate" x-text="c.title"></span>
+            <!-- Redline dot -->
+            <span x-show="c.redline && showRedline"
+                  class="ml-auto w-1.5 h-1.5 rounded-full bg-amber-400 shrink-0"></span>
+          </a>
+        </template>
+      </nav>
+
+      <!-- Parties summary -->
+      <div class="mt-6 pt-4 border-t border-dark-border">
+        <h3 class="text-xs font-semibold uppercase tracking-wider text-gray-500 mb-2">Parties</h3>
+        <div class="space-y-2 text-sm">
+          <div>
+            <span class="text-gray-500">Licensor:</span>
+            <span class="text-txt block" x-text="contract.parties[0].name"></span>
+          </div>
+          <div>
+            <span class="text-gray-500">Licensee:</span>
+            <span class="text-txt block" x-text="contract.parties[1].name"></span>
+          </div>
+          <div>
+            <span class="text-gray-500">Effective:</span>
+            <span class="text-txt block" x-text="contract.effectiveDate"></span>
+          </div>
+        </div>
+      </div>
+    </aside>
+
+    <!-- ========== CENTER: DOCUMENT ========== -->
+    <main class="flex-1 min-w-0 px-6 py-8">
+
+      <!-- Document header -->
+      <div class="mb-10 text-center">
+        <h1 class="text-3xl font-bold text-txt tracking-tight" x-text="contract.title"></h1>
+        <p class="mt-1 text-gray-500 text-sm" x-text="'Version ' + contract.version + ' — ' + contract.effectiveDate"></p>
+
+        <div class="mt-6 inline-flex items-center gap-6 text-sm text-gray-400">
+          <template x-for="p in contract.parties" :key="p.name">
+            <div class="flex items-center gap-2">
+              <span class="w-2 h-2 rounded-full"
+                    :class="p.role === 'Licensor' ? 'bg-accent' : 'bg-emerald-400'"></span>
+              <span><strong class="text-txt" x-text="p.name"></strong> (<span x-text="p.role"></span>)</span>
+            </div>
+          </template>
+        </div>
+
+        <div class="mt-2 text-xs text-gray-600" x-text="contract.preamble"></div>
+      </div>
+
+      <!-- Recitals -->
+      <div class="mb-8 p-5 rounded-lg bg-dark-card border border-dark-border">
+        <h2 class="text-sm font-semibold uppercase tracking-wider text-gray-500 mb-3">Recitals</h2>
+        <div class="space-y-2 text-sm text-gray-300 leading-relaxed">
+          <template x-for="(r, i) in contract.recitals" :key="i">
+            <p><span class="text-gray-500 font-mono mr-1" x-text="String.fromCharCode(65+i) + '.'"></span> <span x-text="r"></span></p>
+          </template>
+        </div>
+      </div>
+
+      <!-- ========== CLAUSES ========== -->
+      <div class="space-y-6">
+        <template x-for="clause in contract.clauses" :key="clause.number">
+          <section :id="'clause-' + clause.number"
+                   class="clause-card rounded-lg border bg-dark-card transition-colors"
+                   :class="{
+                     'border-dark-border': clause.importance === 'standard',
+                     'border-amber-500/40': clause.importance === 'important',
+                     'border-red-500/40': clause.importance === 'critical'
+                   }">
+
+            <!-- Clause header -->
+            <div class="flex items-start justify-between gap-4 px-6 pt-5 pb-2">
+              <div>
+                <div class="flex items-center gap-2 mb-1">
+                  <span class="text-xs font-mono text-gray-500" x-text="clause.number"></span>
+                  <h3 class="text-base font-semibold text-txt" x-text="clause.title"></h3>
+                </div>
+              </div>
+
+              <div class="flex items-center gap-2 shrink-0">
+                <!-- Importance badge -->
+                <span class="text-[10px] font-semibold uppercase tracking-wider px-2 py-0.5 rounded-full"
+                      :class="{
+                        'bg-gray-700 text-gray-400': clause.importance === 'standard',
+                        'bg-amber-500/15 text-amber-400': clause.importance === 'important',
+                        'bg-red-500/15 text-red-400': clause.importance === 'critical'
+                      }"
+                      x-text="clause.importance"></span>
+
+                <!-- Annotation count badge -->
+                <button x-show="clause.annotations && clause.annotations.length"
+                        @click="clause._showAnnotations = !clause._showAnnotations"
+                        class="text-[10px] font-medium px-2 py-0.5 rounded-full bg-accent/10 text-accent hover:bg-accent/20 transition-colors">
+                  <span x-text="clause.annotations.length + ' note' + (clause.annotations.length > 1 ? 's' : '')"></span>
+                </button>
+              </div>
+            </div>
+
+            <!-- Clause body -->
+            <div class="px-6 pb-5 text-sm text-gray-300 leading-relaxed">
+              <!-- Normal body text -->
+              <p x-html="formatBody(clause.body)"></p>
+
+              <!-- Redline: deleted text -->
+              <template x-if="showRedline && clause.redline && clause.deleted">
+                <p class="mt-2 redline-del" x-text="clause.deleted"></p>
+              </template>
+
+              <!-- Redline: added text -->
+              <template x-if="showRedline && clause.redline && clause.added">
+                <p class="mt-1 redline-add" x-text="clause.added"></p>
+              </template>
+            </div>
+
+            <!-- Inline annotations (toggled) -->
+            <div x-show="clause._showAnnotations && showAnnotations"
+                 x-transition
+                 class="mx-6 mb-5 p-4 rounded-md bg-amber-500/5 border border-amber-500/20">
+              <h4 class="text-xs font-semibold uppercase tracking-wider text-amber-400 mb-2">Annotations</h4>
+              <div class="space-y-2">
+                <template x-for="(a, i) in clause.annotations" :key="i">
+                  <div class="text-sm">
+                    <p class="text-gray-300" x-text="a.note"></p>
+                    <p class="text-xs text-gray-500 mt-0.5" x-text="'— ' + a.author"></p>
+                  </div>
+                </template>
+              </div>
+            </div>
+          </section>
+        </template>
+      </div>
+
+      <!-- ========== SIGNATURE SECTION ========== -->
+      <div class="mt-12 print-break">
+        <h2 class="text-lg font-semibold text-txt mb-6">Signatures</h2>
+        <p class="text-sm text-gray-400 mb-8">IN WITNESS WHEREOF, the parties have executed this Agreement as of the Effective Date.</p>
+
+        <div class="grid md:grid-cols-2 gap-8">
+          <template x-for="p in contract.parties" :key="p.name">
+            <div class="p-6 rounded-lg bg-dark-card border border-dark-border">
+              <h3 class="text-sm font-semibold text-txt mb-4" x-text="p.name"></h3>
+
+              <div class="space-y-4">
+                <div>
+                  <label class="block text-xs text-gray-500 mb-1">Signature</label>
+                  <div class="border-b border-dashed border-gray-600 h-10"></div>
+                </div>
+                <div>
+                  <label class="block text-xs text-gray-500 mb-1">Printed Name</label>
+                  <input type="text" placeholder="Full name"
+                         class="w-full bg-transparent border-b border-gray-700 focus:border-accent text-sm text-txt py-1 outline-none placeholder:text-gray-600" />
+                </div>
+                <div>
+                  <label class="block text-xs text-gray-500 mb-1">Title</label>
+                  <input type="text" placeholder="Title / Position"
+                         class="w-full bg-transparent border-b border-gray-700 focus:border-accent text-sm text-txt py-1 outline-none placeholder:text-gray-600" />
+                </div>
+                <div>
+                  <label class="block text-xs text-gray-500 mb-1">Date</label>
+                  <input type="date"
+                         class="w-full bg-transparent border-b border-gray-700 focus:border-accent text-sm text-txt py-1 outline-none" />
+                </div>
+              </div>
+            </div>
+          </template>
+        </div>
+      </div>
+
+    </main>
+
+    <!-- ========== RIGHT: ANNOTATION PANEL ========== -->
+    <aside id="annotation-panel"
+           x-show="showAnnotations"
+           x-transition
+           class="no-print sticky top-14 w-72 shrink-0 h-[calc(100vh-3.5rem)] overflow-y-auto border-l border-dark-border p-4 hidden xl:block">
+      <h2 class="text-xs font-semibold uppercase tracking-wider text-gray-500 mb-4">All Annotations</h2>
+
+      <div class="space-y-4">
+        <template x-for="clause in contract.clauses.filter(c => c.annotations && c.annotations.length)" :key="clause.number">
+          <div class="p-3 rounded-md bg-dark-card border border-dark-border">
+            <a :href="'#clause-' + clause.number"
+               class="text-xs font-mono text-accent hover:underline" x-text="clause.number + ' — ' + clause.title"></a>
+            <div class="mt-2 space-y-2">
+              <template x-for="(a, i) in clause.annotations" :key="i">
+                <div class="text-sm">
+                  <p class="text-gray-300" x-text="a.note"></p>
+                  <p class="text-xs text-gray-500" x-text="'— ' + a.author"></p>
+                </div>
+              </template>
+            </div>
+          </div>
+        </template>
+      </div>
+    </aside>
+
+  </div>
+
+  <!-- ==================== ALPINE APP ==================== -->
+  <script>
+    function contractApp() {
+      return {
+        showRedline: false,
+        showAnnotations: true,
+
+        /* ---------- CONTRACT DATA ---------- */
+        contract: {
+          title: 'Software License Agreement',
+          version: '2.1',
+          effectiveDate: 'March 20, 2026',
+          status: 'review',          /* draft | review | final */
+          preamble: 'This Software License Agreement ("Agreement") is entered into as of the Effective Date by and between the parties identified below.',
+          parties: [
+            { name: 'Vexi Inc.',   role: 'Licensor', signatory: 'Jordan Lee',   title: 'CEO' },
+            { name: 'Acme Corp',   role: 'Licensee', signatory: 'Morgan Chen',  title: 'CTO' }
+          ],
+          recitals: [
+            'Licensor has developed certain proprietary software known as "Vexi Platform" and desires to grant a license to Licensee under the terms set forth herein.',
+            'Licensee desires to obtain a license to use the Vexi Platform for its internal business operations, subject to the terms and conditions of this Agreement.'
+          ],
+
+          clauses: [
+            {
+              number: '1',
+              title: 'License Grant',
+              importance: 'critical',
+              body: 'Subject to the terms and conditions of this Agreement, Licensor hereby grants to Licensee a non-exclusive, non-transferable, limited license to use the Vexi Platform solely for Licensee\'s internal business purposes.',
+              redline: true,
+              deleted: 'Licensee may use the Software on up to three (3) concurrent servers.',
+              added: 'Licensee may use the Software on up to ten (10) concurrent servers, with the option to purchase additional server licenses at Licensor\'s then-current rates.',
+              annotations: [
+                { note: 'Increased server limit from 3 to 10 per Acme\'s request. Pricing for additional seats TBD.', author: 'Jordan Lee' },
+                { note: 'We need a defined rate card before signing. See Clause 3.', author: 'Morgan Chen' }
+              ],
+              _showAnnotations: false
+            },
+            {
+              number: '2',
+              title: 'Restrictions',
+              importance: 'critical',
+              body: 'Licensee shall not: (a) sublicense, sell, lease, or otherwise transfer the Software or any rights therein; (b) modify, translate, reverse engineer, decompile, or disassemble the Software; (c) create derivative works based on the Software; (d) remove or alter any proprietary notices on the Software.',
+              redline: false,
+              deleted: '',
+              added: '',
+              annotations: [
+                { note: 'Standard restrictions. No changes requested by either party.', author: 'Jordan Lee' }
+              ],
+              _showAnnotations: false
+            },
+            {
+              number: '3',
+              title: 'Fees and Payment',
+              importance: 'important',
+              body: 'Licensee shall pay Licensor the license fees set forth in Exhibit A. All fees are due within thirty (30) days of invoice date. Late payments shall accrue interest at 1.5% per month or the maximum rate permitted by law, whichever is less.',
+              redline: true,
+              deleted: 'Late payments shall accrue interest at 1.5% per month.',
+              added: 'Late payments shall accrue interest at 1.0% per month, with a fifteen (15) day cure period before interest begins to accrue.',
+              annotations: [
+                { note: 'Acme negotiated lower interest rate and cure period. Approved.', author: 'Jordan Lee' }
+              ],
+              _showAnnotations: false
+            },
+            {
+              number: '4',
+              title: 'Confidentiality',
+              importance: 'critical',
+              body: 'Each party agrees to hold in confidence all Confidential Information received from the other party and not to disclose such information to third parties without the prior written consent of the disclosing party. This obligation shall survive termination of this Agreement for a period of five (5) years.',
+              redline: true,
+              deleted: 'This obligation shall survive termination of this Agreement for a period of three (3) years.',
+              added: 'This obligation shall survive termination of this Agreement for a period of five (5) years.',
+              annotations: [
+                { note: 'Extended survival period from 3 to 5 years at Acme\'s request. Standard for enterprise deals.', author: 'Jordan Lee' }
+              ],
+              _showAnnotations: false
+            },
+            {
+              number: '5',
+              title: 'Warranties and Disclaimers',
+              importance: 'standard',
+              body: 'Licensor warrants that the Software will perform substantially in accordance with the documentation for a period of ninety (90) days from delivery. EXCEPT AS SET FORTH IN THIS SECTION, THE SOFTWARE IS PROVIDED "AS IS" WITHOUT WARRANTY OF ANY KIND.',
+              redline: false,
+              deleted: '',
+              added: '',
+              annotations: [],
+              _showAnnotations: false
+            },
+            {
+              number: '6',
+              title: 'Limitation of Liability',
+              importance: 'important',
+              body: 'IN NO EVENT SHALL EITHER PARTY BE LIABLE FOR ANY INDIRECT, INCIDENTAL, SPECIAL, CONSEQUENTIAL, OR PUNITIVE DAMAGES, REGARDLESS OF THE CAUSE OF ACTION OR THE THEORY OF LIABILITY. EACH PARTY\'S TOTAL LIABILITY UNDER THIS AGREEMENT SHALL NOT EXCEED THE TOTAL FEES PAID BY LICENSEE IN THE TWELVE (12) MONTHS PRECEDING THE CLAIM.',
+              redline: false,
+              deleted: '',
+              added: '',
+              annotations: [
+                { note: 'Cap is tied to fees paid, not fees due. Acme accepted this formulation.', author: 'Morgan Chen' }
+              ],
+              _showAnnotations: false
+            },
+            {
+              number: '7',
+              title: 'Term and Termination',
+              importance: 'important',
+              body: 'This Agreement shall commence on the Effective Date and continue for an initial term of one (1) year, automatically renewing for successive one-year periods unless either party provides sixty (60) days\' written notice of non-renewal. Either party may terminate for material breach upon thirty (30) days\' written notice if the breach remains uncured.',
+              redline: true,
+              deleted: 'Either party may terminate for material breach upon thirty (30) days\' written notice.',
+              added: 'Either party may terminate for material breach upon thirty (30) days\' written notice if the breach remains uncured.',
+              annotations: [
+                { note: 'Added cure period language. Protects both sides from immediate termination.', author: 'Morgan Chen' }
+              ],
+              _showAnnotations: false
+            },
+            {
+              number: '8',
+              title: 'General Provisions',
+              importance: 'standard',
+              body: 'This Agreement constitutes the entire agreement between the parties and supersedes all prior negotiations, representations, or agreements relating to the subject matter herein. This Agreement shall be governed by the laws of the State of Delaware without regard to its conflict of laws provisions. Any dispute arising under this Agreement shall be resolved in the state or federal courts located in Wilmington, Delaware.',
+              redline: false,
+              deleted: '',
+              added: '',
+              annotations: [],
+              _showAnnotations: false
+            }
+          ]
+        },
+
+        /* ---------- METHODS ---------- */
+        init() {
+          // nothing extra needed
+        },
+
+        statusLabel(s) {
+          return { draft: 'Draft', review: 'Under Review', final: 'Final' }[s] || s;
+        },
+
+        formatBody(text) {
+          // escape HTML then restore newlines as <br>
+          const esc = text.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+          return esc.replace(/\n/g, '<br>');
+        }
+      };
+    }
+  </script>
+
+</body>
+</html>

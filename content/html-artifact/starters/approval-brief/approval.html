@@ -1,0 +1,520 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Approval Brief</title>
+    <!--
+    HYBRID APPROVAL BRIEF
+
+    Use this when a reader needs enough context to approve, reject, or request
+    changes without bouncing between five tools. Keep the ask visible and the
+    evidence concise.
+  -->
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Fraunces:wght@500;600;700&family=Manrope:wght@400;500;600;700&display=swap"
+      rel="stylesheet"
+    />
+    <style>
+      :root {
+        --bg: #edf3f8;
+        --surface: rgba(255, 255, 255, 0.93);
+        --surface-strong: #ffffff;
+        --text: #1b2836;
+        --muted: #5a6978;
+        --line: rgba(27, 40, 54, 0.14);
+        --accent: #0369a1;
+        --accent-soft: rgba(3, 105, 161, 0.12);
+        --success: #166534;
+        --danger: #b91c1c;
+        --shadow: 0 24px 60px rgba(27, 40, 54, 0.1);
+      }
+      * {
+        box-sizing: border-box;
+      }
+      html {
+        scroll-behavior: smooth;
+      }
+      body {
+        margin: 0;
+        font-family: "Manrope", sans-serif;
+        color: var(--text);
+        background: linear-gradient(180deg, #f8fbfd 0%, var(--bg) 100%);
+      }
+      h1,
+      h2,
+      h3 {
+        margin: 0;
+        font-family: "Fraunces", serif;
+      }
+      p {
+        margin: 0;
+        line-height: 1.7;
+      }
+      .toolbar {
+        position: sticky;
+        top: 0;
+        z-index: 20;
+        display: flex;
+        justify-content: space-between;
+        gap: 1rem;
+        padding: 1rem 1.25rem;
+        background: rgba(237, 243, 248, 0.84);
+        backdrop-filter: blur(16px);
+        border-bottom: 1px solid var(--line);
+      }
+      .controls {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 0.5rem;
+        align-items: center;
+      }
+      button {
+        font: inherit;
+        border: 1px solid var(--line);
+        background: var(--surface-strong);
+        border-radius: 999px;
+        padding: 0.55rem 0.9rem;
+        cursor: pointer;
+      }
+      button[aria-pressed="true"] {
+        background: var(--text);
+        color: #fff;
+        border-color: var(--text);
+      }
+      .shell {
+        max-width: 1400px;
+        margin: 0 auto;
+        padding: 1.25rem;
+        display: grid;
+        grid-template-columns: 260px minmax(0, 1fr);
+        gap: 1.25rem;
+      }
+      .toc {
+        position: sticky;
+        top: 5.75rem;
+        align-self: start;
+        padding: 1rem;
+        border: 1px solid var(--line);
+        border-radius: 24px;
+        background: var(--surface);
+        box-shadow: var(--shadow);
+      }
+      .toc nav {
+        display: grid;
+        gap: 0.45rem;
+        margin-top: 0.75rem;
+      }
+      .toc a {
+        text-decoration: none;
+        color: var(--muted);
+        padding: 0.5rem 0.7rem;
+        border-radius: 14px;
+      }
+      .toc a[aria-current="page"] {
+        background: var(--accent-soft);
+        color: var(--accent);
+        font-weight: 700;
+      }
+      .panel {
+        display: block;
+        margin-bottom: 1rem;
+        padding: 1.6rem;
+        border: 1px solid var(--line);
+        border-radius: 28px;
+        background: var(--surface);
+        box-shadow: var(--shadow);
+      }
+      .eyebrow {
+        text-transform: uppercase;
+        letter-spacing: 0.14em;
+        font-size: 0.76rem;
+        color: var(--accent);
+        margin-bottom: 0.8rem;
+      }
+      .lede {
+        font-size: 1.05rem;
+        color: var(--muted);
+        margin-top: 0.8rem;
+        max-width: 72ch;
+      }
+      .grid {
+        display: grid;
+        gap: 1rem;
+        margin-top: 1.2rem;
+      }
+      .grid.two {
+        grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+      }
+      .card {
+        padding: 1rem;
+        border: 1px solid var(--line);
+        border-radius: 20px;
+        background: var(--surface-strong);
+      }
+      .decision-bar {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 0.75rem;
+        align-items: center;
+        margin-top: 1rem;
+      }
+      .decision-bar button {
+        padding: 0.7rem 1rem;
+      }
+      .decision-state {
+        display: inline-flex;
+        padding: 0.35rem 0.7rem;
+        border-radius: 999px;
+        background: var(--accent-soft);
+        color: var(--accent);
+        font-weight: 700;
+      }
+      .approve {
+        border-color: rgba(22, 101, 52, 0.22);
+        color: var(--success);
+      }
+      .changes {
+        border-color: rgba(180, 83, 9, 0.22);
+        color: #b45309;
+      }
+      .reject {
+        border-color: rgba(185, 28, 28, 0.22);
+        color: var(--danger);
+      }
+      .note {
+        display: none;
+        margin-top: 1rem;
+        padding: 0.9rem 1rem;
+        border-left: 4px solid var(--accent);
+        background: var(--accent-soft);
+        border-radius: 16px;
+      }
+      body.show-notes .note {
+        display: block;
+      }
+      .slide-nav {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.4rem;
+      }
+      .slide-count {
+        min-width: 3.5rem;
+        text-align: center;
+        color: var(--muted);
+        font-weight: 700;
+      }
+      body[data-audience="summary"] [data-audience-block="full"],
+      body[data-audience="summary"] [data-audience-block="appendix"],
+      body[data-audience="full"] [data-audience-block="appendix"] {
+        display: none !important;
+      }
+      body.mode-focus main {
+        scroll-snap-type: y proximity;
+      }
+      body.mode-focus .panel {
+        min-height: calc(100svh - 7rem);
+        scroll-snap-align: start;
+      }
+      body.mode-slides .shell {
+        grid-template-columns: 1fr;
+      }
+      body.mode-slides .toc {
+        display: none;
+      }
+      body.mode-slides .panel {
+        display: none;
+        min-height: calc(100svh - 6.5rem);
+        margin: 0;
+        border-radius: 0;
+        box-shadow: none;
+      }
+      body.mode-slides .panel.active {
+        display: block;
+      }
+      @media (max-width: 960px) {
+        .shell {
+          grid-template-columns: 1fr;
+        }
+        .toc {
+          position: static;
+        }
+      }
+      @media print {
+        .toolbar,
+        .toc {
+          display: none;
+        }
+        .shell {
+          display: block;
+          padding: 0;
+        }
+        .panel {
+          box-shadow: none;
+          break-inside: avoid;
+        }
+      }
+    </style>
+  </head>
+  <body class="mode-read" data-audience="full">
+    <header class="toolbar">
+      <div>
+        <h1>Approval Brief</h1>
+        <p style="margin-top: 0.35rem; color: var(--muted)">
+          For sign-off requests, rollout approvals, policy acceptance, or any
+          moment where someone needs to say yes, no, or fix this.
+        </p>
+      </div>
+      <div class="controls">
+        <button data-mode="read" aria-pressed="true">Read</button
+        ><button data-mode="focus">Focus</button
+        ><button data-mode="slides">Slides</button
+        ><button data-audience-select="summary">Summary</button
+        ><button data-audience-select="full" aria-pressed="true">Full</button
+        ><button data-audience-select="appendix">Appendix</button
+        ><button data-toggle-notes>Notes</button
+        ><span class="slide-nav"
+          ><button data-step="prev">Prev</button
+          ><span class="slide-count" id="slide-count">1/4</span
+          ><button data-step="next">Next</button></span
+        >
+      </div>
+    </header>
+    <div class="shell">
+      <aside class="toc">
+        <strong>Approval flow</strong>
+        <nav id="toc"></nav>
+      </aside>
+      <main>
+        <section class="panel active" id="request" data-title="Request">
+          <div class="eyebrow">Request</div>
+          <h2>Say exactly what needs approval.</h2>
+          <p class="lede">
+            This starter lets a stakeholder read the context, inspect the
+            rationale, then record a decision without needing a separate slide
+            deck, email summary, and chaos thread.
+          </p>
+          <div class="grid two">
+            <div class="card">
+              <strong>Approval requested</strong>
+              <p style="margin-top: 0.45rem">
+                Approve the first batch of hybrid starters for inclusion in the
+                html-artifact skill.
+              </p>
+            </div>
+            <div class="card">
+              <strong>Needed by</strong>
+              <p style="margin-top: 0.45rem">
+                Before the next skill release so naming, docs, and examples land
+                together.
+              </p>
+            </div>
+          </div>
+          <div class="note">
+            Presenter note: put the ask in sentence one and the deadline in
+            sentence two. Executives adore that crap.
+          </div>
+        </section>
+        <section class="panel" id="rationale" data-title="Rationale">
+          <div class="eyebrow">Rationale</div>
+          <h2>Why this should get a yes.</h2>
+          <div class="grid two">
+            <div class="card">
+              <strong>Benefit</strong>
+              <p>
+                One artifact can now brief, present, and archive the same idea.
+              </p>
+            </div>
+            <div class="card">
+              <strong>Operational win</strong>
+              <p>
+                Less duplicated effort across docs, slides, and backup
+                materials.
+              </p>
+            </div>
+            <div class="card">
+              <strong>Risk</strong>
+              <p>
+                Inconsistent starter quality if the shell is not standardized.
+              </p>
+            </div>
+            <div class="card">
+              <strong>Mitigation</strong>
+              <p>
+                Ship every starter with the same mode controls and predictable
+                section structure.
+              </p>
+            </div>
+          </div>
+        </section>
+        <section class="panel" id="evidence" data-title="Evidence">
+          <div class="eyebrow">Evidence</div>
+          <h2>Support the approval with facts.</h2>
+          <div class="grid two">
+            <div class="card">
+              <strong>User need</strong>
+              <p>
+                People routinely want something that reads like a page and
+                presents like a deck. That need keeps popping up.
+              </p>
+            </div>
+            <div class="card">
+              <strong>System fit</strong>
+              <p>
+                The existing starters already cover long reads and decks
+                separately; this closes the obvious gap between them.
+              </p>
+            </div>
+          </div>
+          <div
+            class="card"
+            data-audience-block="appendix"
+            style="margin-top: 1rem"
+          >
+            <strong>Appendix</strong>
+            <p style="margin-top: 0.45rem">
+              Use this block for dependencies, legal notes, rollout phases, or
+              exact acceptance criteria.
+            </p>
+          </div>
+        </section>
+        <section class="panel" id="decision" data-title="Decision">
+          <div class="eyebrow">Decision</div>
+          <h2>Capture the response inline.</h2>
+          <div class="decision-bar">
+            <span class="decision-state" id="decision-state">Pending</span>
+            <button class="approve" data-decision="Approved">Approve</button>
+            <button class="changes" data-decision="Changes requested">
+              Request changes
+            </button>
+            <button class="reject" data-decision="Rejected">Reject</button>
+          </div>
+          <div class="grid two" style="margin-top: 1rem">
+            <div class="card">
+              <strong>Follow-up prompt</strong>
+              <p style="margin-top: 0.45rem">
+                If changes are requested, what specifically must change before
+                approval?
+              </p>
+            </div>
+            <div class="card">
+              <strong>Sign-off metadata</strong>
+              <p style="margin-top: 0.45rem">
+                Owner, approver, timestamp, and next milestone can live here.
+              </p>
+            </div>
+          </div>
+        </section>
+      </main>
+    </div>
+    <script>
+      (() => {
+        const body = document.body,
+          panels = Array.from(document.querySelectorAll(".panel")),
+          toc = document.getElementById("toc"),
+          slideCount = document.getElementById("slide-count");
+        let active = 0;
+        const sync = () => {
+          slideCount.textContent = `${active + 1}/${panels.length}`;
+          Array.from(toc.querySelectorAll("a")).forEach((link, i) =>
+            link.setAttribute("aria-current", i === active ? "page" : "false"),
+          );
+        };
+        const show = (index) => {
+          active = (index + panels.length) % panels.length;
+          panels.forEach((panel, i) =>
+            panel.classList.toggle("active", i === active),
+          );
+          sync();
+        };
+        const setMode = (mode) => {
+          body.classList.remove("mode-read", "mode-focus", "mode-slides");
+          body.classList.add(`mode-${mode}`);
+          document
+            .querySelectorAll("[data-mode]")
+            .forEach((button) =>
+              button.setAttribute(
+                "aria-pressed",
+                String(button.dataset.mode === mode),
+              ),
+            );
+          if (mode === "slides") show(active);
+          else panels.forEach((panel) => panel.classList.add("active"));
+        };
+        toc.innerHTML = panels
+          .map(
+            (panel, i) =>
+              `<a href="#${panel.id}" data-index="${i}">${i + 1}. ${panel.dataset.title}</a>`,
+          )
+          .join("");
+        toc.addEventListener("click", (event) => {
+          const link = event.target.closest("a");
+          if (!link) return;
+          active = Number(link.dataset.index);
+          if (body.classList.contains("mode-slides")) {
+            event.preventDefault();
+            show(active);
+          }
+        });
+        document.addEventListener("click", (event) => {
+          const modeButton = event.target.closest("[data-mode]");
+          if (modeButton) setMode(modeButton.dataset.mode);
+          const audienceButton = event.target.closest("[data-audience-select]");
+          if (audienceButton) {
+            body.dataset.audience = audienceButton.dataset.audienceSelect;
+            document
+              .querySelectorAll("[data-audience-select]")
+              .forEach((button) =>
+                button.setAttribute(
+                  "aria-pressed",
+                  String(button === audienceButton),
+                ),
+              );
+          }
+          const notesButton = event.target.closest("[data-toggle-notes]");
+          if (notesButton) {
+            body.classList.toggle("show-notes");
+            notesButton.setAttribute(
+              "aria-pressed",
+              String(body.classList.contains("show-notes")),
+            );
+          }
+          const stepButton = event.target.closest("[data-step]");
+          if (stepButton)
+            show(active + (stepButton.dataset.step === "next" ? 1 : -1));
+          const decisionButton = event.target.closest("[data-decision]");
+          if (decisionButton)
+            document.getElementById("decision-state").textContent =
+              decisionButton.dataset.decision;
+        });
+        document.addEventListener("keydown", (event) => {
+          if (!body.classList.contains("mode-slides")) return;
+          if (["ArrowRight", "PageDown", " "].includes(event.key)) {
+            event.preventDefault();
+            show(active + 1);
+          }
+          if (["ArrowLeft", "PageUp"].includes(event.key)) {
+            event.preventDefault();
+            show(active - 1);
+          }
+        });
+        const observer = new IntersectionObserver(
+          (entries) => {
+            if (body.classList.contains("mode-slides")) return;
+            const visible = entries
+              .filter((entry) => entry.isIntersecting)
+              .sort((a, b) => b.intersectionRatio - a.intersectionRatio)[0];
+            if (!visible) return;
+            active = panels.indexOf(visible.target);
+            sync();
+          },
+          { threshold: [0.35, 0.7] },
+        );
+        panels.forEach((panel) => observer.observe(panel));
+        sync();
+      })();
+    </script>
+  </body>
+</html>

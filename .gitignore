@@ -1,0 +1,43 @@
+# ------------------------------------------------------------------
+# Junk sweep for Publish — keep the repo clean, darling.
+# Artify and friends like to drop their dirty laundry everywhere.
+# ------------------------------------------------------------------
+
+# ---------- Python / uv ----------
+__pycache__/
+*.py[cod]
+*.egg-info/
+.venv/
+venv/
+env/
+.mypy_cache/
+.pytest_cache/
+.ruff_cache/
+.tox/
+.coverage
+htmlcov/
+.ipynb_checkpoints/
+
+# ---------- Node / JS ----------
+node_modules/
+dist/
+build/
+*.tsbuildinfo
+
+# ---------- Artify runtime junk ----------
+# Artify writes temp/backup/cache artifacts while building offline copies.
+.cache/
+*.bak
+*.tmp
+*.json.tmp
+
+# ---------- OS / editor junk ----------
+.DS_Store
+Thumbs.db
+desktop.ini
+*~
+*.swp
+*.swo
+.idea/
+.vscode/
+*.code-workspace

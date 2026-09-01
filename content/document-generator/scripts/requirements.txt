@@ -1,0 +1,26 @@
+# Document Generator - Dependencies
+
+## Python
+pip install \
+    pandas \
+    openpyxl \
+    reportlab \
+    pypdf \
+    pdfplumber \
+    "markitdown[all]" \
+    pypdfium2 \
+    pdf2image \
+    pillow \
+    defusedxml \
+    python-pptx
+
+# For OCR (optional)
+pip install pytesseract
+
+## JavaScript
+npm install -g docx pptxgenjs react react-dom sharp
+
+## System
+# LibreOffice: https://www.libreoffice.org/
+# Poppler (pdftoppm): Install via package manager
+# Tesseract (OCR): https://github.com/tesseract-ocr/

@@ -1,0 +1,58 @@
+cases:
+  - id: generate_speech_basic
+    prompt: "Generate speech from text 'Hello, this is a test of Supertonic TTS' and save to test.wav"
+    fixtures: []
+    rubric:
+      - "Invokes the supertonic CLI or Python API to synthesize speech"
+      - "Produces a WAV file at the specified path"
+      - "Output shows duration and file size info"
+    trigger_expected: true
+    assertions:
+      - type: contains
+        target: "test.wav"
+        weight: 1.0
+      - type: matches_regex
+        target: "(?i)synthesiz|generat|speech|audio"
+        weight: 0.8
+
+  - id: generate_speech_with_voice
+    prompt: "Say 'Bonjour le monde' in French with voice F1 at speed 1.2, save to bonjour.wav"
+    fixtures: []
+    rubric:
+      - "Uses the correct language code (fr)"
+      - "Selects voice F1"
+      - "Applies speed 1.2"
+      - "Produces bonjour.wav"
+    trigger_expected: true
+    assertions:
+      - type: contains
+        target: "bonjour.wav"
+        weight: 1.0
+      - type: matches_regex
+        target: "(?i)lang.*fr|french"
+        weight: 0.8
+      - type: matches_regex
+        target: "(?i)voice.*F1|F1.*voice"
+        weight: 0.7
+
+  - id: list_voices
+    prompt: "What voices are available in supertonic?"
+    fixtures: []
+    rubric:
+      - "Lists the available voice styles (M1-M5, F1-F5)"
+      - "Does not attempt synthesis"
+    trigger_expected: true
+    assertions:
+      - type: matches_regex
+        target: "(?i)M[1-5].*F[1-5]|F[1-5].*M[1-5]|voice"
+        weight: 1.0
+      - type: matches_regex
+        target: "(?i)supertonic"
+        weight: 0.5
+
+  - id: not_speech_recognition
+    prompt: "Transcribe this audio file to text using Whisper"
+    fixtures: []
+    rubric:
+      - "Should NOT activate — this is speech recognition, not synthesis"
+    trigger_expected: false

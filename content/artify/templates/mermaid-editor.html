@@ -1,0 +1,253 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>{{TITLE}}</title>
+  <style>
+    :root {
+      --bg: #f5f1e8;
+      --panel: rgba(255,255,255,0.72);
+      --line: rgba(84, 63, 43, 0.16);
+      --text: #2f2419;
+      --muted: #72604f;
+      --accent: #b65c3a;
+      --accent-2: #3f7d6b;
+      --paper: #fffaf1;
+      --error-bg: #fff0ee;
+      --error-line: #e7b2a6;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      font: 15px/1.5 Georgia, "Times New Roman", serif;
+      color: var(--text);
+      background:
+        radial-gradient(circle at top right, rgba(182,92,58,0.10), transparent 28%),
+        radial-gradient(circle at top left, rgba(63,125,107,0.10), transparent 24%),
+        linear-gradient(180deg, #f8f4ec, #efe6d6);
+    }
+    .app {
+      min-height: 100vh;
+      display: grid;
+      grid-template-columns: minmax(320px, 470px) 1fr;
+      gap: 18px;
+      padding: 18px;
+    }
+    .panel {
+      background: var(--panel);
+      border: 1px solid var(--line);
+      border-radius: 24px;
+      box-shadow: 0 24px 70px rgba(66, 43, 16, 0.10);
+      backdrop-filter: blur(12px);
+      min-height: 0;
+      overflow: hidden;
+    }
+    .editor-panel {
+      display: grid;
+      grid-template-rows: auto auto 1fr auto;
+    }
+    .hero {
+      padding: 22px 22px 12px;
+    }
+    .eyebrow {
+      display: inline-block;
+      margin-bottom: 10px;
+      padding: 5px 10px;
+      border-radius: 999px;
+      background: rgba(182,92,58,0.10);
+      color: var(--accent);
+      font-size: 0.8rem;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+    }
+    h1 {
+      margin: 0 0 8px;
+      font-size: 1.35rem;
+      line-height: 1.1;
+    }
+    p {
+      margin: 0;
+      color: var(--muted);
+    }
+    .actions {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+      padding: 14px 22px;
+      border-top: 1px solid var(--line);
+      border-bottom: 1px solid var(--line);
+    }
+    button {
+      appearance: none;
+      border: 1px solid var(--line);
+      background: linear-gradient(180deg, #fffdf8, #f1e7d8);
+      color: var(--text);
+      padding: 10px 14px;
+      border-radius: 999px;
+      cursor: pointer;
+      font: inherit;
+      font-weight: 700;
+    }
+    button.primary {
+      background: linear-gradient(180deg, #c96d4a, #a55132);
+      color: #fffaf4;
+      border-color: rgba(128, 55, 30, 0.30);
+    }
+    textarea {
+      width: 100%;
+      height: 100%;
+      resize: none;
+      border: 0;
+      outline: none;
+      background: transparent;
+      color: var(--text);
+      padding: 20px 22px;
+      font: 14px/1.6 ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+    }
+    .tip {
+      padding: 14px 22px 18px;
+      border-top: 1px solid var(--line);
+      color: var(--muted);
+      font-size: 0.92rem;
+    }
+    .viewer {
+      display: grid;
+      grid-template-rows: auto auto 1fr;
+    }
+    .viewer-head {
+      padding: 22px 22px 12px;
+    }
+    .legend {
+      padding: 0 22px 14px;
+      color: var(--muted);
+      border-bottom: 1px solid var(--line);
+      font-size: 0.92rem;
+    }
+    .error-box {
+      display: none;
+      margin: 18px 22px 0;
+      padding: 14px 16px;
+      border-radius: 16px;
+      background: var(--error-bg);
+      border: 1px solid var(--error-line);
+      color: #8c3824;
+      font: 13px/1.5 ui-monospace, monospace;
+      white-space: pre-wrap;
+    }
+    .diagram-shell {
+      position: relative;
+      min-height: 0;
+      padding: 16px;
+    }
+    .diagram {
+      height: 100%;
+      min-height: 540px;
+      border-radius: 20px;
+      border: 1px solid rgba(84, 63, 43, 0.10);
+      background: var(--paper);
+      display: flex;
+      justify-content: center;
+      align-items: flex-start;
+      overflow: auto;
+      padding: 20px;
+    }
+    .diagram svg {
+      max-width: 100%;
+      height: auto;
+    }
+    @media (max-width: 920px) {
+      .app { grid-template-columns: 1fr; grid-template-rows: 50vh 1fr; }
+      .diagram { min-height: 420px; }
+    }
+  </style>
+  <script src="https://cdn.jsdelivr.net/npm/mermaid@11/dist/mermaid.min.js"></script>
+  <script>
+    mermaid.initialize({
+      startOnLoad: false,
+      theme: 'default',
+      securityLevel: 'loose',
+      flowchart: { useMaxWidth: true, htmlLabels: true },
+      sequence: { useMaxWidth: true }
+    });
+  </script>
+</head>
+<body>
+  <div class="app">
+    <section class="panel editor-panel">
+      <div class="hero">
+        <div class="eyebrow">Mermaid Studio</div>
+        <h1>{{TITLE}}</h1>
+        <p>{{DESCRIPTION}}</p>
+      </div>
+      <div class="actions">
+        <button class="primary" id="renderBtn">Render</button>
+        <button id="sampleBtn">Load sample</button>
+        <button id="clearBtn">Clear</button>
+      </div>
+      <textarea id="editor" spellcheck="false">{{INITIAL_DIAGRAM}}</textarea>
+      <div class="tip">Tip: choose one Mermaid type, keep labels short, and split overloaded diagrams into smaller views.</div>
+    </section>
+
+    <section class="panel viewer">
+      <div class="viewer-head">
+        <div class="eyebrow">Preview</div>
+        <h1>Rendered Diagram</h1>
+      </div>
+      <div class="legend">Open this file, edit the Mermaid on the left, then click Render.</div>
+      <div class="error-box" id="errorBox"></div>
+      <div class="diagram-shell">
+        <div class="diagram" id="diagramHost"></div>
+      </div>
+    </section>
+  </div>
+
+  <script>
+    const sample = `flowchart TD
+    Start([Start]) --> Scope[Define scope]
+    Scope --> Type{Choose diagram}
+    Type -->|Flow| Flow[Use flowchart]
+    Type -->|Interaction| Seq[Use sequenceDiagram]
+    Type -->|State| State[Use stateDiagram-v2]
+    Flow --> Render[Render in browser]
+    Seq --> Render
+    State --> Render
+    Render --> Review([Review output])`;
+
+    const editor = document.getElementById('editor');
+    const host = document.getElementById('diagramHost');
+    const errorBox = document.getElementById('errorBox');
+
+    async function renderDiagram(code) {
+      host.innerHTML = '';
+      errorBox.style.display = 'none';
+      errorBox.textContent = '';
+
+      try {
+        const id = 'm' + Date.now();
+        const { svg } = await mermaid.render(id, code.trim() || 'flowchart TD\nA[Empty]');
+        host.innerHTML = svg;
+      } catch (err) {
+        errorBox.style.display = 'block';
+        errorBox.textContent = 'Mermaid render error:\n' + (err.message || err.str || String(err));
+      }
+    }
+
+    document.getElementById('renderBtn').addEventListener('click', () => {
+      renderDiagram(editor.value);
+    });
+
+    document.getElementById('sampleBtn').addEventListener('click', () => {
+      editor.value = sample;
+      renderDiagram(editor.value);
+    });
+
+    document.getElementById('clearBtn').addEventListener('click', () => {
+      editor.value = '';
+      renderDiagram('flowchart TD\nA[Empty]');
+    });
+
+    renderDiagram(editor.value || sample);
+  </script>
+</body>
+</html>

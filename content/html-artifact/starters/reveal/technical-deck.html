@@ -1,0 +1,228 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Technical Architecture Review</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/reveal.js@5.1.0/dist/reveal.css">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/reveal.js@5.1.0/dist/theme/night.css">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/reveal.js@5.1.0/dist/print/pdf.css" media="print">
+  <style>
+    .reveal h1, .reveal h2, .reveal h3 { text-transform: none; letter-spacing: normal; }
+    .reveal h2 { font-size: 1.5em; margin-bottom: 0.5em; }
+    .reveal p, .reveal li { font-size: 0.8em; line-height: 1.5; }
+    .reveal ul { list-style: none; padding: 0; }
+    .reveal ul li { padding: 0.25em 0; }
+    .reveal ul li::before { content: "▸ "; color: #22c55e; }
+
+    /* Code blocks */
+    .reveal pre { width: auto; box-shadow: none; background: #0d1117; border-radius: 8px; border: 1px solid #30363d; }
+    .reveal pre code { font-size: 0.7em; line-height: 1.5; }
+
+    /* Comparison table */
+    .compare { width: 100%; border-collapse: collapse; font-size: 0.75em; }
+    .compare th { background: #1e293b; padding: 12px 16px; text-align: left; border-bottom: 2px solid #334155; }
+    .compare td { padding: 10px 16px; border-bottom: 1px solid #1e293b; }
+    .compare tr:hover td { background: rgba(255,255,255,0.03); }
+    .compare .winner { color: #22c55e; font-weight: 600; }
+    .compare .loser { color: #ef4444; }
+
+    /* Architecture boxes */
+    .arch-layer { display: flex; gap: 1rem; justify-content: center; margin: 0.5rem 0; }
+    .arch-box { padding: 1rem 1.5rem; border-radius: 8px; text-align: center; font-size: 0.75em; min-width: 140px; }
+    .arch-box.client { background: #1e40af; }
+    .arch-box.api { background: #7c3aed; }
+    .arch-box.service { background: #059669; }
+    .arch-box.data { background: #d97706; }
+    .arch-arrow { color: #475569; font-size: 1.5em; display: flex; align-items: center; }
+
+    /* Auto-animate elements */
+    .big-number { font-size: 5em; font-weight: 800; color: #22c55e; line-height: 1; }
+    .big-label { font-size: 0.9em; color: #888; }
+  </style>
+</head>
+<body>
+
+  <div class="reveal">
+    <div class="slides">
+
+      <!-- ==================== SLIDE 1: Title ==================== -->
+      <section data-background-color="#0a0a0a">
+        <h1>API Platform v2</h1>
+        <p style="color:#888;">Architecture Review · Engineering All-Hands</p>
+        <aside class="notes">
+          Today I'll walk through the v2 architecture. Three sections: what we're building, why we chose this design, and the migration plan.
+        </aside>
+      </section>
+
+      <!-- ==================== SLIDE 2-4: Vertical Stack — Architecture ==================== -->
+      <section>
+        <!-- Parent slide -->
+        <section>
+          <h2>Architecture Overview</h2>
+          <p style="color:#888;">Press ↓ to explore each layer</p>
+        </section>
+
+        <!-- Child 1: The layers -->
+        <section>
+          <h2>Four Layers</h2>
+          <div class="arch-layer"><div class="arch-box client">Client Apps</div></div>
+          <div style="text-align:center;color:#475569;">↓ HTTPS / WebSocket</div>
+          <div class="arch-layer"><div class="arch-box api">API Gateway</div></div>
+          <div style="text-align:center;color:#475569;">↓ gRPC</div>
+          <div class="arch-layer">
+            <div class="arch-box service">Auth Service</div>
+            <div class="arch-box service">Core Service</div>
+            <div class="arch-box service">Analytics</div>
+          </div>
+          <div style="text-align:center;color:#475569;">↓</div>
+          <div class="arch-layer">
+            <div class="arch-box data">PostgreSQL</div>
+            <div class="arch-box data">Redis</div>
+            <div class="arch-box data">S3</div>
+          </div>
+          <aside class="notes">
+            Four layers. Clients talk to the gateway over HTTPS. Gateway routes to services via gRPC. Services own their own data stores.
+          </aside>
+        </section>
+
+        <!-- Child 2: Why this split -->
+        <section>
+          <h2>Why Four Layers?</h2>
+          <ul>
+            <li class="fragment"><strong>Client isolation:</strong> frontend teams deploy independently</li>
+            <li class="fragment"><strong>Gateway as choke point:</strong> auth, rate limiting, logging in one place</li>
+            <li class="fragment"><strong>Service autonomy:</strong> each service owns its schema and deploy cycle</li>
+            <li class="fragment"><strong>Data isolation:</strong> no shared databases, no cross-service joins</li>
+          </ul>
+          <aside class="notes">
+            The key insight: each layer has a different deployment velocity. Clients ship daily. Gateway ships weekly. Services ship on their own cadence. The layers enforce that separation.
+          </aside>
+        </section>
+      </section>
+
+      <!-- ==================== SLIDE 5: Auto-Animate — Before/After ==================== -->
+      <section data-auto-animate>
+        <h2 data-id="title">v1 → v2</h2>
+        <div class="big-number" data-id="latency">340ms</div>
+        <div class="big-label" data-id="label">Average API latency (v1)</div>
+        <aside class="notes">
+          Current state: 340ms average latency. That's our P50. P99 is over 2 seconds.
+        </aside>
+      </section>
+
+      <section data-auto-animate>
+        <h2 data-id="title">v1 → v2</h2>
+        <div class="big-number" data-id="latency" style="color:#22c55e;">42ms</div>
+        <div class="big-label" data-id="label">Average API latency (v2 target)</div>
+        <aside class="notes">
+          With v2: 42ms. That's an 8x improvement. The main wins are connection pooling, Redis caching at the gateway, and removing the N+1 query pattern in the core service.
+        </aside>
+      </section>
+
+      <!-- ==================== SLIDE 6: Code ==================== -->
+      <section>
+        <h2>Key Change: Connection Pooling</h2>
+        <pre><code data-trim data-noescape>
+// v1 — new connection per request (slow)
+app.get("/users/:id", async (req, res) => {
+  const conn = await db.connect();      // ← expensive
+  const user = await conn.query(...);
+  conn.release();
+  res.json(user);
+});
+
+// v2 — shared pool, checkout on demand (fast)
+const pool = new Pool({ max: 20, idleTimeoutMs: 30000 });
+
+app.get("/users/:id", async (req, res) => {
+  const user = await pool.query(...);   // ← reuses connection
+  res.json(user);
+});
+        </code></pre>
+        <aside class="notes">
+          The biggest single change: connection pooling. In v1 we opened a new connection per request. In v2 we share a pool of 20 connections. This alone cut latency by 60%.
+        </aside>
+      </section>
+
+      <!-- ==================== SLIDE 7: Comparison ==================== -->
+      <section>
+        <h2>v1 vs v2</h2>
+        <table class="compare">
+          <thead>
+            <tr><th>Metric</th><th>v1 (current)</th><th>v2 (target)</th></tr>
+          </thead>
+          <tbody>
+            <tr class="fragment">
+              <td>P50 Latency</td>
+              <td class="loser">340ms</td>
+              <td class="winner">42ms</td>
+            </tr>
+            <tr class="fragment">
+              <td>P99 Latency</td>
+              <td class="loser">2.1s</td>
+              <td class="winner">180ms</td>
+            </tr>
+            <tr class="fragment">
+              <td>Max RPS</td>
+              <td class="loser">800</td>
+              <td class="winner">12,000</td>
+            </tr>
+            <tr class="fragment">
+              <td>Deploy frequency</td>
+              <td class="loser">Weekly (monolith)</td>
+              <td class="winner">Daily (per-service)</td>
+            </tr>
+            <tr class="fragment">
+              <td>DB connections</td>
+              <td class="loser">1 per request</td>
+              <td class="winner">Pooled (max 20)</td>
+            </tr>
+          </tbody>
+        </table>
+        <aside class="notes">
+          Side by side. Every metric improves. The deploy frequency change is arguably more important than the latency numbers — it unblocks the teams.
+        </aside>
+      </section>
+
+      <!-- ==================== SLIDE 8: Timeline ==================== -->
+      <section>
+        <h2>Migration Plan</h2>
+        <ul>
+          <li class="fragment"><strong>Jan:</strong> Gateway deployed in shadow mode (reads only, no routing)</li>
+          <li class="fragment"><strong>Feb:</strong> Auth service extracted, gateway routes auth traffic</li>
+          <li class="fragment"><strong>Mar:</strong> Core service extracted, 10% canary</li>
+          <li class="fragment"><strong>Apr:</strong> Full traffic migration, v1 deprecated</li>
+        </ul>
+        <aside class="notes">
+          Four months. Shadow mode in January — the gateway reads traffic but doesn't route. February we extract auth. March we extract core at 10% canary. April full migration. Rollback plan at every stage.
+        </aside>
+      </section>
+
+      <!-- ==================== SLIDE 9: Close ==================== -->
+      <section data-background-color="#0a0a0a">
+        <h1>Questions?</h1>
+        <p style="color:#888; font-size:0.7em;">RFC document: go/v2-rfc · Slack: #api-platform</p>
+        <aside class="notes">
+          Full RFC is in the go link. Feedback goes to #api-platform on Slack. We'll start shadow mode next Monday.
+        </aside>
+      </section>
+
+    </div>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/reveal.js@5.1.0/dist/reveal.js"></script>
+  <script>
+    Reveal.initialize({
+      hash: true,
+      transition: "slide",
+      transitionSpeed: "fast",
+      width: 1100,
+      height: 650,
+      center: false,
+      slideNumber: true,
+    });
+  </script>
+
+</body>
+</html>

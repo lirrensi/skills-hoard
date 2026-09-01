@@ -1,0 +1,9 @@
+%% Starter: approval flow
+flowchart TD
+    Start([Start]) --> Submit[Submit request]
+    Submit --> Review{Manager approves?}
+    Review -->|Yes| Finance[Finance check]
+    Review -->|No| Reject[Reject request]
+    Finance --> Book[Book budget]
+    Book --> Done([Done])
+    Reject --> End([Closed])

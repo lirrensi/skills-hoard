@@ -1,0 +1,478 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Slideshow</title>
+  <!--
+    ============================================================
+    SLIDESHOW STARTER — Clean keyboard-navigable presentation
+    ============================================================
+
+    WHAT IT DOES:
+    Minimal slide deck with keyboard navigation. No framework,
+    no CDN — pure HTML/CSS/JS. Arrow keys to navigate, F for
+    fullscreen, escape to exit.
+
+    THIS STARTER: 6-slide example deck with code examples.
+
+    HOW TO CUSTOMIZE:
+    1. Add/remove <section class="slide"> elements
+    2. Change slide content (HTML inside each section)
+    3. Adjust CSS variables for colors, fonts
+    4. Add transitions by changing --transition CSS variable
+
+    KEYBOARD CONTROLS:
+    → / Space / Enter  — next slide
+    ←                  — previous slide
+    Home               — first slide
+    End                — last slide
+    F                  — toggle fullscreen
+    Escape             — exit fullscreen
+
+    TOUCH CONTROLS:
+    Swipe left  — next slide
+    Swipe right — previous slide
+
+    SLIDE LAYOUTS (CSS classes):
+    .slide              — default centered layout
+    .slide.dark         — dark background
+    .slide.light        — light background
+    .slide.split        — two-column layout (use .left/.right inside)
+    .slide.title        — large centered title
+    .slide.code         — code-focused slide
+
+    CSS CLASSES FOR CONTENT:
+    .big                — larger text
+    .small              — smaller muted text
+    .accent             — accent color
+    .fragment           — appears on click (step-by-step reveal)
+    .fragment.active    — already visible
+
+    ADDING FRAGMENTS:
+    <p class="fragment">This appears on click</p>
+    <p class="fragment" data-delay="300">This appears 300ms later</p>
+
+    PROGRESS BAR: automatic, shows at top
+    SLIDE NUMBERS: automatic, shows bottom-right
+
+    ============================================================
+  -->
+  <style>
+    /* ============================================================
+       THEME VARIABLES — change these to restyle everything
+       ============================================================ */
+    :root {
+      --bg: #0f172a;
+      --text: #e2e8f0;
+      --muted: #64748b;
+      --accent: #3b82f6;
+      --font: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+      --font-mono: 'JetBrains Mono', 'Fira Code', monospace;
+      --slide-width: 100vw;
+      --slide-height: 100vh;
+      --transition: transform 0.4s cubic-bezier(0.4, 0, 0.2, 1), opacity 0.4s ease;
+    }
+
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    body {
+      font-family: var(--font);
+      background: #000;
+      overflow: hidden;
+      user-select: none;
+    }
+
+    /* ============================================================
+       SLIDE CONTAINER
+       ============================================================ */
+    .deck {
+      position: relative;
+      width: var(--slide-width);
+      height: var(--slide-height);
+    }
+
+    .slide {
+      position: absolute;
+      top: 0; left: 0;
+      width: 100%;
+      height: 100%;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      padding: 4rem 6rem;
+      background: var(--bg);
+      color: var(--text);
+      transition: var(--transition);
+      opacity: 0;
+      transform: translateX(100%);
+      pointer-events: none;
+    }
+
+    .slide.active {
+      opacity: 1;
+      transform: translateX(0);
+      pointer-events: all;
+    }
+
+    .slide.past {
+      opacity: 0;
+      transform: translateX(-100%);
+    }
+
+    /* ============================================================
+       SLIDE VARIANTS
+       ============================================================ */
+    .slide.dark { background: #0f172a; color: #e2e8f0; }
+    .slide.light { background: #f8fafc; color: #1e293b; }
+    .slide.title { text-align: center; }
+    .slide.code { align-items: flex-start; justify-content: flex-start; padding: 3rem 4rem; }
+
+    .slide.split {
+      flex-direction: row;
+      padding: 0;
+      align-items: stretch;
+    }
+    .slide.split .left, .slide.split .right {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      padding: 3rem 4rem;
+    }
+    .slide.split .left { background: #1e293b; }
+    .slide.split .right { background: #0f172a; }
+
+    /* ============================================================
+       TYPOGRAPHY
+       ============================================================ */
+    h1 { font-size: 3.5rem; font-weight: 700; line-height: 1.1; margin-bottom: 1rem; }
+    h2 { font-size: 2.2rem; font-weight: 600; line-height: 1.2; margin-bottom: 1rem; }
+    h3 { font-size: 1.5rem; font-weight: 600; margin-bottom: 0.75rem; }
+    p { font-size: 1.3rem; line-height: 1.6; max-width: 800px; }
+    ul, ol { font-size: 1.3rem; line-height: 1.8; list-style: none; }
+    li { padding: 0.3rem 0; }
+    li::before { content: "→ "; color: var(--accent); font-weight: bold; }
+    .big { font-size: 2rem; }
+    .small { font-size: 1rem; color: var(--muted); }
+    .accent { color: var(--accent); }
+    .subtitle { color: var(--muted); font-size: 1.1rem; margin-top: 0.5rem; }
+
+    /* Code */
+    pre {
+      background: #1e293b;
+      border: 1px solid #334155;
+      border-radius: 8px;
+      padding: 1.5rem;
+      overflow-x: auto;
+      font-family: var(--font-mono);
+      font-size: 1rem;
+      line-height: 1.6;
+      max-width: 100%;
+      text-align: left;
+    }
+    code { font-family: var(--font-mono); }
+
+    /* ============================================================
+       FRAGMENTS — step-by-step reveal
+       ============================================================ */
+    .fragment {
+      opacity: 0;
+      transform: translateY(12px);
+      transition: opacity 0.4s ease, transform 0.4s ease;
+    }
+    .fragment.visible {
+      opacity: 1;
+      transform: translateY(0);
+    }
+
+    /* ============================================================
+       PROGRESS BAR
+       ============================================================ */
+    .progress-bar {
+      position: fixed;
+      top: 0;
+      left: 0;
+      height: 3px;
+      background: var(--accent);
+      transition: width 0.3s ease;
+      z-index: 100;
+    }
+
+    /* ============================================================
+       SLIDE NUMBER
+       ============================================================ */
+    .slide-number {
+      position: fixed;
+      bottom: 1.5rem;
+      right: 2rem;
+      color: var(--muted);
+      font-size: 0.85rem;
+      font-family: var(--font-mono);
+      z-index: 100;
+    }
+
+    /* ============================================================
+       HELP OVERLAY
+       ============================================================ */
+    .help {
+      display: none;
+      position: fixed;
+      top: 0; left: 0;
+      width: 100%; height: 100%;
+      background: rgba(0,0,0,0.85);
+      z-index: 200;
+      justify-content: center;
+      align-items: center;
+    }
+    .help.visible { display: flex; }
+    .help-inner {
+      background: #1e293b;
+      border: 1px solid #334155;
+      border-radius: 12px;
+      padding: 2rem 3rem;
+      max-width: 400px;
+    }
+    .help h3 { margin-bottom: 1rem; }
+    .help p { font-size: 0.9rem; color: var(--muted); margin: 0.5rem 0; }
+    .help kbd {
+      background: #334155;
+      padding: 0.15rem 0.5rem;
+      border-radius: 4px;
+      font-family: var(--font-mono);
+      font-size: 0.85rem;
+      color: #e2e8f0;
+    }
+  </style>
+</head>
+<body>
+
+  <div class="progress-bar" id="progress"></div>
+  <div class="slide-number" id="slideNumber"></div>
+
+  <div class="deck" id="deck">
+
+    <!-- ============================================================
+         SLIDE 1: Title
+         ============================================================ -->
+    <section class="slide active title">
+      <h1>Building Better Software</h1>
+      <p class="subtitle">A developer's guide to writing code that doesn't suck</p>
+      <p class="small" style="margin-top: 2rem;">Press <kbd style="background:#334155;padding:0.15rem 0.5rem;border-radius:4px;font-family:monospace;font-size:0.85rem;">→</kbd> to navigate · <kbd style="background:#334155;padding:0.15rem 0.5rem;border-radius:4px;font-family:monospace;font-size:0.85rem;">?</kbd> for help</p>
+    </section>
+
+    <!-- ============================================================
+         SLIDE 2: Agenda
+         ============================================================ -->
+    <section class="slide">
+      <h2>What We'll Cover</h2>
+      <ul>
+        <li class="fragment">Code is read more than it's written</li>
+        <li class="fragment">Naming things is hard but important</li>
+        <li class="fragment">Functions should do one thing</li>
+        <li class="fragment">Error handling isn't optional</li>
+        <li class="fragment">Testing saves more time than it costs</li>
+      </ul>
+    </section>
+
+    <!-- ============================================================
+         SLIDE 3: Split — Problem / Solution
+         ============================================================ -->
+    <section class="slide split">
+      <div class="left">
+        <h3>The Problem</h3>
+        <p class="fragment">Developers spend <span class="accent">10x</span> more time reading code than writing it.</p>
+        <p class="fragment small" style="margin-top:1rem;">Yet we optimize for write speed, not read clarity.</p>
+      </div>
+      <div class="right">
+        <h3>The Fix</h3>
+        <p class="fragment">Write code as if the person maintaining it is a <span class="accent">sleep-deprived version of you</span> at 3am.</p>
+        <p class="fragment small" style="margin-top:1rem;">Because it probably will be.</p>
+      </div>
+    </section>
+
+    <!-- ============================================================
+         SLIDE 4: Code Example
+         ============================================================ -->
+    <section class="slide code">
+      <h2>Naming Matters</h2>
+      <div class="fragment" style="margin-top:1rem;">
+        <pre><code>// Bad
+const d = new Date();
+const x = d.getTime() - 86400000;
+
+// Good
+const now = new Date();
+const yesterday = new Date(now.getTime() - 24 * 60 * 60 * 1000);</code></pre>
+      </div>
+      <p class="fragment small" style="margin-top:1.5rem;">The compiler doesn't care. Your coworker does.</p>
+    </section>
+
+    <!-- ============================================================
+         SLIDE 5: Key Insight
+         ============================================================ -->
+    <section class="slide title">
+      <h2 class="big">"Any fool can write code that a computer can understand.<br>Good programmers write code that <span class="accent">humans</span> can understand."</h2>
+      <p class="small" style="margin-top: 2rem;">— Martin Fowler</p>
+    </section>
+
+    <!-- ============================================================
+         SLIDE 6: End
+         ============================================================ -->
+    <section class="slide title">
+      <h1>Thank You</h1>
+      <p class="subtitle">Now go write some beautiful code.</p>
+    </section>
+
+  </div>
+
+  <!-- Help overlay -->
+  <div class="help" id="help">
+    <div class="help-inner">
+      <h3>Keyboard Shortcuts</h3>
+      <p><kbd>→</kbd> / <kbd>Space</kbd> / <kbd>Enter</kbd> — Next slide</p>
+      <p><kbd>←</kbd> — Previous slide</p>
+      <p><kbd>Home</kbd> — First slide</p>
+      <p><kbd>End</kbd> — Last slide</p>
+      <p><kbd>F</kbd> — Toggle fullscreen</p>
+      <p><kbd>?</kbd> — Toggle this help</p>
+      <p><kbd>Esc</kbd> — Exit fullscreen / close help</p>
+      <p style="margin-top:1rem;"><kbd>Swipe left/right</kbd> on mobile</p>
+    </div>
+  </div>
+
+  <script>
+    // ============================================================
+    // SLIDESHOW ENGINE
+    // ============================================================
+    const deck = document.getElementById('deck');
+    const slides = Array.from(deck.querySelectorAll('.slide'));
+    const progressBar = document.getElementById('progress');
+    const slideNumberEl = document.getElementById('slideNumber');
+    const helpEl = document.getElementById('help');
+
+    let current = 0;
+    let fragmentIndex = 0;
+
+    function goTo(index) {
+      if (index < 0 || index >= slides.length) return;
+
+      // Update slide classes
+      slides.forEach((slide, i) => {
+        slide.classList.remove('active', 'past');
+        if (i < index) slide.classList.add('past');
+        if (i === index) slide.classList.add('active');
+      });
+
+      current = index;
+
+      // Reset fragments for current slide
+      const fragments = slides[current].querySelectorAll('.fragment');
+      fragments.forEach(f => f.classList.remove('visible'));
+      fragmentIndex = 0;
+
+      // Update progress
+      progressBar.style.width = `${((current + 1) / slides.length) * 100}%`;
+
+      // Update slide number
+      slideNumberEl.textContent = `${current + 1} / ${slides.length}`;
+    }
+
+    function next() {
+      // First, try to reveal a fragment
+      const fragments = slides[current].querySelectorAll('.fragment');
+      if (fragmentIndex < fragments.length) {
+        fragments[fragmentIndex].classList.add('visible');
+        fragmentIndex++;
+        return;
+      }
+      // No more fragments — go to next slide
+      if (current < slides.length - 1) {
+        goTo(current + 1);
+      }
+    }
+
+    function prev() {
+      if (current > 0) {
+        goTo(current - 1);
+        // Show all fragments on previous slide
+        const fragments = slides[current].querySelectorAll('.fragment');
+        fragments.forEach(f => f.classList.add('visible'));
+        fragmentIndex = fragments.length;
+      }
+    }
+
+    // ============================================================
+    // KEYBOARD CONTROLS
+    // ============================================================
+    window.addEventListener('keydown', (e) => {
+      // Don't hijack input fields
+      if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA') return;
+
+      switch (e.key) {
+        case 'ArrowRight':
+        case ' ':
+        case 'Enter':
+          e.preventDefault();
+          next();
+          break;
+        case 'ArrowLeft':
+          e.preventDefault();
+          prev();
+          break;
+        case 'Home':
+          e.preventDefault();
+          goTo(0);
+          break;
+        case 'End':
+          e.preventDefault();
+          goTo(slides.length - 1);
+          break;
+        case 'f':
+        case 'F':
+          if (!document.fullscreenElement) {
+            document.documentElement.requestFullscreen();
+          } else {
+            document.exitFullscreen();
+          }
+          break;
+        case '?':
+          helpEl.classList.toggle('visible');
+          break;
+        case 'Escape':
+          helpEl.classList.remove('visible');
+          break;
+      }
+    });
+
+    // ============================================================
+    // TOUCH CONTROLS
+    // ============================================================
+    let touchStartX = 0;
+    let touchStartY = 0;
+
+    deck.addEventListener('touchstart', (e) => {
+      touchStartX = e.changedTouches[0].screenX;
+      touchStartY = e.changedTouches[0].screenY;
+    }, { passive: true });
+
+    deck.addEventListener('touchend', (e) => {
+      const dx = e.changedTouches[0].screenX - touchStartX;
+      const dy = e.changedTouches[0].screenY - touchStartY;
+
+      // Only trigger if horizontal swipe is dominant
+      if (Math.abs(dx) > Math.abs(dy) && Math.abs(dx) > 50) {
+        if (dx < 0) next();
+        else prev();
+      }
+    }, { passive: true });
+
+    // ============================================================
+    // INIT
+    // ============================================================
+    goTo(0);
+  </script>
+
+</body>
+</html>

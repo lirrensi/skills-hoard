@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>{{TITLE}}</title>
+<style>
+  :root { --bg: #ffffff; --fg: #1a1a2e; --muted: #6b7280; }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: 'Segoe UI', system-ui, sans-serif;
+    background: var(--bg);
+    color: var(--fg);
+    padding: 2rem;
+  }
+  h1 { font-size: 1.4rem; margin-bottom: 0.5rem; font-weight: 600; }
+  .subtitle { color: var(--muted); margin-bottom: 1.5rem; font-size: 0.95rem; }
+  .chart-container {
+    max-width: 900px;
+    margin: 0 auto;
+    background: #fafafa;
+    border: 1px solid #e5e7eb;
+    border-radius: 8px;
+    padding: 1.5rem;
+  }
+  canvas { width: 100% !important; }
+</style>
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body>
+<h1>{{TITLE}}</h1>
+<p class="subtitle">{{SUBTITLE}}</p>
+<div class="chart-container">
+  <canvas id="chart"></canvas>
+</div>
+<script>
+{{CHART_CONFIG}}
+</script>
+</body>
+</html>

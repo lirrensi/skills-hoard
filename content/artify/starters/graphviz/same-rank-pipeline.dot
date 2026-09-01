@@ -1,0 +1,20 @@
+digraph {
+  rankdir=TB;
+  graph [pad=0.3, nodesep=0.45, ranksep=0.7];
+  node [shape=box, style="rounded,filled", fillcolor="#fff6e8", color="#c28a34"];
+  edge [color="#8a7b68"];
+
+  Ingest -> Validate -> Transform -> Publish;
+
+  subgraph {
+    rank=same;
+    Validate;
+    Audit;
+    Notify;
+  }
+
+  Validate -> Audit;
+  Validate -> Notify;
+  Audit -> Publish [style=dashed];
+  Notify -> Publish [style=dashed];
+}

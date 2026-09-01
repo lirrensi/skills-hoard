@@ -1,0 +1,35 @@
+{
+    "skill_name": "social-media-post-creator",
+    "evals": [
+        {
+            "id": 1,
+            "prompt": "Turn these bullet points into a LinkedIn post:\n- Launched new feature after 6 months of work\n- Team grew from 3 to 12 people during this time\n- Customer feedback drove every decision\n- Launched yesterday, 500 signups already",
+            "expected_output": "Platform-native LinkedIn post with strong hook, personal story framing, specific metrics, and engagement CTA",
+            "files": []
+        },
+        {
+            "id": 2,
+            "prompt": "Create a Twitter thread from this presentation outline:\n1. The problem: developers spend 40% of time on debugging\n2. The insight: most bugs are caused by edge cases\n3. Our solution: AI-powered edge case detection\n4. Results: 60% faster debugging for early users\n5. How to try it: link in comments",
+            "expected_output": "5-tweet thread with strong hook, one point per tweet, platform-native tone for Twitter",
+            "files": []
+        },
+        {
+            "id": 3,
+            "prompt": "Make this Instagram-ready from our blog post about 10 productivity tips:\n[Blog post about 10 productivity tips for remote workers]",
+            "expected_output": "Instagram carousel structure or Reel script with hook, key points adapted for visual platform",
+            "files": []
+        },
+        {
+            "id": 4,
+            "prompt": "Is this content suitable for Twitter? It's a 2,000-word article about the future of AI in healthcare",
+            "expected_output": "Should flag format mismatch and suggest: Twitter thread of key takeaways, or LinkedIn article, or TikTok/Reel summary",
+            "files": []
+        },
+        {
+            "id": 5,
+            "prompt": "Adapt this for both LinkedIn and Twitter: Just closed our first enterprise customer worth $100K ARR after 8 months of conversations",
+            "expected_output": "Two platform-native versions - LinkedIn with professional story framing, Twitter with concise celebration, both adapted not copied",
+            "files": []
+        }
+    ]
+}

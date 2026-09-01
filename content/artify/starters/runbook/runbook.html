@@ -1,0 +1,524 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Developer Onboarding — Runbook</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/highlight.js@11/styles/github-dark.min.css">
+  <script src="https://cdn.jsdelivr.net/npm/highlight.js@11"></script>
+  <script>
+    tailwind.config = {
+      theme: { extend: { colors: {
+        bg: '#0d1117', card: '#161b22', border: '#30363d', text: '#e6edf3', accent: '#58a6ff',
+        green: '#3fb950', orange: '#d29922', red: '#f85149'
+      }}}
+    }
+  </script>
+  <style>
+    [x-cloak] { display: none !important; }
+    .task-done { text-decoration: line-through; opacity: 0.5; }
+    @media print {
+      .no-print { display: none !important; }
+      details { display: block !important; }
+    }
+    pre code.hljs { border-radius: 0.5rem; padding: 1rem !important; }
+  </style>
+  <!--
+    ============================================================
+    ONBOARDING DOC / RUNBOOK STARTER
+    ============================================================
+
+    WHAT THIS IS:
+    An onboarding doc that new hires actually complete, not skim.
+    Interactive checklists with progress tracking turn a wall of
+    text into a guided journey. Every checkbox tick is a dopamine hit.
+
+    USE THIS FOR:
+    - New employee onboarding
+    - Developer environment setup guides
+    - Incident response runbooks
+    - SOPs and procedures (step-by-step with checkboxes)
+    - Team knowledge bases with structured learning paths
+    - Replace: Confluence pages, Notion wikis, Google Docs SOPs
+
+    WHY HTML OVER CONFLUENCE/NOTION:
+    - Progress tracking without needing an account
+    - Works offline (single file, no SaaS dependency)
+    - Syntax-highlighted code blocks that actually work
+    - Copy buttons on every code block
+    - Search that's instant (no loading spinners)
+    - Print-friendly for the "I like paper" crowd
+    - Version it in git alongside your code
+
+    HOW TO CUSTOMIZE:
+    1. Replace the `sections` array in x-data
+    2. Each section: { title, tasks: [{ text, time, done, details }] }
+    3. Task details can include HTML: code blocks, links, notes
+    4. Replace the people directory with your team
+    5. Update key links with your actual tools/repos
+    6. Change the company name in the header
+    7. Adjust the timeline (Day 1/2/Week 1) to your pace
+
+    CORE CONCEPTS:
+    - Checkboxes bind to localStorage via Alpine.js $watch
+    - Progress = (completed tasks / total tasks) * 100
+    - Search filters tasks by matching text content
+    - Code blocks get highlight.js treatment after Alpine renders them
+    - Copy button uses navigator.clipboard.writeText()
+
+    GOTCHAS:
+    - localStorage key should be unique per runbook (use a prefix)
+    - highlight.js needs to run AFTER Alpine renders code blocks
+    - Copy-to-clipboard needs HTTPS or localhost (security policy)
+    - Print: expand all sections before printing
+
+    MORE DOCS:
+    - Alpine.js: https://alpinejs.dev/start-here
+    - Highlight.js: https://highlightjs.org/
+    - Clipboard API: https://developer.mozilla.org/en-US/docs/Web/API/Clipboard_API
+    ============================================================
+-->
+</head>
+<body class="bg-bg text-text font-sans min-h-screen" x-data="runbookApp()" x-init="init()">
+
+  <!-- Header -->
+  <header class="bg-card border-b border-border sticky top-0 z-40 no-print">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 py-4">
+      <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+        <div>
+          <div class="flex items-center gap-2 text-xs text-gray-400 mb-1">
+            <span class="px-2 py-0.5 rounded bg-accent/20 text-accent font-medium">Engineering</span>
+            <span>·</span>
+            <span>Full-Stack Team</span>
+          </div>
+          <h1 class="text-xl font-bold">Developer Onboarding Runbook</h1>
+          <p class="text-sm text-gray-400">Welcome aboard, <span class="text-accent">[Your Name]</span> — here's everything you need to get up and running.</p>
+        </div>
+        <div class="text-right shrink-0">
+          <p class="text-sm text-gray-400 mb-1">Overall Progress</p>
+          <div class="flex items-center gap-3">
+            <div class="w-40 h-2 rounded-full bg-bg overflow-hidden">
+              <div class="h-full rounded-full bg-accent transition-all duration-500" :style="'width:' + overallProgress + '%'"></div>
+            </div>
+            <span class="text-sm font-mono font-bold" x-text="overallProgress + '%'"></span>
+          </div>
+          <p class="text-xs mt-1" :class="overallProgress === 100 ? 'text-green' : 'text-gray-500'" x-text="progressMessage"></p>
+        </div>
+      </div>
+
+      <!-- Search -->
+      <div class="mt-4 flex gap-3">
+        <div class="relative flex-1 max-w-md">
+          <svg class="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
+          <input type="text" x-model="searchQuery" placeholder="Search tasks..." class="w-full pl-9 pr-4 py-2 rounded-lg bg-bg border border-border text-sm focus:border-accent focus:outline-none">
+        </div>
+        <button @click="resetProgress()" class="px-4 py-2 rounded-lg bg-red/10 text-red text-sm hover:bg-red/20 transition-colors">
+          Reset All
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <div class="max-w-7xl mx-auto px-4 sm:px-6 py-8 flex gap-8">
+    <!-- Sidebar -->
+    <aside class="hidden lg:block w-56 shrink-0 sticky top-36 self-start no-print">
+      <nav class="space-y-1">
+        <template x-for="(section, si) in sections" :key="si">
+          <a :href="'#section-' + si" class="flex items-center gap-3 px-3 py-2 rounded-lg text-sm hover:bg-card transition-colors" :class="si === 0 ? 'bg-card' : ''">
+            <div class="w-2 h-2 rounded-full" :class="sectionProgress(si) === 100 ? 'bg-green' : sectionProgress(si) > 0 ? 'bg-orange' : 'bg-border'"></div>
+            <span x-text="section.title"></span>
+            <span class="ml-auto text-xs text-gray-500 font-mono" x-text="sectionDone(si) + '/' + section.tasks.length"></span>
+          </a>
+        </template>
+      </nav>
+
+      <!-- Key Links -->
+      <div class="mt-8">
+        <h3 class="text-xs font-semibold uppercase tracking-wider text-gray-400 mb-3">Key Links</h3>
+        <div class="space-y-1">
+          <template x-for="link in keyLinks" :key="link.name">
+            <a :href="link.url" class="block px-3 py-1.5 text-sm text-gray-400 hover:text-accent transition-colors truncate" x-text="link.name"></a>
+          </template>
+        </div>
+      </div>
+    </aside>
+
+    <!-- Main Content -->
+    <main class="flex-1 min-w-0">
+      <!-- Sections -->
+      <template x-for="(section, si) in sections" :key="si">
+        <section :id="'section-' + si" class="mb-10" x-show="matchesSearch(section)">
+          <div class="flex items-center justify-between mb-4">
+            <h2 class="text-lg font-semibold flex items-center gap-2">
+              <span x-text="section.title"></span>
+              <span class="text-xs font-mono px-2 py-0.5 rounded-full" :class="sectionProgress(si) === 100 ? 'bg-green/20 text-green' : 'bg-border text-gray-400'" x-text="sectionDone(si) + '/' + section.tasks.length"></span>
+            </h2>
+            <button @click="markAllComplete(si)" class="no-print text-xs text-accent hover:underline" x-show="sectionProgress(si) < 100">
+              Mark all complete
+            </button>
+          </div>
+
+          <div class="space-y-2">
+            <template x-for="(task, ti) in section.tasks" :key="ti">
+              <div x-show="!searchQuery || task.text.toLowerCase().includes(searchQuery.toLowerCase())">
+                <div class="flex items-start gap-3 p-3 rounded-lg bg-card border border-border hover:border-accent/30 transition-colors">
+                  <input type="checkbox" :id="'task-' + si + '-' + ti" x-model="task.done" @change="saveProgress()"
+                         class="mt-1 w-4 h-4 rounded border-border bg-bg text-accent focus:ring-accent shrink-0">
+                  <label :for="'task-' + si + '-' + ti" class="flex-1 cursor-pointer" :class="task.done ? 'task-done' : ''">
+                    <div class="flex items-baseline gap-2 flex-wrap">
+                      <span class="font-medium text-sm" x-text="task.text"></span>
+                      <span x-show="task.time" class="text-xs text-gray-500" x-text="'~' + task.time"></span>
+                    </div>
+                  </label>
+                  <button x-show="task.details" @click="task.expanded = !task.expanded" class="no-print text-xs text-gray-400 hover:text-accent shrink-0">
+                    <span x-text="task.expanded ? 'Hide' : 'Details'"></span>
+                  </button>
+                </div>
+                <!-- Details -->
+                <div x-show="task.expanded && task.details" x-cloak x-transition class="ml-7 mt-1 mb-3 p-4 rounded-lg bg-bg border border-border">
+                  <div class="text-sm text-gray-300 prose prose-invert prose-sm max-w-none" x-html="task.details"></div>
+                </div>
+              </div>
+            </template>
+          </div>
+        </section>
+      </template>
+
+      <!-- People Directory -->
+      <section class="mb-10">
+        <h2 class="text-lg font-semibold mb-4">People to Know</h2>
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+          <template x-for="person in people" :key="person.name">
+            <div class="p-4 rounded-xl bg-card border border-border">
+              <div class="flex items-center gap-3 mb-2">
+                <div class="w-10 h-10 rounded-full flex items-center justify-center text-sm font-bold" :style="'background:' + person.color + '30; color:' + person.color" x-text="person.initials"></div>
+                <div>
+                  <h3 class="font-semibold text-sm" x-text="person.name"></h3>
+                  <p class="text-xs text-gray-400" x-text="person.role"></p>
+                </div>
+              </div>
+              <p class="text-xs text-gray-400 mb-1"><strong class="text-gray-300">Ask about:</strong> <span x-text="person.askAbout"></span></p>
+              <p class="text-xs text-gray-500">Slack: <span class="text-accent" x-text="'@' + person.slack"></span></p>
+            </div>
+          </template>
+        </div>
+      </section>
+
+      <!-- Footer -->
+      <footer class="text-center text-xs text-gray-500 py-6 border-t border-border">
+        Generated with html-artifact · Onboarding Runbook Starter · <span x-text="new Date().toLocaleDateString()"></span>
+      </footer>
+    </main>
+  </div>
+
+  <script>
+    function runbookApp() {
+      return {
+        searchQuery: '',
+        sections: [
+          {
+            title: 'Day 1 — Setup',
+            tasks: [
+              {
+                text: 'Set up your laptop and install required tools',
+                time: '45 min',
+                done: false, expanded: false,
+                details: `<p>Install these tools in order:</p>
+<pre><code class="language-bash"># Homebrew (macOS) or winget (Windows)
+/bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
+
+# Node.js (use fnm for version management)
+curl -fsSL https://fnm.vercel.app/install | bash
+fnm install --lts
+
+# Core tools
+npm install -g pnpm turbo
+brew install git gh docker</code></pre>
+<p>After install, run <code>node --version</code> and <code>pnpm --version</code> to verify.</p>`
+              },
+              {
+                text: 'Clone the monorepo and verify build',
+                time: '15 min',
+                done: false, expanded: false,
+                details: `<pre><code class="language-bash"># Clone
+gh repo clone vexi/monorepo
+cd monorepo
+
+# Install dependencies
+pnpm install
+
+# Run the full build
+pnpm build
+
+# Start dev server
+pnpm dev</code></pre>
+<p>Open <code>http://localhost:3000</code> — you should see the Vexi dashboard.</p>`
+              },
+              {
+                text: 'Set up 2FA on GitHub and request repo access',
+                time: '10 min',
+                done: false, expanded: false,
+                details: `<ol class="list-decimal pl-4 space-y-1">
+<li>Go to <a class="text-accent" href="#">github.com/settings/security</a></li>
+<li>Enable 2FA with an authenticator app (not SMS)</li>
+<li>Ask your buddy to add you to the <code>vexi</code> org</li>
+<li>Accept the invite and clone the private repos</li>
+</ol>`
+              },
+              {
+                text: 'Join Slack channels',
+                time: '5 min',
+                done: false, expanded: false,
+                details: `<p>Essential channels to join:</p>
+<ul class="list-disc pl-4 space-y-1">
+<li><code>#engineering</code> — main engineering discussions</li>
+<li><code>#deploys</code> — deployment notifications</li>
+<li><code>#incidents</code> — incident response</li>
+<li><code>#team-frontend</code> — your team's channel</li>
+<li><code>#random</code> — watercooler chat</li>
+</ul>`
+              },
+              {
+                text: 'Configure your editor (VS Code recommended)',
+                time: '10 min',
+                done: false, expanded: false,
+                details: `<p>Install these VS Code extensions:</p>
+<pre><code class="language-bash">code --install-extension dbaeumer.vscode-eslint
+code --install-extension esbenp.prettier-vscode
+code --install-extension bradlc.vscode-tailwindcss
+code --install-extension prisma.prisma</code></pre>
+<p>Copy the workspace settings: <code>cp .vscode/settings.example.json .vscode/settings.json</code></p>`
+              }
+            ]
+          },
+          {
+            title: 'Day 2 — Context',
+            tasks: [
+              {
+                text: 'Read the architecture overview doc',
+                time: '30 min',
+                done: false, expanded: false,
+                details: `<p>Read the full architecture doc at <a class="text-accent" href="#">docs/architecture.md</a>. Key things to understand:</p>
+<ul class="list-disc pl-4 space-y-1">
+<li>Monorepo structure: <code>apps/</code> (frontends), <code>packages/</code> (shared libs), <code>services/</code> (APIs)</li>
+<li>API layer: tRPC for internal, REST for external</li>
+<li>Database: PostgreSQL with Prisma ORM</li>
+<li>Deploy: Docker → ECS on AWS</li>
+</ul>`
+              },
+              {
+                text: 'Watch the onboarding video series',
+                time: '60 min',
+                done: false, expanded: false,
+                details: `<p>3-part video series on Notion:</p>
+<ol class="list-decimal pl-4 space-y-1">
+<li><strong>Product Overview</strong> — what Vexi does and who uses it (20 min)</li>
+<li><strong>Codebase Walkthrough</strong> — where things live (20 min)</li>
+<li><strong>Deploy Pipeline</strong> — how code gets to production (20 min)</li>
+</ol>`
+              },
+              {
+                text: 'Set up local database and seed data',
+                time: '15 min',
+                done: false, expanded: false,
+                details: `<pre><code class="language-bash"># Start PostgreSQL (Docker)
+docker compose up -d postgres
+
+# Run migrations
+pnpm db:migrate
+
+# Seed with test data
+pnpm db:seed
+
+# Open Prisma Studio to explore
+pnpm db:studio</code></pre>
+<p>You now have a local DB with realistic test data. Prisma Studio opens at <code>http://localhost:5555</code>.</p>`
+              }
+            ]
+          },
+          {
+            title: 'Week 1 — First Tasks',
+            tasks: [
+              {
+                text: 'Pick up your first ticket (labeled "good-first-issue")',
+                time: 'varies',
+                done: false, expanded: false,
+                details: `<p>Go to <a class="text-accent" href="#">GitHub Issues</a> and filter by <code>label:good-first-issue</code>. These are small, well-scoped tasks perfect for learning the codebase.</p>
+<p>Comment on the issue to claim it, then create a branch: <code>git checkout -b fix/your-issue-description</code></p>`
+              },
+              {
+                text: 'Pair program with your buddy',
+                time: '60 min',
+                done: false, expanded: false,
+                details: `<p>Schedule a pairing session with your onboarding buddy. During the session:</p>
+<ul class="list-disc pl-4 space-y-1">
+<li>Walk through a recent PR they merged</li>
+<li>See how they run tests and debug</li>
+<li>Ask all your "stupid questions" (there are none)</li>
+</ul>`
+              },
+              {
+                text: 'Deploy to staging environment',
+                time: '20 min',
+                done: false, expanded: false,
+                details: `<pre><code class="language-bash"># Push your branch
+git push origin fix/your-issue-description
+
+# Open PR — this triggers CI
+gh pr create --title "fix: description" --body "Closes #123"
+
+# Once CI passes, merge to main triggers auto-deploy to staging
+# Verify at: https://staging.vexi.dev</code></pre>
+<p>Congrats — you've shipped to staging! 🎉</p>`
+              },
+              {
+                text: 'Attend your first standup',
+                time: '15 min',
+                done: false, expanded: false,
+                details: `<p>Daily standup at <strong>9:30 AM</strong> in <code>#team-frontend</code> (async, text-based).</p>
+<p>Format:</p>
+<pre><code>✅ Yesterday: [what you did]
+🎯 Today: [what you're doing]
+🚧 Blocked: [anything blocking you, or "nothing"]</code></pre>`
+              }
+            ]
+          },
+          {
+            title: 'Ongoing',
+            tasks: [
+              {
+                text: 'Set up your development aliases',
+                time: '10 min',
+                done: false, expanded: false,
+                details: `<p>Add these to your <code>~/.zshrc</code> or <code>~/.bashrc</code>:</p>
+<pre><code class="language-bash">alias dev="pnpm dev"
+alias build="pnpm build"
+alias test="pnpm test"
+alias lint="pnpm lint"
+alias db="pnpm db:studio"</code></pre>`
+              },
+              {
+                text: 'Read the coding standards doc',
+                time: '20 min',
+                done: false, expanded: false,
+                details: `<p>Key conventions:</p>
+<ul class="list-disc pl-4 space-y-1">
+<li>TypeScript strict mode always</li>
+<li>Components: PascalCase, functions: camelCase, files: kebab-case</li>
+<li>PR title format: <code>type: description</code> (fix, feat, chore, docs)</li>
+<li>Every PR needs at least one review</li>
+<li>Tests required for new features</li>
+</ul>`
+              },
+              {
+                text: 'Bookmark the runbook and refer back',
+                time: '1 min',
+                done: false, expanded: false,
+                details: `<p>Save this page! You'll reference it a lot in your first week. Everything here is also in our <a class="text-accent" href="#">Notion wiki</a>.</p>`
+              }
+            ]
+          }
+        ],
+        people: [
+          { name: 'Jordan Rivera', role: 'Engineering Lead', askAbout: 'Architecture decisions, code review, career growth', slack: 'jordan.r', initials: 'JR', color: '#58a6ff' },
+          { name: 'Sam Park', role: 'Senior Frontend Dev', askAbout: 'React patterns, component library, performance', slack: 'sam.p', initials: 'SP', color: '#3fb950' },
+          { name: 'Taylor Nguyen', role: 'Backend Dev', askAbout: 'API design, database queries, tRPC', slack: 'taylor.n', initials: 'TN', color: '#d29922' },
+          { name: 'Casey Kim', role: 'DevOps Engineer', askAbout: 'Deployments, CI/CD, infrastructure', slack: 'casey.k', initials: 'CK', color: '#bc8cff' },
+          { name: 'Alex Chen', role: 'Full-Stack Dev', askAbout: 'TypeScript, testing, monorepo tooling', slack: 'alex.c', initials: 'AC', color: '#f0883e' },
+          { name: 'Morgan Lee', role: 'Product Manager', askAbout: 'Feature specs, user research, roadmap', slack: 'morgan.l', initials: 'ML', color: '#f85149' }
+        ],
+        keyLinks: [
+          { name: 'GitHub Monorepo', url: '#' },
+          { name: 'Notion Wiki', url: '#' },
+          { name: 'Figma Designs', url: '#' },
+          { name: 'Staging Dashboard', url: '#' },
+          { name: 'Sentry (Errors)', url: '#' },
+          { name: 'Datadog (Metrics)', url: '#' }
+        ],
+
+        get allTasks() {
+          return this.sections.flatMap(s => s.tasks);
+        },
+
+        get totalTasks() {
+          return this.allTasks.length;
+        },
+
+        get doneTasks() {
+          return this.allTasks.filter(t => t.done).length;
+        },
+
+        get overallProgress() {
+          return this.totalTasks === 0 ? 0 : Math.round(this.doneTasks / this.totalTasks * 100);
+        },
+
+        get progressMessage() {
+          if (this.overallProgress === 0) return "Let's get started!";
+          if (this.overallProgress < 25) return 'Great start, keep going!';
+          if (this.overallProgress < 50) return "You're crushing it!";
+          if (this.overallProgress < 75) return 'More than halfway there!';
+          if (this.overallProgress < 100) return 'Almost done, final stretch!';
+          return "You're fully onboarded! 🎉";
+        },
+
+        sectionDone(si) {
+          return this.sections[si].tasks.filter(t => t.done).length;
+        },
+
+        sectionProgress(si) {
+          const s = this.sections[si];
+          return s.tasks.length === 0 ? 0 : Math.round(s.tasks.filter(t => t.done).length / s.tasks.length * 100);
+        },
+
+        matchesSearch(section) {
+          if (!this.searchQuery) return true;
+          const q = this.searchQuery.toLowerCase();
+          return section.tasks.some(t => t.text.toLowerCase().includes(q));
+        },
+
+        markAllComplete(si) {
+          this.sections[si].tasks.forEach(t => { t.done = true; });
+          this.saveProgress();
+        },
+
+        resetProgress() {
+          if (!confirm('Reset all progress? This cannot be undone.')) return;
+          this.sections.forEach(s => s.tasks.forEach(t => { t.done = false; }));
+          this.saveProgress();
+        },
+
+        saveProgress() {
+          const state = this.sections.map(s => s.tasks.map(t => t.done));
+          localStorage.setItem('runbook-progress', JSON.stringify(state));
+        },
+
+        loadProgress() {
+          try {
+            const saved = JSON.parse(localStorage.getItem('runbook-progress'));
+            if (saved && Array.isArray(saved)) {
+              saved.forEach((section, si) => {
+                if (this.sections[si]) {
+                  section.forEach((done, ti) => {
+                    if (this.sections[si].tasks[ti]) {
+                      this.sections[si].tasks[ti].done = done;
+                    }
+                  });
+                }
+              });
+            }
+          } catch (e) { /* ignore */ }
+        },
+
+        init() {
+          this.loadProgress();
+          this.$nextTick(() => {
+            document.querySelectorAll('pre code').forEach(el => hljs.highlightElement(el));
+          });
+        }
+      }
+    }
+  </script>
+</body>
+</html>

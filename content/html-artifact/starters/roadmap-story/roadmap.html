@@ -1,0 +1,496 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Roadmap Story</title>
+    <!--
+      HYBRID ROADMAP STORY
+
+      Use this for product roadmaps, strategy sequencing, program plans, or any
+      timeline that needs to read like a story instead of a spreadsheet.
+
+      Keep each panel meaningful on its own so slide mode still works cleanly.
+    -->
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Fraunces:wght@500;600;700&family=Manrope:wght@400;500;600;700&display=swap"
+      rel="stylesheet"
+    />
+    <style>
+      :root {
+        --bg: #eef4f0;
+        --surface: rgba(255, 255, 255, 0.93);
+        --surface-strong: #ffffff;
+        --text: #1c2922;
+        --muted: #5c6a62;
+        --line: rgba(28, 41, 34, 0.14);
+        --accent: #15803d;
+        --accent-soft: rgba(21, 128, 61, 0.12);
+        --shadow: 0 24px 60px rgba(28, 41, 34, 0.1);
+      }
+      * {
+        box-sizing: border-box;
+      }
+      html {
+        scroll-behavior: smooth;
+      }
+      body {
+        margin: 0;
+        font-family: "Manrope", sans-serif;
+        color: var(--text);
+        background: linear-gradient(180deg, #f9fcfa 0%, var(--bg) 100%);
+      }
+      h1,
+      h2,
+      h3 {
+        margin: 0;
+        font-family: "Fraunces", serif;
+      }
+      p {
+        margin: 0;
+        line-height: 1.7;
+      }
+      .toolbar {
+        position: sticky;
+        top: 0;
+        z-index: 20;
+        display: flex;
+        justify-content: space-between;
+        gap: 1rem;
+        padding: 1rem 1.25rem;
+        background: rgba(238, 244, 240, 0.84);
+        backdrop-filter: blur(16px);
+        border-bottom: 1px solid var(--line);
+      }
+      .controls {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 0.5rem;
+        align-items: center;
+      }
+      button {
+        font: inherit;
+        border: 1px solid var(--line);
+        background: var(--surface-strong);
+        border-radius: 999px;
+        padding: 0.55rem 0.9rem;
+        cursor: pointer;
+      }
+      button[aria-pressed="true"] {
+        background: var(--text);
+        color: #fff;
+        border-color: var(--text);
+      }
+      .shell {
+        max-width: 1400px;
+        margin: 0 auto;
+        padding: 1.25rem;
+        display: grid;
+        grid-template-columns: 260px minmax(0, 1fr);
+        gap: 1.25rem;
+      }
+      .toc {
+        position: sticky;
+        top: 5.75rem;
+        align-self: start;
+        padding: 1rem;
+        border: 1px solid var(--line);
+        border-radius: 24px;
+        background: var(--surface);
+        box-shadow: var(--shadow);
+      }
+      .toc nav {
+        display: grid;
+        gap: 0.45rem;
+        margin-top: 0.75rem;
+      }
+      .toc a {
+        text-decoration: none;
+        color: var(--muted);
+        padding: 0.5rem 0.7rem;
+        border-radius: 14px;
+      }
+      .toc a[aria-current="page"] {
+        background: var(--accent-soft);
+        color: var(--accent);
+        font-weight: 700;
+      }
+      .panel {
+        display: block;
+        margin-bottom: 1rem;
+        padding: 1.6rem;
+        border: 1px solid var(--line);
+        border-radius: 28px;
+        background: var(--surface);
+        box-shadow: var(--shadow);
+      }
+      .eyebrow {
+        text-transform: uppercase;
+        letter-spacing: 0.14em;
+        font-size: 0.76rem;
+        color: var(--accent);
+        margin-bottom: 0.8rem;
+      }
+      .lede {
+        font-size: 1.05rem;
+        color: var(--muted);
+        margin-top: 0.8rem;
+        max-width: 72ch;
+      }
+      .grid {
+        display: grid;
+        gap: 1rem;
+        margin-top: 1.2rem;
+      }
+      .grid.two {
+        grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+      }
+      .card,
+      .timeline-item,
+      details {
+        padding: 1rem;
+        border: 1px solid var(--line);
+        border-radius: 20px;
+        background: var(--surface-strong);
+      }
+      .timeline {
+        display: grid;
+        gap: 1rem;
+        margin-top: 1.2rem;
+      }
+      .timeline-item strong {
+        display: block;
+        margin-bottom: 0.35rem;
+      }
+      .note {
+        display: none;
+        margin-top: 1rem;
+        padding: 0.9rem 1rem;
+        border-left: 4px solid var(--accent);
+        background: var(--accent-soft);
+        border-radius: 16px;
+      }
+      body.show-notes .note {
+        display: block;
+      }
+      .slide-nav {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.4rem;
+      }
+      .slide-count {
+        min-width: 3.5rem;
+        text-align: center;
+        color: var(--muted);
+        font-weight: 700;
+      }
+      body[data-audience="summary"] [data-audience-block="full"],
+      body[data-audience="summary"] [data-audience-block="appendix"],
+      body[data-audience="full"] [data-audience-block="appendix"] {
+        display: none !important;
+      }
+      body.mode-focus main {
+        scroll-snap-type: y proximity;
+      }
+      body.mode-focus .panel {
+        min-height: calc(100svh - 7rem);
+        scroll-snap-align: start;
+      }
+      body.mode-slides .shell {
+        grid-template-columns: 1fr;
+      }
+      body.mode-slides .toc {
+        display: none;
+      }
+      body.mode-slides .panel {
+        display: none;
+        min-height: calc(100svh - 6.5rem);
+        margin: 0;
+        border-radius: 0;
+        box-shadow: none;
+      }
+      body.mode-slides .panel.active {
+        display: block;
+      }
+      @media (max-width: 960px) {
+        .shell {
+          grid-template-columns: 1fr;
+        }
+        .toc {
+          position: static;
+        }
+      }
+      @media print {
+        .toolbar,
+        .toc {
+          display: none;
+        }
+        .shell {
+          display: block;
+          padding: 0;
+        }
+        .panel {
+          box-shadow: none;
+          break-inside: avoid;
+        }
+      }
+    </style>
+  </head>
+  <body class="mode-read" data-audience="full">
+    <header class="toolbar">
+      <div>
+        <h1>Roadmap Story</h1>
+        <p style="margin-top: 0.35rem; color: var(--muted)">
+          For plans that should explain sequence, trade-offs, and what changes
+          over time.
+        </p>
+      </div>
+      <div class="controls">
+        <button data-mode="read" aria-pressed="true">Read</button>
+        <button data-mode="focus">Focus</button>
+        <button data-mode="slides">Slides</button>
+        <button data-audience-select="summary">Summary</button>
+        <button data-audience-select="full" aria-pressed="true">Full</button>
+        <button data-audience-select="appendix">Appendix</button>
+        <button data-toggle-notes>Notes</button>
+        <span class="slide-nav">
+          <button data-step="prev">Prev</button>
+          <span class="slide-count" id="slide-count">1/4</span>
+          <button data-step="next">Next</button>
+        </span>
+      </div>
+    </header>
+    <div class="shell">
+      <aside class="toc">
+        <strong>Roadmap flow</strong>
+        <nav id="toc"></nav>
+      </aside>
+      <main>
+        <section class="panel active" id="why" data-title="Why Now">
+          <div class="eyebrow">Why now</div>
+          <h2>
+            Explain why the roadmap exists before you start listing quarters
+            like a spreadsheet ghoul.
+          </h2>
+          <p class="lede">
+            This starter turns sequence into a narrative: why the work matters,
+            what happens now, what happens next, and what risks need managing.
+          </p>
+          <div class="grid two">
+            <div class="card">
+              <strong>Goal</strong>
+              <p style="margin-top: 0.45rem">
+                Launch a coherent hybrid starter family without fragmenting the
+                library.
+              </p>
+            </div>
+            <div class="card">
+              <strong>Constraint</strong>
+              <p style="margin-top: 0.45rem">
+                Move fast, but preserve naming consistency and reusable shell
+                behavior.
+              </p>
+            </div>
+          </div>
+          <div class="note">
+            Presenter note: tell the audience what changes for them if this
+            roadmap lands. Otherwise the timeline feels decorative.
+          </div>
+        </section>
+        <section class="panel" id="timeline" data-title="Timeline">
+          <div class="eyebrow">Timeline</div>
+          <h2>Show the sequence.</h2>
+          <div class="timeline">
+            <div class="timeline-item">
+              <strong>Now</strong>
+              <p>
+                Ship the core family and document the hybrid mental model in the
+                skill.
+              </p>
+            </div>
+            <div class="timeline-item">
+              <strong>Next</strong>
+              <p>
+                Validate which starters become the strongest defaults based on
+                actual use.
+              </p>
+            </div>
+            <div class="timeline-item">
+              <strong>Later</strong>
+              <p>
+                Add deeper interaction patterns, richer appendix states, and
+                more opinionated subfamilies.
+              </p>
+            </div>
+          </div>
+        </section>
+        <section class="panel" id="dependencies" data-title="Dependencies">
+          <div class="eyebrow">Dependencies</div>
+          <h2>Make the blockers visible.</h2>
+          <div class="grid two">
+            <div class="card">
+              <strong>Docs dependency</strong>
+              <p style="margin-top: 0.45rem">
+                The catalog must name the hybrid family clearly or users will
+                not know what to reach for.
+              </p>
+            </div>
+            <div class="card">
+              <strong>Quality dependency</strong>
+              <p style="margin-top: 0.45rem">
+                Each starter needs a readable shell and embedded guidance or the
+                library will feel janky.
+              </p>
+            </div>
+          </div>
+        </section>
+        <section class="panel" id="changes" data-title="What Changes">
+          <div class="eyebrow">What changes</div>
+          <h2>Land the story.</h2>
+          <div class="grid two">
+            <div class="card">
+              <strong>For authors</strong>
+              <p style="margin-top: 0.45rem">
+                Fewer duplicated artifacts and faster reuse.
+              </p>
+            </div>
+            <div class="card">
+              <strong>For audiences</strong>
+              <p style="margin-top: 0.45rem">
+                Cleaner pre-reads, cleaner presentations, cleaner archives.
+              </p>
+            </div>
+            <div class="card" data-audience-block="appendix">
+              <strong>Appendix</strong>
+              <p style="margin-top: 0.45rem">
+                Use this area for quarter labels, owners, budgets, or confidence
+                notes.
+              </p>
+            </div>
+          </div>
+        </section>
+      </main>
+    </div>
+    <script>
+      (() => {
+        const body = document.body;
+        const panels = Array.from(document.querySelectorAll(".panel"));
+        const toc = document.getElementById("toc");
+        const slideCount = document.getElementById("slide-count");
+        let active = 0;
+
+        const sync = () => {
+          slideCount.textContent = `${active + 1}/${panels.length}`;
+          Array.from(toc.querySelectorAll("a")).forEach((link, index) => {
+            link.setAttribute(
+              "aria-current",
+              index === active ? "page" : "false",
+            );
+          });
+        };
+
+        const show = (index) => {
+          active = (index + panels.length) % panels.length;
+          panels.forEach((panel, panelIndex) => {
+            panel.classList.toggle("active", panelIndex === active);
+          });
+          sync();
+        };
+
+        const setMode = (mode) => {
+          body.classList.remove("mode-read", "mode-focus", "mode-slides");
+          body.classList.add(`mode-${mode}`);
+          document.querySelectorAll("[data-mode]").forEach((button) => {
+            button.setAttribute(
+              "aria-pressed",
+              String(button.dataset.mode === mode),
+            );
+          });
+          if (mode === "slides") show(active);
+          else panels.forEach((panel) => panel.classList.add("active"));
+        };
+
+        toc.innerHTML = panels
+          .map(
+            (panel, index) =>
+              `<a href="#${panel.id}" data-index="${index}">${index + 1}. ${panel.dataset.title}</a>`,
+          )
+          .join("");
+
+        toc.addEventListener("click", (event) => {
+          const link = event.target.closest("a");
+          if (!link) return;
+          active = Number(link.dataset.index);
+          if (body.classList.contains("mode-slides")) {
+            event.preventDefault();
+            show(active);
+          }
+        });
+
+        document.addEventListener("click", (event) => {
+          const modeButton = event.target.closest("[data-mode]");
+          if (modeButton) setMode(modeButton.dataset.mode);
+
+          const audienceButton = event.target.closest("[data-audience-select]");
+          if (audienceButton) {
+            body.dataset.audience = audienceButton.dataset.audienceSelect;
+            document
+              .querySelectorAll("[data-audience-select]")
+              .forEach((button) => {
+                button.setAttribute(
+                  "aria-pressed",
+                  String(button === audienceButton),
+                );
+              });
+          }
+
+          const notesButton = event.target.closest("[data-toggle-notes]");
+          if (notesButton) {
+            body.classList.toggle("show-notes");
+            notesButton.setAttribute(
+              "aria-pressed",
+              String(body.classList.contains("show-notes")),
+            );
+          }
+
+          const stepButton = event.target.closest("[data-step]");
+          if (stepButton)
+            show(active + (stepButton.dataset.step === "next" ? 1 : -1));
+        });
+
+        document.addEventListener("keydown", (event) => {
+          if (!body.classList.contains("mode-slides")) return;
+          if (["ArrowRight", "PageDown", " "].includes(event.key)) {
+            event.preventDefault();
+            show(active + 1);
+          }
+          if (["ArrowLeft", "PageUp"].includes(event.key)) {
+            event.preventDefault();
+            show(active - 1);
+          }
+        });
+
+        const observer = new IntersectionObserver(
+          (entries) => {
+            if (body.classList.contains("mode-slides")) return;
+            const visible = entries
+              .filter((entry) => entry.isIntersecting)
+              .sort(
+                (left, right) =>
+                  right.intersectionRatio - left.intersectionRatio,
+              )[0];
+            if (!visible) return;
+            active = panels.indexOf(visible.target);
+            sync();
+          },
+          { threshold: [0.35, 0.7] },
+        );
+
+        panels.forEach((panel) => observer.observe(panel));
+        sync();
+      })();
+    </script>
+  </body>
+</html>

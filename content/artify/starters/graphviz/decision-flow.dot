@@ -1,0 +1,18 @@
+digraph {
+  rankdir=LR;
+  graph [pad=0.3, nodesep=0.5, ranksep=0.7];
+  node [shape=box, style="rounded,filled", fillcolor="#eef4ff", color="#5a7bd6"];
+  edge [color="#6b7c92"];
+
+  Start [shape=circle, label="Start"];
+  Check [shape=diamond, label="Valid?"];
+  Approve [label="Approve"];
+  Reject [label="Reject"];
+  End [shape=circle, label="End"];
+
+  Start -> Check;
+  Check -> Approve [label="yes"];
+  Check -> Reject [label="no"];
+  Approve -> End;
+  Reject -> End;
+}

@@ -1,0 +1,258 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Business Presentation</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/reveal.js@5.1.0/dist/reveal.css">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/reveal.js@5.1.0/dist/theme/black.css">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/reveal.js@5.1.0/dist/print/pdf.css" media="print">
+  <style>
+    /* Override theme for cleaner look */
+    .reveal h1, .reveal h2, .reveal h3 { text-transform: none; letter-spacing: normal; }
+    .reveal h1 { font-size: 2.5em; }
+    .reveal h2 { font-size: 1.6em; margin-bottom: 0.6em; }
+    .reveal p, .reveal li { font-size: 0.85em; line-height: 1.5; }
+    .reveal ul { list-style: none; padding: 0; }
+    .reveal ul li { padding: 0.3em 0; }
+    .reveal ul li::before { content: "→ "; color: #f97316; font-weight: bold; }
+
+    /* Stat cards */
+    .stats { display: flex; gap: 2rem; justify-content: center; margin-top: 2rem; }
+    .stat { text-align: center; padding: 1.5rem 2rem; background: rgba(255,255,255,0.05); border-radius: 12px; min-width: 160px; }
+    .stat .number { font-size: 2.8em; font-weight: 700; color: #f97316; line-height: 1; }
+    .stat .label { font-size: 0.75em; color: #888; margin-top: 0.3em; }
+
+    /* Chart container */
+    .chart-wrap { width: 80%; margin: 0 auto; }
+
+    /* PDF export button */
+    .export-btn { position: fixed; bottom: 1rem; right: 1rem; z-index: 9999; background: #f97316; color: #000; border: none; padding: 8px 16px; border-radius: 6px; cursor: pointer; font-weight: 600; }
+    .export-btn:hover { background: #fb923c; }
+  </style>
+</head>
+<body>
+
+  <button class="export-btn" onclick="exportPDF()">Export PDF</button>
+
+  <div class="reveal">
+    <div class="slides">
+
+      <!-- ==================== SLIDE 1: Title ==================== -->
+      <section data-background-gradient="linear-gradient(135deg, #0f0c29, #302b63, #24243e)">
+        <h1>Q4 Performance Review</h1>
+        <p style="color:#888; font-size:0.8em;">Prepared for Leadership Team · December 2024</p>
+        <aside class="notes">
+          Welcome everyone. Today we'll walk through Q4 results, highlight what's working, and flag two areas that need attention.
+        </aside>
+      </section>
+
+      <!-- ==================== SLIDE 2: Agenda ==================== -->
+      <section>
+        <h2>Agenda</h2>
+        <ul>
+          <li class="fragment">Key metrics at a glance</li>
+          <li class="fragment">Revenue breakdown by region</li>
+          <li class="fragment">What's driving growth</li>
+          <li class="fragment">Two risks to watch</li>
+          <li class="fragment">Next quarter priorities</li>
+        </ul>
+        <aside class="notes">
+          Five items. We'll spend most of time on the revenue breakdown and the two risks. The rest is context.
+        </aside>
+      </section>
+
+      <!-- ==================== SLIDE 3: Key Metrics ==================== -->
+      <section>
+        <h2>Key Metrics</h2>
+        <div class="stats">
+          <div class="stat fragment">
+            <div class="number">$4.2M</div>
+            <div class="label">Revenue</div>
+          </div>
+          <div class="stat fragment">
+            <div class="number">+23%</div>
+            <div class="label">YoY Growth</div>
+          </div>
+          <div class="stat fragment">
+            <div class="number">89%</div>
+            <div class="label">Retention</div>
+          </div>
+        </div>
+        <aside class="notes">
+          Revenue hit 4.2M, up 23% year over year. Retention held at 89%, which is above our 85% target. All three metrics are green.
+        </aside>
+      </section>
+
+      <!-- ==================== SLIDE 4: Chart ==================== -->
+      <section>
+        <h2>Revenue by Region</h2>
+        <div class="chart-wrap">
+          <svg id="bar-chart"></svg>
+        </div>
+        <aside class="notes">
+          APAC drove most of the growth — up 40% from Q3. EMEA was flat. North America grew modestly at 8%. The APAC spike is from the new enterprise deals we closed in October.
+        </aside>
+      </section>
+
+      <!-- ==================== SLIDE 5: What's Working ==================== -->
+      <section>
+        <h2>What's Driving Growth</h2>
+        <ul>
+          <li class="fragment">Enterprise deals in APAC closed 2x faster than forecast</li>
+          <li class="fragment">Self-serve onboarding reduced CAC by 18%</li>
+          <li class="fragment">Product-led growth: 34% of new signups from referrals</li>
+        </ul>
+        <aside class="notes">
+          Three things are working. The APAC enterprise motion is ahead of plan. Self-serve onboarding is paying off — CAC dropped 18%. And referrals are now a third of new signups, which means the product is selling itself.
+        </aside>
+      </section>
+
+      <!-- ==================== SLIDE 6: Risks ==================== -->
+      <section data-background-color="#1a0a0a">
+        <h2>Two Risks to Watch</h2>
+        <ul>
+          <li class="fragment highlight-red"><strong>EMEA churn:</strong> 3 key accounts at risk of non-renewal in Q1</li>
+          <li class="fragment highlight-red"><strong>Infrastructure cost:</strong> cloud spend up 31% — outpacing revenue growth</li>
+        </ul>
+        <aside class="notes">
+          Two red flags. EMEA has three accounts up for renewal that are showing disengagement signals. And our cloud infrastructure costs are growing faster than revenue — 31% vs 23%. We need to address both in Q1 planning.
+        </aside>
+      </section>
+
+      <!-- ==================== SLIDE 7: Next Quarter ==================== -->
+      <section>
+        <h2>Q1 Priorities</h2>
+        <ul>
+          <li class="fragment">Launch EMEA retention program (owner: Sarah)</li>
+          <li class="fragment">Infrastructure cost audit (owner: DevOps)</li>
+          <li class="fragment">Scale APAC enterprise motion to Japan market</li>
+        </ul>
+        <aside class="notes">
+          Three priorities for Q1. Sarah owns the EMEA retention push. DevOps is doing a cost audit — they'll report findings by end of January. And we're extending the APAC playbook to Japan.
+        </aside>
+      </section>
+
+      <!-- ==================== SLIDE 8: Close ==================== -->
+      <section data-background-gradient="linear-gradient(135deg, #0f0c29, #302b63, #24243e)">
+        <h1>Questions?</h1>
+        <p style="color:#888; font-size:0.7em;">Full data appendix available in the shared drive</p>
+        <aside class="notes">
+          Open for questions. If anyone wants the raw data, it's in the shared drive under Q4 Review.
+        </aside>
+      </section>
+
+    </div>
+  </div>
+
+  <!-- D3 for the chart -->
+  <script src="https://cdn.jsdelivr.net/npm/d3@7/dist/d3.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/reveal.js@5.1.0/dist/reveal.js"></script>
+  <script>
+    Reveal.initialize({
+      hash: true,
+      transition: "fade",
+      transitionSpeed: "fast",
+      width: 1100,
+      height: 650,
+      center: false,
+      slideNumber: true,
+    });
+
+    // Draw chart after Reveal layout is ready
+    Reveal.on("ready", () => { drawBarChart(); });
+
+    function drawBarChart() {
+      const data = [
+        { label: "North America", value: 1800 },
+        { label: "EMEA", value: 900 },
+        { label: "APAC", value: 1200 },
+        { label: "LATAM", value: 300 },
+      ];
+
+      const margin = { top: 20, right: 20, bottom: 40, left: 120 };
+      const W = 700, H = 300;
+      const w = W - margin.left - margin.right;
+      const h = H - margin.top - margin.bottom;
+
+      const svg = d3.select("#bar-chart")
+        .attr("viewBox", `0 0 ${W} ${H}`)
+        .attr("width", "100%");
+
+      const g = svg.append("g")
+        .attr("transform", `translate(${margin.left},${margin.top})`);
+
+      const x = d3.scaleLinear()
+        .domain([0, d3.max(data, d => d.value)])
+        .nice()
+        .range([0, w]);
+
+      const y = d3.scaleBand()
+        .domain(data.map(d => d.label))
+        .range([0, h])
+        .padding(0.35);
+
+      // Gridlines
+      g.append("g")
+        .attr("class", "grid")
+        .call(d3.axisBottom(x).ticks(5).tickSize(h).tickFormat(""))
+        .selectAll("line")
+        .attr("stroke", "#333")
+        .attr("stroke-dasharray", "2,2");
+      g.select(".grid .domain").remove();
+
+      // Bars — animated
+      g.selectAll(".bar")
+        .data(data)
+        .enter().append("rect")
+        .attr("x", 0)
+        .attr("y", d => y(d.label))
+        .attr("width", 0)
+        .attr("height", y.bandwidth())
+        .attr("fill", "#f97316")
+        .attr("rx", 4)
+        .transition()
+        .duration(800)
+        .delay((d, i) => i * 120)
+        .ease(d3.easeCubicOut)
+        .attr("width", d => x(d.value));
+
+      // Direct labels
+      g.selectAll(".label")
+        .data(data)
+        .enter().append("text")
+        .attr("x", d => x(d.value) + 8)
+        .attr("y", d => y(d.label) + y.bandwidth() / 2)
+        .attr("dy", "0.35em")
+        .attr("font-size", "13px")
+        .attr("fill", "#fff")
+        .attr("opacity", 0)
+        .text(d => `$${d.value}K`)
+        .transition()
+        .delay((d, i) => 800 + i * 120)
+        .duration(300)
+        .attr("opacity", 1);
+
+      // Y axis labels
+      g.selectAll(".y-label")
+        .data(data)
+        .enter().append("text")
+        .attr("x", -8)
+        .attr("y", d => y(d.label) + y.bandwidth() / 2)
+        .attr("dy", "0.35em")
+        .attr("text-anchor", "end")
+        .attr("font-size", "13px")
+        .attr("fill", "#ccc")
+        .text(d => d.label);
+    }
+
+    // PDF export
+    function exportPDF() {
+      const url = new URL(window.location.href);
+      url.searchParams.set("print-pdf", "");
+      window.open(url.toString(), "_blank");
+    }
+  </script>
+
+</body>
+</html>

@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>{{TITLE}}</title>
+<style>
+  :root { --bg: #ffffff; --fg: #1a1a2e; }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: 'Segoe UI', system-ui, sans-serif;
+    background: var(--bg);
+    color: var(--fg);
+    padding: 2rem;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+  }
+  h1 { font-size: 1.4rem; margin-bottom: 1.5rem; font-weight: 600; }
+  .mermaid {
+    width: 100%;
+    max-width: 1200px;
+    display: flex;
+    justify-content: center;
+  }
+  .mermaid svg { max-width: 100%; height: auto; }
+  #error-box {
+    display: none;
+    background: #fef2f2;
+    border: 1px solid #fecaca;
+    border-radius: 8px;
+    padding: 1rem 1.5rem;
+    color: #991b1b;
+    max-width: 800px;
+    width: 100%;
+    margin-bottom: 1rem;
+    font-family: monospace;
+    font-size: 0.9rem;
+    white-space: pre-wrap;
+  }
+</style>
+<script src="https://cdn.jsdelivr.net/npm/mermaid@11/dist/mermaid.min.js"></script>
+<script>
+  mermaid.initialize({
+    startOnLoad: false,
+    theme: 'default',
+    securityLevel: 'loose',
+    flowchart: { useMaxWidth: true, htmlLabels: true },
+    sequence: { useMaxWidth: true }
+  });
+</script>
+</head>
+<body>
+<h1>{{TITLE}}</h1>
+<div id="error-box"></div>
+<div class="mermaid" id="diagram">
+{{DIAGRAM}}
+</div>
+<script>
+(async () => {
+  try {
+    const el = document.getElementById('diagram');
+    const code = el.textContent;
+    const { svg } = await mermaid.render('rendered-diagram', code);
+    el.innerHTML = svg;
+  } catch (e) {
+    const box = document.getElementById('error-box');
+    box.style.display = 'block';
+    box.textContent = 'Mermaid render error:\n' + (e.message || e.str || String(e));
+    document.getElementById('diagram').style.display = 'none';
+  }
+})();
+</script>
+</body>
+</html>

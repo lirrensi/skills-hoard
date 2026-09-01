@@ -1,0 +1,22 @@
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[project]
+name = "artify-cli"
+version = "0.0.0"
+description = "Standalone HTML artifact preview/serve/snapshot CLI (self-contained, no global install)."
+readme = "README.md"
+requires-python = ">=3.10"
+dependencies = [
+    "click>=8.1.0",
+    "rich>=13.0.0",
+    "psutil>=6.0.0",
+    "watchdog>=4.0.0",
+]
+
+[project.scripts]
+artify = "artify_cli:main"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/artify_cli"]

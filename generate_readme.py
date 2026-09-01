@@ -1,0 +1,220 @@
+#!/usr/bin/env python3
+"""Regenerate Publish/README.md from the live skill tree.
+
+Run after any skill change:
+    py generate_readme.py
+    # or
+    uv run generate_readme.py
+
+Optional: keep it regenerating on every change:
+    py generate_readme.py --watch
+
+NOTE: README.md is a generated file. Do not edit it by hand.
+"""
+
+from __future__ import annotations
+
+import argparse
+import sys
+import time
+from datetime import datetime
+from pathlib import Path
+
+ROOT = Path(__file__).resolve().parent
+README = ROOT / "README.md"
+
+# Directories that are never "content" (infra or generated junk).
+SKIP_DIRS = {
+    ".git", ".venv", "__pycache__", ".pytest_cache", ".mypy_cache",
+    ".ruff_cache", ".tox", ".mypy", "node_modules", "dist", "build",
+}
+
+
+def parse_frontmatter(text: str) -> dict[str, str]:
+    """Tiny YAML-ish frontmatter parser: `key: value` and folded blocks (`>`, `>-`, `|`, `|-`)."""
+    if not text.startswith("---"):
+        return {}
+    parts = text.split("---", 2)
+    if len(parts) < 3:
+        return {}
+
+    data: dict[str, str] = {}
+    lines = parts[1].splitlines()
+    i = 0
+    while i < len(lines):
+        raw = lines[i]
+        if not raw.strip() or raw.strip().startswith("#") or ":" not in raw:
+            i += 1
+            continue
+        key, _, rest = raw.partition(":")
+        key = key.strip()
+        value = rest.strip()
+
+        # Folded (>) or literal (|) block, with optional chomping indicator: >- / >+ / |- / |+
+        if value and value[0] in ">|" and len(value) <= 2:
+            style = value[0]
+            block = []
+            i += 1
+            while i < len(lines) and (lines[i].startswith((" ", "\t")) or not lines[i].strip()):
+                block.append(lines[i].strip())
+                i += 1
+            data[key] = (" ".join(block) if style == ">" else "\n".join(block)).strip()
+        else:
+            data[key] = value
+            i += 1
+    return data
+
+
+def fallback_info(skill_md: Path) -> tuple[str, str]:
+    """Best-effort name + description when a SKILL.md has no frontmatter."""
+    text = skill_md.read_text(encoding="utf-8", errors="replace")
+    name = skill_md.parent.name
+    desc = ""
+    # Pull the first H1/H2 as a human title.
+    for line in text.splitlines():
+        stripped = line.strip()
+        if stripped.startswith("#"):
+            name = stripped.lstrip("#").strip()
+            break
+    # Pull the first non-heading, non-empty paragraph as a short description.
+    seen_heading = False
+    for line in text.splitlines():
+        stripped = line.strip()
+        if stripped.startswith("#"):
+            seen_heading = True
+            continue
+        if seen_heading and stripped and not stripped.startswith(("```", "-", "*", ">", "|")):
+            desc = clean(stripped, limit=200)
+            break
+    return name, desc
+
+
+def clean(text: str, limit: int = 300) -> str:
+    """Collapse whitespace, escape pipes, truncate."""
+    text = " ".join(text.split()).replace("|", "\\|")
+    if len(text) > limit:
+        text = text[: limit - 1].rstrip() + "…"
+    return text
+
+
+def collect_categories() -> list[tuple[str, list[Path]]]:
+    """Return [(category, [skill_dirs])] for folders that contain skills."""
+    cats: list[tuple[str, list[Path]]] = []
+    for cat_dir in sorted(ROOT.iterdir(), key=lambda p: p.name.lower()):
+        if not cat_dir.is_dir() or cat_dir.name in SKIP_DIRS:
+            continue
+        skills = [
+            p for p in sorted(cat_dir.iterdir(), key=lambda x: x.name.lower())
+            if p.is_dir() and (p / "SKILL.md").exists()
+        ]
+        if skills:
+            cats.append((cat_dir.name, skills))
+    return cats
+
+
+def skill_info(skill: Path) -> tuple[str, str]:
+    """Return (name, description) for a skill dir."""
+    skill_md = skill / "SKILL.md"
+    name = skill.name
+    desc = ""
+    if skill_md.exists():
+        fm = parse_frontmatter(skill_md.read_text(encoding="utf-8", errors="replace"))
+        if fm:
+            name = fm.get("name", skill.name)
+            desc = clean(fm.get("description", ""))
+        if not desc:
+            # No frontmatter or no description field — fall back to headings + first paragraph.
+            name, desc = fallback_info(skill_md)
+    return name, desc
+
+
+def build_readme() -> str:
+    cats = collect_categories()
+    total_skills = sum(len(skills) for _, skills in cats)
+
+    lines = [
+        "# Publish — Skill Library",
+        "",
+        f"> **Auto-generated** by `generate_readme.py` — run `py generate_readme.py` after any skill change.",
+        f"> Last generated: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}",
+        f">",
+        f"> **{len(cats)} categories · {total_skills} skills**",
+        "",
+        "---",
+        "",
+    ]
+
+    for cat, skills in cats:
+        lines.append(f"## {cat} — {len(skills)} skills")
+        lines.append("")
+
+        # Optional per-category ABOUT.md, rendered above the table.
+        about = ROOT / cat / "ABOUT.md"
+        if about.exists():
+            about_text = about.read_text(encoding="utf-8", errors="replace").strip()
+            # Drop an optional "# About ..." heading so it reads inline under the H2.
+            about_lines = [ln for ln in about_text.splitlines() if not ln.startswith("# ")]
+            about_text = "\n".join(about_lines).strip()
+            if about_text:
+                lines.append(about_text)
+                lines.append("")
+
+        lines.append("| Skill | Description |")
+        lines.append("|---|---|")
+        for skill in skills:
+            name, desc = skill_info(skill)
+            link = f"[{name}]({cat}/{skill.name}/SKILL.md)"
+            lines.append(f"| {link} | {desc} |")
+        lines.append("")
+
+    return "\n".join(lines)
+
+
+def snapshot() -> dict[str, float]:
+    """File path -> mtime for everything under ROOT (minus junk and self)."""
+    self_path = Path(__file__).resolve()
+    snap: dict[str, float] = {}
+    for p in ROOT.rglob("*"):
+        if (
+            p.is_file()
+            and not any(part in SKIP_DIRS for part in p.parts)
+            and p != README
+            and p != self_path
+        ):
+            snap[str(p)] = p.stat().st_mtime
+    return snap
+
+
+def main() -> int:
+    parser = argparse.ArgumentParser(description="Regenerate Publish/README.md from the live skill tree.")
+    parser.add_argument("--watch", action="store_true", help="Keep regenerating when files change (Ctrl+C to stop).")
+    parser.add_argument("--quiet", action="store_true", help="Suppress progress output.")
+    args = parser.parse_args()
+
+    def run_once() -> None:
+        text = build_readme()
+        README.write_text(text, encoding="utf-8")
+        if not args.quiet:
+            print(f"[readme] regenerated README.md ({len(text.splitlines())} lines)")
+
+    run_once()
+
+    if not args.watch:
+        return 0
+
+    print("[readme] watching for changes… (Ctrl+C to stop)")
+    last = snapshot()
+    try:
+        while True:
+            time.sleep(2)
+            now = snapshot()
+            if now != last:
+                run_once()
+                last = now
+    except KeyboardInterrupt:
+        print("\n[readme] watch stopped.")
+    return 0
+
+
+if __name__ == "__main__":
+    sys.exit(main())

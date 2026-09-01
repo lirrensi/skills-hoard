@@ -1,0 +1,498 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Annotated Review</title>
+    <!--
+    HYBRID ANNOTATED REVIEW
+
+    Use this for spec reviews, policy drafts, contract comments, and design
+    critique. The page should work as a readable review artifact and also as a
+    presentation where each review chapter can be discussed in sequence.
+  -->
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Fraunces:wght@500;600;700&family=Manrope:wght@400;500;600;700&display=swap"
+      rel="stylesheet"
+    />
+    <style>
+      :root {
+        --bg: #f5efec;
+        --surface: rgba(255, 255, 255, 0.92);
+        --surface-strong: #ffffff;
+        --text: #2d211b;
+        --muted: #705d54;
+        --line: rgba(45, 33, 27, 0.15);
+        --accent: #b45309;
+        --accent-soft: rgba(180, 83, 9, 0.12);
+        --shadow: 0 24px 60px rgba(55, 34, 18, 0.12);
+      }
+      * {
+        box-sizing: border-box;
+      }
+      html {
+        scroll-behavior: smooth;
+      }
+      body {
+        margin: 0;
+        font-family: "Manrope", sans-serif;
+        color: var(--text);
+        background: linear-gradient(180deg, #fbf8f2 0%, var(--bg) 100%);
+      }
+      h1,
+      h2,
+      h3 {
+        margin: 0;
+        font-family: "Fraunces", serif;
+      }
+      p {
+        margin: 0;
+        line-height: 1.7;
+      }
+      .toolbar {
+        position: sticky;
+        top: 0;
+        z-index: 20;
+        display: flex;
+        justify-content: space-between;
+        gap: 1rem;
+        padding: 1rem 1.25rem;
+        background: rgba(245, 239, 236, 0.84);
+        backdrop-filter: blur(16px);
+        border-bottom: 1px solid var(--line);
+      }
+      .controls {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 0.5rem;
+        align-items: center;
+      }
+      button {
+        font: inherit;
+        border: 1px solid var(--line);
+        background: var(--surface-strong);
+        border-radius: 999px;
+        padding: 0.55rem 0.9rem;
+        cursor: pointer;
+      }
+      button[aria-pressed="true"] {
+        background: var(--text);
+        color: #fff;
+        border-color: var(--text);
+      }
+      .shell {
+        max-width: 1400px;
+        margin: 0 auto;
+        padding: 1.25rem;
+        display: grid;
+        grid-template-columns: 260px minmax(0, 1fr);
+        gap: 1.25rem;
+      }
+      .toc {
+        position: sticky;
+        top: 5.75rem;
+        align-self: start;
+        padding: 1rem;
+        border: 1px solid var(--line);
+        border-radius: 24px;
+        background: var(--surface);
+        box-shadow: var(--shadow);
+      }
+      .toc nav {
+        display: grid;
+        gap: 0.45rem;
+        margin-top: 0.75rem;
+      }
+      .toc a {
+        text-decoration: none;
+        color: var(--muted);
+        padding: 0.5rem 0.7rem;
+        border-radius: 14px;
+      }
+      .toc a[aria-current="page"] {
+        background: var(--accent-soft);
+        color: var(--accent);
+        font-weight: 700;
+      }
+      .panel {
+        display: block;
+        margin-bottom: 1rem;
+        padding: 1.6rem;
+        border: 1px solid var(--line);
+        border-radius: 28px;
+        background: var(--surface);
+        box-shadow: var(--shadow);
+      }
+      .eyebrow {
+        text-transform: uppercase;
+        letter-spacing: 0.14em;
+        font-size: 0.76rem;
+        color: var(--accent);
+        margin-bottom: 0.8rem;
+      }
+      .lede {
+        font-size: 1.05rem;
+        color: var(--muted);
+        margin-top: 0.8rem;
+        max-width: 72ch;
+      }
+      .grid {
+        display: grid;
+        gap: 1rem;
+        margin-top: 1.2rem;
+      }
+      .grid.two {
+        grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+      }
+      .card {
+        padding: 1rem;
+        border: 1px solid var(--line);
+        border-radius: 20px;
+        background: var(--surface-strong);
+      }
+      mark {
+        background: rgba(250, 204, 21, 0.35);
+        padding: 0.08rem 0.18rem;
+        border-radius: 0.25rem;
+      }
+      .comment {
+        margin-top: 0.8rem;
+        padding: 0.8rem 0.9rem;
+        border-radius: 16px;
+        background: var(--accent-soft);
+        border: 1px solid rgba(180, 83, 9, 0.18);
+      }
+      .small {
+        font-size: 0.9rem;
+        color: var(--muted);
+      }
+      .note {
+        display: none;
+        margin-top: 1rem;
+        padding: 0.9rem 1rem;
+        border-left: 4px solid var(--accent);
+        background: var(--accent-soft);
+        border-radius: 16px;
+      }
+      body.show-notes .note {
+        display: block;
+      }
+      .slide-nav {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.4rem;
+      }
+      .slide-count {
+        min-width: 3.5rem;
+        text-align: center;
+        color: var(--muted);
+        font-weight: 700;
+      }
+      body[data-audience="summary"] [data-audience-block="full"],
+      body[data-audience="summary"] [data-audience-block="appendix"],
+      body[data-audience="full"] [data-audience-block="appendix"] {
+        display: none !important;
+      }
+      body.mode-focus main {
+        scroll-snap-type: y proximity;
+      }
+      body.mode-focus .panel {
+        min-height: calc(100svh - 7rem);
+        scroll-snap-align: start;
+      }
+      body.mode-slides .shell {
+        grid-template-columns: 1fr;
+      }
+      body.mode-slides .toc {
+        display: none;
+      }
+      body.mode-slides .panel {
+        display: none;
+        min-height: calc(100svh - 6.5rem);
+        margin: 0;
+        border-radius: 0;
+        box-shadow: none;
+      }
+      body.mode-slides .panel.active {
+        display: block;
+      }
+      @media (max-width: 960px) {
+        .shell {
+          grid-template-columns: 1fr;
+        }
+        .toc {
+          position: static;
+        }
+      }
+      @media print {
+        .toolbar,
+        .toc {
+          display: none;
+        }
+        .shell {
+          display: block;
+          padding: 0;
+        }
+        .panel {
+          box-shadow: none;
+          break-inside: avoid;
+        }
+      }
+    </style>
+  </head>
+  <body class="mode-read" data-audience="full">
+    <header class="toolbar">
+      <div>
+        <h1>Annotated Review</h1>
+        <p style="margin-top: 0.35rem; color: var(--muted)">
+          For specs, policy drafts, contracts, design crit, and any doc that
+          needs comments with receipts.
+        </p>
+      </div>
+      <div class="controls">
+        <button data-mode="read" aria-pressed="true">Read</button
+        ><button data-mode="focus">Focus</button
+        ><button data-mode="slides">Slides</button
+        ><button data-audience-select="summary">Summary</button
+        ><button data-audience-select="full" aria-pressed="true">Full</button
+        ><button data-audience-select="appendix">Appendix</button
+        ><button data-toggle-notes>Notes</button
+        ><span class="slide-nav"
+          ><button data-step="prev">Prev</button
+          ><span class="slide-count" id="slide-count">1/4</span
+          ><button data-step="next">Next</button></span
+        >
+      </div>
+    </header>
+    <div class="shell">
+      <aside class="toc">
+        <strong>Review flow</strong>
+        <nav id="toc"></nav>
+      </aside>
+      <main>
+        <section class="panel active" id="summary" data-title="Summary">
+          <div class="eyebrow">Summary</div>
+          <h2>
+            Capture the review posture before the comments avalanche starts.
+          </h2>
+          <p class="lede">
+            Use this starter when a draft needs structured review: what is
+            solid, what is blocked, and what feedback must be resolved before
+            approval.
+          </p>
+          <div class="grid two">
+            <div class="card">
+              <strong>Overall status</strong>
+              <p style="margin-top: 0.45rem">
+                Promising draft, but two high-severity comments block sign-off.
+              </p>
+            </div>
+            <div class="card">
+              <strong>Review lens</strong>
+              <p style="margin-top: 0.45rem">
+                Clarity, internal consistency, evidence coverage, and downstream
+                usability.
+              </p>
+            </div>
+          </div>
+          <div class="note">
+            Presenter note: summarize the review in plain language before
+            zooming into individual comments, or the room will drown in details
+            immediately.
+          </div>
+        </section>
+        <section class="panel" id="markup" data-title="Markup">
+          <div class="eyebrow">Annotated draft</div>
+          <h2>Show the text with comments inline.</h2>
+          <div class="card">
+            <p>
+              The proposed starter library should focus on
+              <mark
+                >hybrid artifacts that read like briefs and present like
+                decks</mark
+              >
+              so teams can keep one source of truth.
+            </p>
+            <div class="comment">
+              <strong>Comment A - Scope</strong>
+              <p class="small">
+                Nice framing. Add one sentence clarifying whether this is only
+                for document-like outputs or also for dashboards.
+              </p>
+            </div>
+          </div>
+          <div class="card" style="margin-top: 1rem">
+            <p>
+              Each starter should include
+              <mark>three mode toggles and appendix support</mark> to keep the
+              system reusable.
+            </p>
+            <div class="comment">
+              <strong>Comment B - Missing rationale</strong>
+              <p class="small">
+                Why appendix instead of separate backup pages? Add a
+                trust/transparency reason so it does not look arbitrary.
+              </p>
+            </div>
+          </div>
+        </section>
+        <section class="panel" id="open-items" data-title="Open Items">
+          <div class="eyebrow">Open items</div>
+          <h2>Keep unresolved feedback visible.</h2>
+          <div class="grid two">
+            <div class="card">
+              <strong>Must fix</strong>
+              <ul style="margin-top: 0.6rem">
+                <li>Clarify supported artifact boundaries.</li>
+                <li>Explain appendix strategy.</li>
+              </ul>
+            </div>
+            <div class="card">
+              <strong>Nice to improve</strong>
+              <ul style="margin-top: 0.6rem">
+                <li>Provide naming conventions for hybrid starters.</li>
+                <li>Add two examples of mode transitions.</li>
+              </ul>
+            </div>
+          </div>
+          <div
+            class="card"
+            data-audience-block="appendix"
+            style="margin-top: 1rem"
+          >
+            <strong>Resolution log</strong>
+            <p style="margin-top: 0.45rem">
+              Comment A acknowledged by product. Comment B assigned to content
+              design. Remaining notes grouped as polish.
+            </p>
+          </div>
+        </section>
+        <section class="panel" id="decision" data-title="Decision">
+          <div class="eyebrow">Recommendation</div>
+          <h2>End the review with a clear path.</h2>
+          <div class="grid two">
+            <div class="card">
+              <strong>Recommendation</strong>
+              <p style="margin-top: 0.45rem">
+                Approve with revisions after the two blocking comments are
+                resolved.
+              </p>
+            </div>
+            <div class="card">
+              <strong>Next move</strong>
+              <p style="margin-top: 0.45rem">
+                Duplicate this review shell for future design crit, policy
+                review, and redline-heavy artifacts.
+              </p>
+            </div>
+          </div>
+        </section>
+      </main>
+    </div>
+    <script>
+      (() => {
+        const body = document.body,
+          panels = Array.from(document.querySelectorAll(".panel")),
+          toc = document.getElementById("toc"),
+          slideCount = document.getElementById("slide-count");
+        let active = 0;
+        const sync = () => {
+          slideCount.textContent = `${active + 1}/${panels.length}`;
+          Array.from(toc.querySelectorAll("a")).forEach((link, i) =>
+            link.setAttribute("aria-current", i === active ? "page" : "false"),
+          );
+        };
+        const show = (index) => {
+          active = (index + panels.length) % panels.length;
+          panels.forEach((panel, i) =>
+            panel.classList.toggle("active", i === active),
+          );
+          sync();
+        };
+        const setMode = (mode) => {
+          body.classList.remove("mode-read", "mode-focus", "mode-slides");
+          body.classList.add(`mode-${mode}`);
+          document
+            .querySelectorAll("[data-mode]")
+            .forEach((button) =>
+              button.setAttribute(
+                "aria-pressed",
+                String(button.dataset.mode === mode),
+              ),
+            );
+          if (mode === "slides") show(active);
+          else panels.forEach((panel) => panel.classList.add("active"));
+        };
+        toc.innerHTML = panels
+          .map(
+            (panel, i) =>
+              `<a href="#${panel.id}" data-index="${i}">${i + 1}. ${panel.dataset.title}</a>`,
+          )
+          .join("");
+        toc.addEventListener("click", (event) => {
+          const link = event.target.closest("a");
+          if (!link) return;
+          active = Number(link.dataset.index);
+          if (body.classList.contains("mode-slides")) {
+            event.preventDefault();
+            show(active);
+          }
+        });
+        document.addEventListener("click", (event) => {
+          const modeButton = event.target.closest("[data-mode]");
+          if (modeButton) setMode(modeButton.dataset.mode);
+          const audienceButton = event.target.closest("[data-audience-select]");
+          if (audienceButton) {
+            body.dataset.audience = audienceButton.dataset.audienceSelect;
+            document
+              .querySelectorAll("[data-audience-select]")
+              .forEach((button) =>
+                button.setAttribute(
+                  "aria-pressed",
+                  String(button === audienceButton),
+                ),
+              );
+          }
+          const notesButton = event.target.closest("[data-toggle-notes]");
+          if (notesButton) {
+            body.classList.toggle("show-notes");
+            notesButton.setAttribute(
+              "aria-pressed",
+              String(body.classList.contains("show-notes")),
+            );
+          }
+          const stepButton = event.target.closest("[data-step]");
+          if (stepButton)
+            show(active + (stepButton.dataset.step === "next" ? 1 : -1));
+        });
+        document.addEventListener("keydown", (event) => {
+          if (!body.classList.contains("mode-slides")) return;
+          if (["ArrowRight", "PageDown", " "].includes(event.key)) {
+            event.preventDefault();
+            show(active + 1);
+          }
+          if (["ArrowLeft", "PageUp"].includes(event.key)) {
+            event.preventDefault();
+            show(active - 1);
+          }
+        });
+        const observer = new IntersectionObserver(
+          (entries) => {
+            if (body.classList.contains("mode-slides")) return;
+            const visible = entries
+              .filter((entry) => entry.isIntersecting)
+              .sort((a, b) => b.intersectionRatio - a.intersectionRatio)[0];
+            if (!visible) return;
+            active = panels.indexOf(visible.target);
+            sync();
+          },
+          { threshold: [0.35, 0.7] },
+        );
+        panels.forEach((panel) => observer.observe(panel));
+        sync();
+      })();
+    </script>
+  </body>
+</html>

@@ -1,0 +1,153 @@
+cases:
+  # --- Positive cases ---
+
+  - id: convert_github_cli_tool
+    prompt: "Turn this repo into a skill: https://github.com/astral-sh/uv — I want to use it as a CLI reference with shell completions"
+    fixtures: []
+    rubric:
+      - "Clones the repo and scouts its structure"
+      - "Categorizes it as a CLI Tool (bin in pyproject.toml, console_scripts, --help output)"
+      - "Generates a CLI reference with all subcommands, flags, and arguments"
+      - "Generates shell completion scripts for bash/zsh/fish"
+      - "Produces a skill package at skills/uv/ with SKILL.md, references, scripts"
+    trigger_expected: true
+    assertions:
+      - type: contains
+        target: "SKILL.md"
+        weight: 1.0
+      - type: matches_regex
+        target: "(?i)cli.reference|command|subcommand|flag|option"
+        weight: 0.9
+      - type: matches_regex
+        target: "(?i)completion|bash|zsh|fish"
+        weight: 0.7
+      - type: matches_regex
+        target: "(?i)astral-sh/uv|github.com"
+        weight: 0.6
+
+  - id: convert_github_library
+    prompt: "Skillify this repo for me: https://github.com/pydantic/pydantic — I want API docs and usage examples"
+    fixtures: []
+    rubric:
+      - "Clones the repo and scouts its structure"
+      - "Categorizes it as a Library (no bin, has __init__.py, importable)"
+      - "Extracts API surface from the main module"
+      - "Generates API reference with classes, functions, parameters"
+      - "Extracts 3-5 canonical usage patterns from README and tests"
+      - "Produces skill package at skills/pydantic/"
+    trigger_expected: true
+    assertions:
+      - type: contains
+        target: "SKILL.md"
+        weight: 1.0
+      - type: matches_regex
+        target: "(?i)api.reference|BaseModel|Field|validator|class"
+        weight: 0.8
+      - type: matches_regex
+        target: "(?i)install|import|quickstart|example"
+        weight: 0.7
+      - type: matches_regex
+        target: "(?i)pydantic/pydantic"
+        weight: 0.5
+
+  - id: convert_github_app
+    prompt: "git-to-skill https://github.com/yourselfhosted/slash — I need a setup guide and dev workflow scripts"
+    fixtures: []
+    rubric:
+      - "Clones the repo and scouts its structure"
+      - "Categorizes it as an Application (has Dockerfile, config, server code)"
+      - "Extracts environment variables, config files, docker setup"
+      - "Generates setup guide with step-by-step instructions"
+      - "Generates dev workflow scripts (setup.sh, dev.sh)"
+      - "Produces skill package at skills/slash/"
+    trigger_expected: true
+    assertions:
+      - type: contains
+        target: "SKILL.md"
+        weight: 1.0
+      - type: matches_regex
+        target: "(?i)setup|config|environment|docker|deploy"
+        weight: 0.8
+      - type: matches_regex
+        target: "(?i)setup\\.sh|dev\\.sh|script"
+        weight: 0.7
+      - type: matches_regex
+        target: "(?i)yourselfhosted/slash"
+        weight: 0.5
+
+  - id: convert_local_repo
+    prompt: "I have a local project at ~/projects/my-tool and I want to turn it into a skill I can use for daily operations"
+    fixtures: []
+    rubric:
+      - "Accepts local file path as input"
+      - "Scouts the local directory without cloning"
+      - "Categorizes the project and extracts accordingly"
+      - "Generates a full skill package for daily operations"
+    trigger_expected: true
+    assertions:
+      - type: contains
+        target: "SKILL.md"
+        weight: 1.0
+      - type: matches_regex
+        target: "(?i)local|path|directory"
+        weight: 0.5
+
+  - id: repo_already_has_cli_just_reference
+    prompt: "Turn https://github.com/nvm-sh/nvm into a skill — I only want reference docs, no scripts, the repo already has everything I need"
+    fixtures: []
+    rubric:
+      - "Clones the repo and scouts structure"
+      - "Categorizes it as CLI Tool or Application"
+      - "Notes the user's goal: reference-only, no script generation"
+      - "Generates CLI reference with commands and usage patterns"
+      - "DOES NOT generate shell scripts or completions"
+    trigger_expected: true
+    assertions:
+      - type: contains
+        target: "SKILL.md"
+        weight: 1.0
+      - type: matches_regex
+        target: "(?i)reference|usage|command"
+        weight: 0.8
+      - type: matches_regex
+        target: "(?i)install|nvm"
+        weight: 0.7
+
+  # --- Phase 2 Clarification cases ---
+
+  - id: asks_what_user_wants
+    prompt: "Make a skill from https://github.com/neovim/neovim"
+    fixtures: []
+    rubric:
+      - "Scouts the repo and produces a project profile"
+      - "Recognizes that user did NOT specify their goal"
+      - "Asks the user what kind of output they want (reference, scripts, full, custom)"
+      - "Does NOT proceed to extraction until user clarifies"
+    trigger_expected: true
+    assertions:
+      - type: matches_regex
+        target: "(?i)what.*want|goal|reference|script|full|option|choose"
+        weight: 0.9
+
+  # --- Negative cases ---
+
+  - id: not_code_review
+    prompt: "Review the code quality in this repo: https://github.com/some/project — is it any good?"
+    fixtures: []
+    rubric:
+      - "Should NOT activate — this is a code review request"
+    trigger_expected: false
+
+  - id: not_pr_analysis
+    prompt: "Analyze the PR at https://github.com/user/repo/pull/42 and tell me if it introduces breaking changes"
+    fixtures: []
+    rubric:
+      - "Should NOT activate — this is a PR analysis, not skill generation"
+    trigger_expected: false
+
+  - id: not_documentation_question
+    prompt: "How do I use the async API in the pandas library? Check their GitHub for examples"
+    fixtures: []
+    rubric:
+      - "Should NOT activate — this is a documentation lookup, not repo-to-skill conversion"
+    trigger_expected: false

@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>{{TITLE}}</title>
+<style>
+  :root {
+    --bg: #f8fafc; --fg: #1e293b; --muted: #64748b;
+    --box-bg: #ffffff; --box-border: #cbd5e1;
+    --arrow: #94a3b8;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: 'Segoe UI', system-ui, sans-serif;
+    background: var(--bg);
+    color: var(--fg);
+    padding: 2rem;
+  }
+  h1 { font-size: 1.4rem; margin-bottom: 1.5rem; font-weight: 600; text-align: center; }
+  .arch {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0;
+    max-width: 1000px;
+    margin: 0 auto;
+  }
+  .layer {
+    width: 100%;
+    padding: 1rem;
+    border: 2px dashed var(--box-border);
+    border-radius: 12px;
+    margin-bottom: 1rem;
+  }
+  .layer-label {
+    font-size: 0.75rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    color: var(--muted);
+    margin-bottom: 0.75rem;
+  }
+  .boxes {
+    display: flex;
+    gap: 1rem;
+    justify-content: center;
+    flex-wrap: wrap;
+  }
+  .box {
+    background: var(--box-bg);
+    border: 1px solid var(--box-border);
+    border-radius: 8px;
+    padding: 1rem 1.25rem;
+    min-width: 140px;
+    text-align: center;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.06);
+  }
+  .box .icon { font-size: 1.5rem; margin-bottom: 0.25rem; }
+  .box .label { font-size: 0.9rem; font-weight: 500; }
+  .box .detail { font-size: 0.75rem; color: var(--muted); margin-top: 0.25rem; }
+  .connector {
+    width: 2px;
+    height: 24px;
+    background: var(--arrow);
+    position: relative;
+  }
+  .connector::after {
+    content: '';
+    position: absolute;
+    bottom: 0;
+    left: 50%;
+    transform: translateX(-50%);
+    border-left: 5px solid transparent;
+    border-right: 5px solid transparent;
+    border-top: 8px solid var(--arrow);
+  }
+</style>
+</head>
+<body>
+<h1>{{TITLE}}</h1>
+<div class="arch">
+{{ARCH_CONTENT}}
+</div>
+</body>
+</html>

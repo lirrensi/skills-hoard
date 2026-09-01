@@ -1,0 +1,581 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Interactive Data Table</title>
+  <!--
+    ============================================================
+    TABULATOR STARTER — Interactive data table with inline editing
+    ============================================================
+
+    WHAT IT DOES:
+    Full-featured data table: sorting, filtering, inline editing,
+    column resizing/reordering, pagination, row selection, export.
+    NOT a display table — this is a proper data grid.
+
+    WHY NOT CSV-EXPLORER? CSV explorer is read-only viewer.
+    Tabulator is for when you need to EDIT data, validate inputs,
+    have dropdowns, checkboxes, and computed columns.
+
+    HOW TO CUSTOMIZE:
+    1. Replace the `tabledata` array with your data
+    2. Define columns with editors, formatters, validators
+    3. Enable/disable features (pagination, filter, etc.)
+    4. Add custom formatters for badges, progress bars, etc.
+
+    TABULATOR CORE API:
+
+    // Create table
+    const table = new Tabulator("#tableId", {
+      data: tableData,           // array of row objects
+      columns: [ ... ],          // column definitions
+      layout: "fitColumns",      // "fitColumns" | "fitData" | "fitDataFill"
+      pagination: true,          // enable pagination
+      paginationSize: 25,        // rows per page
+      movableColumns: true,      // drag to reorder columns
+      resizableRows: true,       // resize row height
+      height: "600px",           // fixed height for virtual DOM
+    });
+
+    // === COLUMN DEFINITIONS ===
+    {
+      title: "Name",
+      field: "name",             // data key
+      width: 200,
+      editor: "input",           // "input" | "textarea" | "number" | "date" |
+                                 // "tickCross" | "star" | "select" | "autocomplete"
+      editorParams: { ... },     // params for the editor
+      formatter: "plaintext",    // "plaintext" | "html" | "money" | "progress" |
+                                 // "color" | "tickCross" | "star" | "traffic" |
+                                 // "buttonTick" | "buttonCross" | "rownum"
+      formatterParams: { ... },  // params for formatter
+      validator: "required",     // "required" | "unique" | "integer" | "float" |
+                                 // "numeric" | "string" | "min|max" | custom fn
+      headerFilter: "input",     // column filter: "input" | "number" | "tickCross" |
+                                 // "select" | "autocomplete"
+      headerFilterParams: { ... },
+      hozAlign: "left",         // "left" | "center" | "right"
+      vertAlign: "middle",
+      sorter: "string",         // "string" | "number" | "date" | "boolean" | custom fn
+      frozen: true,             // freeze column
+      editable: true,           // per-cell edit override (fn or bool)
+      visible: true,
+      cssClass: "my-class",
+    }
+
+    // === SELECT OPTIONS (for select editor) ===
+    editorParams: {
+      values: ["Active", "Inactive", "Pending"]
+      // or values: { 1: "Active", 0: "Inactive" }
+      // or values: [{ label: "Active", value: 1 }, ...]
+    }
+
+    // === CUSTOM FORMATTERS ===
+    formatter: (cell) => {
+      const value = cell.getValue();
+      return `<span style="color: green">${value}</span>`;
+    }
+
+    // === GET DATA ===
+    table.getData()                           // all data
+    table.getData("active")                   // filtered data
+    table.getSelectedData()                   // selected rows
+    table.getRow(id)                          // specific row
+    table.searchRows("field", "like", "term") // search
+
+    // === SET DATA ===
+    table.setData(newData)                    // replace all data
+    table.addRow({ ... })                     // add single row
+    table.updateRow(id, { ... })              // update row
+    table.deleteRow(id)                       // delete row
+
+    // === EVENTS ===
+    table.on("rowClick", (e, row) => { ... })
+    table.on("cellEdited", (cell) => { ... })
+    table.on("dataLoaded", (data) => { ... })
+    table.on("rowSelectionChanged", (data, rows) => { ... })
+    table.on("columnResized", (column) => { ... })
+    table.on("tableBuilt", () => { ... })
+
+    // === SELECTION ===
+    table.selectRow()                         // select all
+    table.deselectRow()                       // deselect all
+    table.getSelectedRows()                   // selected row objects
+
+    // === EXPORT ===
+    table.download("csv", "data.csv")
+    table.download("json", "data.json")
+    table.download("xlsx", "data.xlsx")       // needs sheetjs CDN
+    table.download("pdf", "data.pdf")         // needs jspdf CDN
+
+    // === SORTING/FILTERING (programmatic) ===
+    table.setSort("name", "asc")
+    table.clearSort()
+    table.setFilter("status", "=", "Active")
+    table.addFilter("age", ">", 18)
+    table.clearFilter()
+
+    // === LAYOUT MODES ===
+    "fitColumns"  — stretch to fill container
+    "fitData"     — fit to content width
+    "fitDataFill" — fit to content, min-width fills container
+    "fitDataTable"— table width = content width
+
+    MORE DOCS: https://tabulator.info/docs/
+
+    ============================================================
+  -->
+  <link href="https://cdn.jsdelivr.net/npm/tabulator-tables@6/dist/css/tabulator_midnight.min.css" rel="stylesheet">
+  <script src="https://cdn.jsdelivr.net/npm/tabulator-tables@6/dist/js/tabulator.min.js"></script>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      background: #0f172a;
+      color: #e2e8f0;
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+      min-height: 100vh;
+      padding: 1.5rem;
+    }
+
+    /* Header */
+    .header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 1rem;
+      flex-wrap: wrap;
+      gap: 0.75rem;
+    }
+    .header h1 { font-size: 1.4rem; font-weight: 700; }
+    .header .actions { display: flex; gap: 0.5rem; flex-wrap: wrap; }
+    .header button {
+      padding: 0.4rem 0.8rem;
+      background: #1e293b;
+      border: 1px solid #334155;
+      border-radius: 6px;
+      color: #94a3b8;
+      cursor: pointer;
+      font-size: 0.8rem;
+      transition: all 0.15s;
+    }
+    .header button:hover { background: #334155; color: #e2e8f0; }
+    .header button.primary { background: #3b82f6; color: #fff; border-color: #3b82f6; }
+    .header button.primary:hover { background: #2563eb; }
+    .header button.danger { border-color: #ef4444; color: #ef4444; }
+    .header button.danger:hover { background: #ef4444; color: #fff; }
+
+    /* Stats */
+    .stats {
+      display: flex;
+      gap: 1.5rem;
+      margin-bottom: 1rem;
+      font-size: 0.85rem;
+      color: #64748b;
+    }
+    .stats .stat-value { color: #e2e8f0; font-weight: 600; }
+
+    /* Global search */
+    .search-bar {
+      margin-bottom: 1rem;
+    }
+    .search-bar input {
+      width: 100%;
+      max-width: 400px;
+      padding: 0.5rem 1rem;
+      background: #1e293b;
+      border: 1px solid #334155;
+      border-radius: 8px;
+      color: #e2e8f0;
+      font-size: 0.9rem;
+      outline: none;
+    }
+    .search-bar input:focus { border-color: #3b82f6; }
+
+    /* Table overrides for dark theme */
+    .tabulator {
+      background: #1e293b;
+      border: 1px solid #334155;
+      border-radius: 8px;
+      overflow: hidden;
+    }
+    .tabulator .tabulator-header {
+      background: #0f172a;
+      border-bottom: 1px solid #334155;
+    }
+    .tabulator .tabulator-header .tabulator-col {
+      background: #0f172a;
+      border-right: 1px solid #1e293b;
+    }
+    .tabulator .tabulator-header .tabulator-col .tabulator-col-content {
+      padding: 0.6rem 0.8rem;
+    }
+    .tabulator .tabulator-header .tabulator-col .tabulator-col-title {
+      color: #94a3b8;
+      font-weight: 600;
+    }
+    .tabulator .tabulator-tableholder .tabulator-table .tabulator-row {
+      background: #1e293b;
+      border-bottom: 1px solid #0f172a;
+    }
+    .tabulator .tabulator-tableholder .tabulator-table .tabulator-row:hover {
+      background: #334155 !important;
+    }
+    .tabulator .tabulator-tableholder .tabulator-table .tabulator-row.tabulator-selected {
+      background: rgba(59, 130, 246, 0.15) !important;
+    }
+    .tabulator .tabulator-tableholder .tabulator-table .tabulator-row .tabulator-cell {
+      padding: 0.5rem 0.8rem;
+      border-right: 1px solid #0f172a;
+      color: #e2e8f0;
+    }
+    .tabulator .tabulator-tableholder .tabulator-table .tabulator-row .tabulator-cell.tabulator-editing {
+      border: 2px solid #3b82f6;
+      padding: 0;
+    }
+    .tabulator .tabulator-footer {
+      background: #0f172a;
+      border-top: 1px solid #334155;
+      color: #94a3b8;
+    }
+    .tabulator .tabulator-footer .tabulator-page {
+      background: #1e293b;
+      border: 1px solid #334155;
+      color: #94a3b8;
+    }
+    .tabulator .tabulator-footer .tabulator-page.active {
+      background: #3b82f6;
+      color: #fff;
+      border-color: #3b82f6;
+    }
+    .tabulator .tabulator-header .tabulator-col .tabulator-header-filter input {
+      background: #0f172a;
+      border: 1px solid #334155;
+      color: #e2e8f0;
+      border-radius: 4px;
+    }
+
+    /* Badge formatter styles */
+    .badge {
+      display: inline-block;
+      padding: 0.15rem 0.5rem;
+      border-radius: 9999px;
+      font-size: 0.75rem;
+      font-weight: 600;
+    }
+    .badge-active { background: rgba(16, 185, 129, 0.15); color: #10b981; }
+    .badge-inactive { background: rgba(239, 68, 68, 0.15); color: #ef4444; }
+    .badge-pending { background: rgba(245, 158, 11, 0.15); color: #f59e0b; }
+    .badge-trial { background: rgba(139, 92, 246, 0.15); color: #8b5cf6; }
+
+    /* Toast notification */
+    .toast {
+      position: fixed;
+      bottom: 2rem;
+      right: 2rem;
+      background: #22c55e;
+      color: #000;
+      padding: 0.5rem 1.25rem;
+      border-radius: 8px;
+      font-size: 0.85rem;
+      font-weight: 600;
+      opacity: 0;
+      transform: translateY(1rem);
+      transition: opacity 0.3s, transform 0.3s;
+      pointer-events: none;
+      z-index: 100;
+    }
+    .toast.show { opacity: 1; transform: translateY(0); }
+  </style>
+</head>
+<body>
+
+  <div class="header">
+    <h1>Data Table</h1>
+    <div class="actions">
+      <button class="primary" onclick="addRow()">+ Add Row</button>
+      <button onclick="table.undo()">Undo</button>
+      <button onclick="table.redo()">Redo</button>
+      <div style="width:1px;height:20px;background:#334155;"></div>
+      <button onclick="downloadCSV()">Export CSV</button>
+      <button onclick="downloadJSON()">Export JSON</button>
+      <button class="danger" onclick="deleteSelected()">Delete Selected</button>
+    </div>
+  </div>
+
+  <!-- Stats -->
+  <div class="stats" id="stats">
+    <span>Total: <span class="stat-value" id="statTotal">0</span></span>
+    <span>Filtered: <span class="stat-value" id="statFiltered">0</span></span>
+    <span>Selected: <span class="stat-value" id="statSelected">0</span></span>
+  </div>
+
+  <!-- Global search -->
+  <div class="search-bar">
+    <input type="text" id="globalSearch" placeholder="Search across all columns..." oninput="globalFilter()" />
+  </div>
+
+  <!-- Table -->
+  <div id="table"></div>
+
+  <!-- Toast -->
+  <div class="toast" id="toast"></div>
+
+  <script>
+    // ============================================================
+    // SAMPLE DATA — replace with your data
+    // Each object is a row, keys match column `field` values
+    // ============================================================
+    const tabledata = [
+      { id: 1,  name: "Alice Johnson",   email: "alice@acme.io",     role: "Admin",     status: "Active",   revenue: 42500,  joined: "2023-01-15", score: 92 },
+      { id: 2,  name: "Bob Smith",       email: "bob@acme.io",       role: "Editor",    status: "Active",   revenue: 31200,  joined: "2023-03-22", score: 85 },
+      { id: 3,  name: "Carol Williams",  email: "carol@startup.co",  role: "Viewer",    status: "Pending",  revenue: 0,      joined: "2024-06-10", score: 0 },
+      { id: 4,  name: "David Brown",     email: "david@megacorp.com",role: "Editor",    status: "Active",   revenue: 67800,  joined: "2022-11-05", score: 78 },
+      { id: 5,  name: "Eva Martinez",    email: "eva@freelance.dev", role: "Admin",     status: "Trial",    revenue: 12000,  joined: "2024-09-01", score: 95 },
+      { id: 6,  name: "Frank Lee",       email: "frank@acme.io",     role: "Viewer",    status: "Inactive", revenue: 8900,   joined: "2023-07-18", score: 45 },
+      { id: 7,  name: "Grace Kim",       email: "grace@design.io",   role: "Editor",    status: "Active",   revenue: 54300,  joined: "2023-02-28", score: 88 },
+      { id: 8,  name: "Henry Chen",      email: "henry@datacorp.com",role: "Admin",     status: "Active",   revenue: 91000,  joined: "2022-08-12", score: 97 },
+      { id: 9,  name: "Iris Patel",      email: "iris@startup.co",   role: "Editor",    status: "Pending",  revenue: 0,      joined: "2024-11-20", score: 0 },
+      { id: 10, name: "Jake Wilson",     email: "jake@acme.io",      role: "Viewer",    status: "Active",   revenue: 23100,  joined: "2023-12-01", score: 72 },
+      { id: 11, name: "Karen Davis",     email: "karen@megacorp.com",role: "Editor",    status: "Trial",    revenue: 5600,   joined: "2024-10-15", score: 68 },
+      { id: 12, name: "Leo Garcia",      email: "leo@freelance.dev", role: "Viewer",    status: "Inactive", revenue: 3200,   joined: "2023-05-09", score: 31 },
+    ];
+
+    // ============================================================
+    // BADGE FORMATTER — renders status as colored badge
+    // ============================================================
+    function statusBadge(cell) {
+      const val = cell.getValue();
+      const classes = {
+        Active: 'badge-active',
+        Inactive: 'badge-inactive',
+        Pending: 'badge-pending',
+        Trial: 'badge-trial',
+      };
+      return `<span class="badge ${classes[val] || ''}">${val}</span>`;
+    }
+
+    // ============================================================
+    // PROGRESS BAR FORMATTER
+    // ============================================================
+    function progressBar(cell) {
+      const val = cell.getValue();
+      const color = val >= 80 ? '#10b981' : val >= 50 ? '#f59e0b' : '#ef4444';
+      return `<div style="display:flex;align-items:center;gap:6px;">
+        <div style="flex:1;height:6px;background:#0f172a;border-radius:3px;overflow:hidden;">
+          <div style="width:${val}%;height:100%;background:${color};border-radius:3px;"></div>
+        </div>
+        <span style="font-size:0.8rem;color:#94a3b8;min-width:30px;">${val}</span>
+      </div>`;
+    }
+
+    // ============================================================
+    // CREATE TABLE
+    // ============================================================
+    const table = new Tabulator("#table", {
+      data: tabledata,
+      height: "500px",
+      layout: "fitColumns",
+      reactiveData: true,
+      movableColumns: true,
+      selectableRows: true,
+
+      // Undo/Redo
+      history: true,
+
+      // Pagination
+      pagination: true,
+      paginationSize: 10,
+      paginationCounter: "rows",
+
+      // Columns
+      columns: [
+        {
+          formatter: "rowSelection",
+          titleFormatter: "rowSelection",
+          hozAlign: "center",
+          headerSort: false,
+          width: 40,
+        },
+        {
+          title: "ID",
+          field: "id",
+          width: 60,
+          hozAlign: "center",
+          sorter: "number",
+          frozen: true,
+          editable: false,
+        },
+        {
+          title: "Name",
+          field: "name",
+          width: 180,
+          editor: "input",
+          headerFilter: "input",
+          validator: "required",
+          sorter: "string",
+        },
+        {
+          title: "Email",
+          field: "email",
+          width: 220,
+          editor: "input",
+          headerFilter: "input",
+          validator: (cell) => {
+            const val = cell.getValue();
+            return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(val) || val === "";
+          },
+          sorter: "string",
+        },
+        {
+          title: "Role",
+          field: "role",
+          width: 120,
+          editor: "select",
+          editorParams: { values: ["Admin", "Editor", "Viewer"] },
+          headerFilter: "select",
+          headerFilterParams: { values: ["", "Admin", "Editor", "Viewer"], clearable: true },
+          sorter: "string",
+        },
+        {
+          title: "Status",
+          field: "status",
+          width: 120,
+          formatter: statusBadge,
+          editor: "select",
+          editorParams: { values: ["Active", "Inactive", "Pending", "Trial"] },
+          headerFilter: "select",
+          headerFilterParams: { values: ["", "Active", "Inactive", "Pending", "Trial"], clearable: true },
+          sorter: "string",
+        },
+        {
+          title: "Revenue",
+          field: "revenue",
+          width: 120,
+          hozAlign: "right",
+          editor: "number",
+          formatter: "money",
+          formatterParams: { symbol: "$", thousand: ",", precision: 0 },
+          sorter: "number",
+          headerFilter: "number",
+          headerFilterParams: { min: 0, max: 100000 },
+        },
+        {
+          title: "Joined",
+          field: "joined",
+          width: 120,
+          editor: "date",
+          sorter: "date",
+          headerFilter: "input",
+        },
+        {
+          title: "Score",
+          field: "score",
+          width: 150,
+          formatter: progressBar,
+          editor: "number",
+          editorParams: { min: 0, max: 100 },
+          sorter: "number",
+          hozAlign: "left",
+        },
+      ],
+    });
+
+    // ============================================================
+    // EVENTS
+    // ============================================================
+    table.on("cellEdited", (cell) => {
+      showToast(`Updated: ${cell.getRow().getData().name} — ${cell.getField()} → ${cell.getValue()}`);
+      updateStats();
+    });
+
+    table.on("rowSelectionChanged", () => updateStats());
+    table.on("dataFiltered", () => updateStats());
+    table.on("tableBuilt", () => updateStats());
+
+    // ============================================================
+    // SEARCH
+    // ============================================================
+    function globalFilter() {
+      const query = document.getElementById("globalSearch").value;
+      if (!query) {
+        table.clearFilter();
+        return;
+      }
+      table.setFilter([
+        { field: "name", type: "like", value: query },
+        { field: "email", type: "like", value: query },
+        { field: "role", type: "like", value: query },
+        { field: "status", type: "like", value: query },
+      ], { matchAll: false });
+    }
+
+    // ============================================================
+    // ADD ROW
+    // ============================================================
+    let nextId = 13;
+
+    function addRow() {
+      table.addRow({
+        id: nextId++,
+        name: "New User",
+        email: "new@example.com",
+        role: "Viewer",
+        status: "Pending",
+        revenue: 0,
+        joined: new Date().toISOString().slice(0, 10),
+        score: 0,
+      }, true); // true = add to top
+      showToast("Row added");
+      updateStats();
+    }
+
+    // ============================================================
+    // DELETE SELECTED
+    // ============================================================
+    function deleteSelected() {
+      const selected = table.getSelectedRows();
+      if (selected.length === 0) {
+        showToast("No rows selected");
+        return;
+      }
+      selected.forEach(row => row.delete());
+      showToast(`Deleted ${selected.length} row(s)`);
+      updateStats();
+    }
+
+    // ============================================================
+    // EXPORT
+    // ============================================================
+    function downloadCSV() {
+      table.download("csv", "data.csv");
+      showToast("Downloaded CSV");
+    }
+
+    function downloadJSON() {
+      table.download("json", "data.json");
+      showToast("Downloaded JSON");
+    }
+
+    // ============================================================
+    // STATS
+    // ============================================================
+    function updateStats() {
+      document.getElementById("statTotal").textContent = tabledata.length;
+      document.getElementById("statFiltered").textContent = table.getData("active").length;
+      document.getElementById("statSelected").textContent = table.getSelectedData().length;
+    }
+
+    // ============================================================
+    // TOAST
+    // ============================================================
+    function showToast(msg) {
+      const el = document.getElementById("toast");
+      el.textContent = msg;
+      el.classList.add("show");
+      setTimeout(() => el.classList.remove("show"), 2000);
+    }
+  </script>
+
+</body>
+</html>

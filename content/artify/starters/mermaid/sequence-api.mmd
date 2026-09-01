@@ -1,0 +1,13 @@
+%% Starter: API interaction
+sequenceDiagram
+    actor User
+    participant Frontend
+    participant API
+    participant DB
+
+    User->>Frontend: Save item
+    Frontend->>API: POST /items
+    API->>DB: Insert row
+    DB-->>API: OK
+    API-->>Frontend: 201 Created
+    Frontend-->>User: Show success

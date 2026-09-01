@@ -1,0 +1,470 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Training Module</title>
+    <!--
+    HYBRID TRAINING MODULE
+
+    Use this for onboarding, enablement, or internal teaching. The point is to
+    explain, check understanding, and still keep the file presentable live.
+  -->
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Fraunces:wght@500;600;700&family=Manrope:wght@400;500;600;700&display=swap"
+      rel="stylesheet"
+    />
+    <style>
+      :root {
+        --bg: #fcf1e7;
+        --surface: rgba(255, 255, 255, 0.93);
+        --surface-strong: #fffdfb;
+        --text: #2b2118;
+        --muted: #6c5c4e;
+        --line: rgba(43, 33, 24, 0.14);
+        --accent: #c2410c;
+        --accent-soft: rgba(194, 65, 12, 0.12);
+        --shadow: 0 24px 60px rgba(74, 42, 18, 0.1);
+      }
+      * {
+        box-sizing: border-box;
+      }
+      html {
+        scroll-behavior: smooth;
+      }
+      body {
+        margin: 0;
+        font-family: "Manrope", sans-serif;
+        color: var(--text);
+        background: linear-gradient(180deg, #fffaf5 0%, var(--bg) 100%);
+      }
+      h1,
+      h2,
+      h3 {
+        margin: 0;
+        font-family: "Fraunces", serif;
+      }
+      p {
+        margin: 0;
+        line-height: 1.7;
+      }
+      .toolbar {
+        position: sticky;
+        top: 0;
+        z-index: 20;
+        display: flex;
+        justify-content: space-between;
+        gap: 1rem;
+        padding: 1rem 1.25rem;
+        background: rgba(252, 241, 231, 0.84);
+        backdrop-filter: blur(16px);
+        border-bottom: 1px solid var(--line);
+      }
+      .controls {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 0.5rem;
+        align-items: center;
+      }
+      button {
+        font: inherit;
+        border: 1px solid var(--line);
+        background: var(--surface-strong);
+        border-radius: 999px;
+        padding: 0.55rem 0.9rem;
+        cursor: pointer;
+      }
+      button[aria-pressed="true"] {
+        background: var(--text);
+        color: #fff;
+        border-color: var(--text);
+      }
+      .shell {
+        max-width: 1400px;
+        margin: 0 auto;
+        padding: 1.25rem;
+        display: grid;
+        grid-template-columns: 260px minmax(0, 1fr);
+        gap: 1.25rem;
+      }
+      .toc {
+        position: sticky;
+        top: 5.75rem;
+        align-self: start;
+        padding: 1rem;
+        border: 1px solid var(--line);
+        border-radius: 24px;
+        background: var(--surface);
+        box-shadow: var(--shadow);
+      }
+      .toc nav {
+        display: grid;
+        gap: 0.45rem;
+        margin-top: 0.75rem;
+      }
+      .toc a {
+        text-decoration: none;
+        color: var(--muted);
+        padding: 0.5rem 0.7rem;
+        border-radius: 14px;
+      }
+      .toc a[aria-current="page"] {
+        background: var(--accent-soft);
+        color: var(--accent);
+        font-weight: 700;
+      }
+      .panel {
+        display: block;
+        margin-bottom: 1rem;
+        padding: 1.6rem;
+        border: 1px solid var(--line);
+        border-radius: 28px;
+        background: var(--surface);
+        box-shadow: var(--shadow);
+      }
+      .eyebrow {
+        text-transform: uppercase;
+        letter-spacing: 0.14em;
+        font-size: 0.76rem;
+        color: var(--accent);
+        margin-bottom: 0.8rem;
+      }
+      .lede {
+        font-size: 1.05rem;
+        color: var(--muted);
+        margin-top: 0.8rem;
+        max-width: 72ch;
+      }
+      .grid {
+        display: grid;
+        gap: 1rem;
+        margin-top: 1.2rem;
+      }
+      .grid.two {
+        grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+      }
+      .card,
+      details {
+        padding: 1rem;
+        border: 1px solid var(--line);
+        border-radius: 20px;
+        background: var(--surface-strong);
+      }
+      .quiz {
+        background: rgba(194, 65, 12, 0.06);
+      }
+      .note {
+        display: none;
+        margin-top: 1rem;
+        padding: 0.9rem 1rem;
+        border-left: 4px solid var(--accent);
+        background: var(--accent-soft);
+        border-radius: 16px;
+      }
+      body.show-notes .note {
+        display: block;
+      }
+      .slide-nav {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.4rem;
+      }
+      .slide-count {
+        min-width: 3.5rem;
+        text-align: center;
+        color: var(--muted);
+        font-weight: 700;
+      }
+      body[data-audience="summary"] [data-audience-block="full"],
+      body[data-audience="summary"] [data-audience-block="appendix"],
+      body[data-audience="full"] [data-audience-block="appendix"] {
+        display: none !important;
+      }
+      body.mode-focus main {
+        scroll-snap-type: y proximity;
+      }
+      body.mode-focus .panel {
+        min-height: calc(100svh - 7rem);
+        scroll-snap-align: start;
+      }
+      body.mode-slides .shell {
+        grid-template-columns: 1fr;
+      }
+      body.mode-slides .toc {
+        display: none;
+      }
+      body.mode-slides .panel {
+        display: none;
+        min-height: calc(100svh - 6.5rem);
+        margin: 0;
+        border-radius: 0;
+        box-shadow: none;
+      }
+      body.mode-slides .panel.active {
+        display: block;
+      }
+      @media (max-width: 960px) {
+        .shell {
+          grid-template-columns: 1fr;
+        }
+        .toc {
+          position: static;
+        }
+      }
+      @media print {
+        .toolbar,
+        .toc {
+          display: none;
+        }
+        .shell {
+          display: block;
+          padding: 0;
+        }
+        .panel {
+          box-shadow: none;
+          break-inside: avoid;
+        }
+      }
+    </style>
+  </head>
+  <body class="mode-read" data-audience="full">
+    <header class="toolbar">
+      <div>
+        <h1>Training Module</h1>
+        <p style="margin-top: 0.35rem; color: var(--muted)">
+          For onboarding lessons, enablement pages, workshop notes, and any
+          explain-then-test learning flow.
+        </p>
+      </div>
+      <div class="controls">
+        <button data-mode="read" aria-pressed="true">Read</button
+        ><button data-mode="focus">Focus</button
+        ><button data-mode="slides">Slides</button
+        ><button data-audience-select="summary">Summary</button
+        ><button data-audience-select="full" aria-pressed="true">Full</button
+        ><button data-audience-select="appendix">Appendix</button
+        ><button data-toggle-notes>Notes</button
+        ><span class="slide-nav"
+          ><button data-step="prev">Prev</button
+          ><span class="slide-count" id="slide-count">1/4</span
+          ><button data-step="next">Next</button></span
+        >
+      </div>
+    </header>
+    <div class="shell">
+      <aside class="toc">
+        <strong>Module</strong>
+        <nav id="toc"></nav>
+      </aside>
+      <main>
+        <section class="panel active" id="lesson" data-title="Lesson">
+          <div class="eyebrow">Lesson setup</div>
+          <h2>Start with the learning outcome.</h2>
+          <p class="lede">
+            This starter is for material that should read like a guide, present
+            like a workshop deck, and still give the learner small feedback
+            loops instead of dead static text.
+          </p>
+          <div class="grid two">
+            <div class="card">
+              <strong>By the end</strong>
+              <p style="margin-top: 0.45rem">
+                Learners can explain what hybrid starters are and when to choose
+                them over a standard long-read or deck.
+              </p>
+            </div>
+            <div class="card">
+              <strong>Format</strong>
+              <p style="margin-top: 0.45rem">
+                One file, four panels, reveals for quizzes, appendix for
+                instructor backup.
+              </p>
+            </div>
+          </div>
+          <div class="note">
+            Presenter note: say the outcome before the content so people know
+            what to watch for.
+          </div>
+        </section>
+        <section class="panel" id="concepts" data-title="Concepts">
+          <div class="eyebrow">Core concepts</div>
+          <h2>Teach with small chunks.</h2>
+          <div class="grid two">
+            <div class="card">
+              <strong>Read mode</strong>
+              <p>Best when the learner wants context and pace control.</p>
+            </div>
+            <div class="card">
+              <strong>Focus mode</strong>
+              <p>
+                Best for facilitation, demos, and screen-sharing one chapter at
+                a time.
+              </p>
+            </div>
+            <div class="card">
+              <strong>Slides mode</strong>
+              <p>Best for presenter-led delivery with keyboard navigation.</p>
+            </div>
+            <div class="card">
+              <strong>Appendix blocks</strong>
+              <p>
+                Best for advanced material that should not overwhelm the first
+                pass.
+              </p>
+            </div>
+          </div>
+        </section>
+        <section class="panel" id="quiz" data-title="Quiz">
+          <div class="eyebrow">Checkpoint</div>
+          <h2>Let the reader test themselves.</h2>
+          <div class="grid two">
+            <details class="quiz">
+              <summary>
+                Question 1 - When is a hybrid starter better than a plain deck?
+              </summary>
+              <p style="margin-top: 0.8rem">
+                When the artifact also needs to survive as a readable long-form
+                reference after the meeting.
+              </p>
+            </details>
+            <details class="quiz">
+              <summary>
+                Question 2 - Why hide appendix content behind an audience
+                toggle?
+              </summary>
+              <p style="margin-top: 0.8rem">
+                To keep the primary story clean while preserving evidence and
+                backup material in the same file.
+              </p>
+            </details>
+          </div>
+        </section>
+        <section class="panel" id="wrap-up" data-title="Wrap-Up">
+          <div class="eyebrow">Wrap-up</div>
+          <h2>End with what to do next.</h2>
+          <div class="grid two">
+            <div class="card">
+              <strong>Action</strong>
+              <p style="margin-top: 0.45rem">
+                Duplicate the starter, replace the lesson blocks, and keep at
+                least one checkpoint section.
+              </p>
+            </div>
+            <div class="card" data-audience-block="appendix">
+              <strong>Instructor appendix</strong>
+              <p style="margin-top: 0.45rem">
+                Use for facilitation notes, timing, discussion prompts, and
+                advanced references.
+              </p>
+            </div>
+          </div>
+        </section>
+      </main>
+    </div>
+    <script>
+      (() => {
+        const body = document.body,
+          panels = Array.from(document.querySelectorAll(".panel")),
+          toc = document.getElementById("toc"),
+          slideCount = document.getElementById("slide-count");
+        let active = 0;
+        const sync = () => {
+          slideCount.textContent = `${active + 1}/${panels.length}`;
+          Array.from(toc.querySelectorAll("a")).forEach((link, i) =>
+            link.setAttribute("aria-current", i === active ? "page" : "false"),
+          );
+        };
+        const show = (index) => {
+          active = (index + panels.length) % panels.length;
+          panels.forEach((panel, i) =>
+            panel.classList.toggle("active", i === active),
+          );
+          sync();
+        };
+        const setMode = (mode) => {
+          body.classList.remove("mode-read", "mode-focus", "mode-slides");
+          body.classList.add(`mode-${mode}`);
+          document
+            .querySelectorAll("[data-mode]")
+            .forEach((button) =>
+              button.setAttribute(
+                "aria-pressed",
+                String(button.dataset.mode === mode),
+              ),
+            );
+          if (mode === "slides") show(active);
+          else panels.forEach((panel) => panel.classList.add("active"));
+        };
+        toc.innerHTML = panels
+          .map(
+            (panel, i) =>
+              `<a href="#${panel.id}" data-index="${i}">${i + 1}. ${panel.dataset.title}</a>`,
+          )
+          .join("");
+        toc.addEventListener("click", (event) => {
+          const link = event.target.closest("a");
+          if (!link) return;
+          active = Number(link.dataset.index);
+          if (body.classList.contains("mode-slides")) {
+            event.preventDefault();
+            show(active);
+          }
+        });
+        document.addEventListener("click", (event) => {
+          const modeButton = event.target.closest("[data-mode]");
+          if (modeButton) setMode(modeButton.dataset.mode);
+          const audienceButton = event.target.closest("[data-audience-select]");
+          if (audienceButton) {
+            body.dataset.audience = audienceButton.dataset.audienceSelect;
+            document
+              .querySelectorAll("[data-audience-select]")
+              .forEach((button) =>
+                button.setAttribute(
+                  "aria-pressed",
+                  String(button === audienceButton),
+                ),
+              );
+          }
+          const notesButton = event.target.closest("[data-toggle-notes]");
+          if (notesButton) {
+            body.classList.toggle("show-notes");
+            notesButton.setAttribute(
+              "aria-pressed",
+              String(body.classList.contains("show-notes")),
+            );
+          }
+          const stepButton = event.target.closest("[data-step]");
+          if (stepButton)
+            show(active + (stepButton.dataset.step === "next" ? 1 : -1));
+        });
+        document.addEventListener("keydown", (event) => {
+          if (!body.classList.contains("mode-slides")) return;
+          if (["ArrowRight", "PageDown", " "].includes(event.key)) {
+            event.preventDefault();
+            show(active + 1);
+          }
+          if (["ArrowLeft", "PageUp"].includes(event.key)) {
+            event.preventDefault();
+            show(active - 1);
+          }
+        });
+        const observer = new IntersectionObserver(
+          (entries) => {
+            if (body.classList.contains("mode-slides")) return;
+            const visible = entries
+              .filter((entry) => entry.isIntersecting)
+              .sort((a, b) => b.intersectionRatio - a.intersectionRatio)[0];
+            if (!visible) return;
+            active = panels.indexOf(visible.target);
+            sync();
+          },
+          { threshold: [0.35, 0.7] },
+        );
+        panels.forEach((panel) => observer.observe(panel));
+        sync();
+      })();
+    </script>
+  </body>
+</html>

@@ -1,0 +1,820 @@
+<!-- 
+  ============================================================
+  PERSONAL FINANCE / CALCULATOR TOOLS STARTER
+  ============================================================
+  
+  WHAT THIS IS:
+  A suite of interactive financial calculators that replace
+  spreadsheet-based planning with something that actually looks
+  good and updates in real-time. Every input change instantly
+  recalculates outputs and redraws charts.
+  
+  USE THIS FOR:
+  - Mortgage/loan comparison shopping
+  - Budget planning and visualization
+  - Savings goal planning (compound interest)
+  - Financial literacy education
+  - Any "what if" scenario that involves money + time
+  
+  HOW TO CUSTOMIZE:
+  1. Each calculator is a tab section — copy/duplicate a section
+     to add more calculators
+  2. Change the default values in the x-data init:
+     mortgage: { price: 450000, downPayment: 90000, rate: 6.5, years: 30 }
+  3. Add/remove budget categories in the budgetCategories array
+  4. Adjust currency formatting (currently USD):
+     new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' })
+  5. Customize chart colors in the chart config objects
+  
+  CORE CONCEPTS:
+  - Alpine.js manages all state reactively
+  - Mortgage: PMT formula = P * [r(1+r)^n] / [(1+r)^n - 1]
+  - Compound interest: A = P(1+r/n)^(nt) + PMT * [((1+r/n)^(nt) - 1) / (r/n)]
+  - Chart.js instances are created/destroyed on data change
+  - Tab system uses Alpine x-show with smooth transitions
+  
+  GOTCHAS:
+  - Chart.js must be destroyed before recreating (chart.destroy())
+  - Monthly rate = annual rate / 100 / 12, not / 12 / 100
+  - Handle edge cases: 0% interest, 0 down payment, empty inputs
+  - Currency formatting can break if input is not a number
+  - Charts need responsive: true and maintainAspectRatio: false
+  
+  MORE DOCS:
+  - Chart.js: https://www.chartjs.org/docs/latest/
+  - Alpine.js: https://alpinejs.dev/start-here
+  - Mortgage math: https://www.investopedia.com/mortgage/mortgage-rates/
+  ============================================================
+-->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Personal Finance Calculators</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
+  <style>
+    body { background: #0d1117; color: #e6edf3; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif; }
+    .card { background: #161b22; border: 1px solid #30363d; border-radius: 8px; }
+    .input-field { background: #0d1117; border: 1px solid #30363d; color: #e6edf3; border-radius: 6px; padding: 8px 12px; width: 100%; outline: none; transition: border-color 0.2s; }
+    .input-field:focus { border-color: #58a6ff; }
+    .tab-btn { padding: 10px 20px; border-radius: 6px; font-weight: 600; font-size: 14px; cursor: pointer; transition: all 0.2s; border: 1px solid transparent; background: transparent; color: #8b949e; }
+    .tab-btn:hover { background: #1c2128; color: #e6edf3; }
+    .tab-btn.active { background: #1c2128; color: #58a6ff; border-color: #30363d; }
+    .stat-card { background: #1c2128; border: 1px solid #30363d; border-radius: 8px; padding: 16px 20px; }
+    .stat-label { font-size: 12px; text-transform: uppercase; letter-spacing: 0.05em; color: #8b949e; margin-bottom: 4px; }
+    .stat-value { font-size: 24px; font-weight: 700; color: #e6edf3; }
+    .stat-value.accent { color: #58a6ff; }
+    .stat-value.green { color: #3fb950; }
+    .stat-value.orange { color: #d29922; }
+    .stat-value.red { color: #f85149; }
+    .label-text { font-size: 14px; color: #8b949e; margin-bottom: 6px; font-weight: 500; }
+    .chart-container { position: relative; width: 100%; height: 300px; }
+    table { width: 100%; border-collapse: collapse; }
+    th { text-align: left; padding: 10px 12px; font-size: 12px; text-transform: uppercase; letter-spacing: 0.05em; color: #8b949e; border-bottom: 1px solid #30363d; }
+    td { padding: 10px 12px; font-size: 14px; border-bottom: 1px solid #21262d; }
+    tr:hover td { background: #1c2128; }
+    .progress-bar { height: 8px; border-radius: 4px; background: #21262d; overflow: hidden; }
+    .progress-fill { height: 100%; border-radius: 4px; transition: width 0.4s ease; }
+    ::-webkit-scrollbar { width: 8px; height: 8px; }
+    ::-webkit-scrollbar-track { background: #0d1117; }
+    ::-webkit-scrollbar-thumb { background: #30363d; border-radius: 4px; }
+    ::-webkit-scrollbar-thumb:hover { background: #484f58; }
+    input[type=range] { -webkit-appearance: none; width: 100%; background: transparent; }
+    input[type=range]::-webkit-slider-track { height: 6px; border-radius: 3px; background: #21262d; }
+    input[type=range]::-webkit-slider-thumb { -webkit-appearance: none; height: 18px; width: 18px; border-radius: 50%; background: #58a6ff; margin-top: -6px; cursor: pointer; }
+  </style>
+</head>
+<body class="min-h-screen p-4 md:p-8">
+
+<div x-data="financeApp()" x-init="init()" class="max-w-7xl mx-auto">
+
+  <!-- Header -->
+  <div class="mb-8">
+    <h1 class="text-3xl font-bold mb-2" style="color: #e6edf3;">Personal Finance Calculators</h1>
+    <p style="color: #8b949e;">Interactive tools for mortgage, loans, budgets, and savings planning.</p>
+  </div>
+
+  <!-- Tabs -->
+  <div class="flex flex-wrap gap-2 mb-6">
+    <button class="tab-btn" :class="{ active: tab === 'mortgage' }" @click="switchTab('mortgage')">
+      <span class="mr-2">&#127968;</span> Mortgage
+    </button>
+    <button class="tab-btn" :class="{ active: tab === 'loan' }" @click="switchTab('loan')">
+      <span class="mr-2">&#128176;</span> Loan Simulator
+    </button>
+    <button class="tab-btn" :class="{ active: tab === 'budget' }" @click="switchTab('budget')">
+      <span class="mr-2">&#128200;</span> Budget Planner
+    </button>
+    <button class="tab-btn" :class="{ active: tab === 'compound' }" @click="switchTab('compound')">
+      <span class="mr-2">&#127793;</span> Compound Interest
+    </button>
+  </div>
+
+  <!-- ============== MORTGAGE CALCULATOR ============== -->
+  <div x-show="tab === 'mortgage'" x-transition:enter="transition ease-out duration-200" x-transition:enter-start="opacity-0 translate-y-2" x-transition:enter-end="opacity-100 translate-y-0">
+
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+      <!-- Inputs -->
+      <div class="card p-6">
+        <h2 class="text-lg font-bold mb-5" style="color: #e6edf3;">Mortgage Details</h2>
+
+        <div class="mb-4">
+          <label class="label-text block">Home Price</label>
+          <div class="relative">
+            <span class="absolute left-3 top-1/2 -translate-y-1/2" style="color: #8b949e;">$</span>
+            <input type="number" class="input-field pl-7" x-model.number="mortgage.price" @input="calcMortgage()" />
+          </div>
+        </div>
+
+        <div class="mb-4">
+          <label class="label-text block">Down Payment</label>
+          <div class="flex gap-2 mb-2">
+            <button class="tab-btn text-xs px-3 py-1" :class="{ active: mortgage.dpMode === 'amount' }" @click="mortgage.dpMode = 'amount'; calcMortgage()">$</button>
+            <button class="tab-btn text-xs px-3 py-1" :class="{ active: mortgage.dpMode === 'percent' }" @click="mortgage.dpMode = 'percent'; calcMortgage()">%</button>
+          </div>
+          <div class="relative">
+            <span class="absolute left-3 top-1/2 -translate-y-1/2" style="color: #8b949e;" x-text="mortgage.dpMode === 'amount' ? '$' : '%'"></span>
+            <input type="number" class="input-field pl-7" x-model.number="mortgage.downPaymentInput" @input="calcMortgage()" />
+          </div>
+          <p class="text-xs mt-1" style="color: #8b949e;" x-text="'Down payment: ' + fmt(mortgage.downPaymentAmount)"></p>
+        </div>
+
+        <div class="mb-4">
+          <label class="label-text block">Interest Rate (%)</label>
+          <div class="relative">
+            <input type="number" step="0.01" class="input-field pr-7" x-model.number="mortgage.rate" @input="calcMortgage()" />
+            <span class="absolute right-3 top-1/2 -translate-y-1/2" style="color: #8b949e;">%</span>
+          </div>
+        </div>
+
+        <div class="mb-4">
+          <label class="label-text block">Loan Term (Years): <span style="color: #58a6ff;" x-text="mortgage.years"></span></label>
+          <input type="range" min="5" max="40" step="5" x-model.number="mortgage.years" @input="calcMortgage()" />
+          <div class="flex justify-between text-xs" style="color: #484f58;"><span>5</span><span>40</span></div>
+        </div>
+      </div>
+
+      <!-- Stats -->
+      <div class="card p-6">
+        <h2 class="text-lg font-bold mb-5" style="color: #e6edf3;">Summary</h2>
+        <div class="grid grid-cols-1 gap-4">
+          <div class="stat-card">
+            <div class="stat-label">Monthly Payment</div>
+            <div class="stat-value accent" x-text="fmt(mortgage.monthlyPayment)"></div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-label">Loan Amount</div>
+            <div class="stat-value" x-text="fmt(mortgage.loanAmount)"></div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-label">Total Interest</div>
+            <div class="stat-value orange" x-text="fmt(mortgage.totalInterest)"></div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-label">Total Cost</div>
+            <div class="stat-value red" x-text="fmt(mortgage.totalCost)"></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Chart -->
+      <div class="card p-6">
+        <h2 class="text-lg font-bold mb-5" style="color: #e6edf3;">Amortization Over Time</h2>
+        <div class="chart-container">
+          <canvas id="mortgageChart"></canvas>
+        </div>
+      </div>
+    </div>
+
+    <!-- Amortization Schedule -->
+    <div class="card p-6 mt-6">
+      <h2 class="text-lg font-bold mb-4" style="color: #e6edf3;">Amortization Schedule</h2>
+      <div class="overflow-x-auto">
+        <table>
+          <thead>
+            <tr><th>Month</th><th>Payment</th><th>Principal</th><th>Interest</th><th>Balance</th></tr>
+          </thead>
+          <tbody>
+            <template x-for="(row, i) in mortgage.schedule.slice(0, 12)" :key="i">
+              <tr>
+                <td x-text="row.month"></td>
+                <td x-text="fmt(row.payment)"></td>
+                <td style="color: #3fb950;" x-text="fmt(row.principal)"></td>
+                <td style="color: #d29922;" x-text="fmt(row.interest)"></td>
+                <td x-text="fmt(row.balance)"></td>
+              </tr>
+            </template>
+            <template x-for="(row, i) in mortgage.yearlySchedule" :key="'y'+i">
+              <tr style="font-weight: 600;">
+                <td x-text="'Year ' + row.year"></td>
+                <td x-text="fmt(row.payment)"></td>
+                <td style="color: #3fb950;" x-text="fmt(row.principal)"></td>
+                <td style="color: #d29922;" x-text="fmt(row.interest)"></td>
+                <td x-text="fmt(row.balance)"></td>
+              </tr>
+            </template>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <!-- ============== LOAN SIMULATOR ============== -->
+  <div x-show="tab === 'loan'" x-transition:enter="transition ease-out duration-200" x-transition:enter-start="opacity-0 translate-y-2" x-transition:enter-end="opacity-100 translate-y-0" style="display:none;">
+
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+      <!-- Inputs -->
+      <div class="card p-6">
+        <h2 class="text-lg font-bold mb-5" style="color: #e6edf3;">Loan Details</h2>
+
+        <div class="mb-4">
+          <label class="label-text block">Loan Amount</label>
+          <div class="relative">
+            <span class="absolute left-3 top-1/2 -translate-y-1/2" style="color: #8b949e;">$</span>
+            <input type="number" class="input-field pl-7" x-model.number="loan.amount" @input="calcLoan()" />
+          </div>
+        </div>
+
+        <div class="mb-4">
+          <label class="label-text block">Interest Rate (%)</label>
+          <div class="relative">
+            <input type="number" step="0.01" class="input-field pr-7" x-model.number="loan.rate" @input="calcLoan()" />
+            <span class="absolute right-3 top-1/2 -translate-y-1/2" style="color: #8b949e;">%</span>
+          </div>
+        </div>
+
+        <div class="mb-4">
+          <label class="label-text block">Term (Months): <span style="color: #58a6ff;" x-text="loan.months"></span></label>
+          <input type="range" min="6" max="360" step="6" x-model.number="loan.months" @input="calcLoan()" />
+          <div class="flex justify-between text-xs" style="color: #484f58;"><span>6</span><span>360</span></div>
+        </div>
+
+        <div class="mb-4">
+          <label class="label-text block">Extra Monthly Payment</label>
+          <div class="relative">
+            <span class="absolute left-3 top-1/2 -translate-y-1/2" style="color: #8b949e;">$</span>
+            <input type="number" class="input-field pl-7" x-model.number="loan.extra" @input="calcLoan()" />
+          </div>
+        </div>
+      </div>
+
+      <!-- Stats -->
+      <div class="card p-6">
+        <h2 class="text-lg font-bold mb-5" style="color: #e6edf3;">Comparison</h2>
+
+        <div class="mb-4">
+          <p class="text-xs uppercase tracking-wider mb-2" style="color: #8b949e;">Standard Repayment</p>
+          <div class="grid grid-cols-1 gap-3">
+            <div class="stat-card">
+              <div class="stat-label">Monthly Payment</div>
+              <div class="stat-value accent" x-text="fmt(loan.monthlyPayment)"></div>
+            </div>
+            <div class="stat-card">
+              <div class="stat-label">Total Interest</div>
+              <div class="stat-value orange" x-text="fmt(loan.totalInterest)"></div>
+            </div>
+            <div class="stat-card">
+              <div class="stat-label">Payoff Date</div>
+              <div class="stat-value" style="font-size: 16px;" x-text="loan.payoffDate"></div>
+            </div>
+          </div>
+        </div>
+
+        <template x-if="loan.extra > 0">
+          <div class="mt-4 pt-4" style="border-top: 1px solid #30363d;">
+            <p class="text-xs uppercase tracking-wider mb-2" style="color: #3fb950;">With Extra <span x-text="fmt(loan.extra)"></span>/mo</p>
+            <div class="grid grid-cols-1 gap-3">
+              <div class="stat-card">
+                <div class="stat-label">Payoff In</div>
+                <div class="stat-value green" x-text="loan.acceleratedMonths + ' months'"></div>
+              </div>
+              <div class="stat-card">
+                <div class="stat-label">Time Saved</div>
+                <div class="stat-value green" x-text="loan.monthsSaved + ' months'"></div>
+              </div>
+              <div class="stat-card">
+                <div class="stat-label">Interest Saved</div>
+                <div class="stat-value green" x-text="fmt(loan.interestSaved)"></div>
+              </div>
+            </div>
+          </div>
+        </template>
+      </div>
+
+      <!-- Chart -->
+      <div class="card p-6">
+        <h2 class="text-lg font-bold mb-5" style="color: #e6edf3;">Remaining Balance</h2>
+        <div class="chart-container">
+          <canvas id="loanChart"></canvas>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ============== BUDGET PLANNER ============== -->
+  <div x-show="tab === 'budget'" x-transition:enter="transition ease-out duration-200" x-transition:enter-start="opacity-0 translate-y-2" x-transition:enter-end="opacity-100 translate-y-0" style="display:none;">
+
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+      <!-- Inputs -->
+      <div class="card p-6">
+        <h2 class="text-lg font-bold mb-5" style="color: #e6edf3;">Monthly Budget</h2>
+
+        <div class="mb-5">
+          <label class="label-text block">Monthly Income</label>
+          <div class="relative">
+            <span class="absolute left-3 top-1/2 -translate-y-1/2" style="color: #8b949e;">$</span>
+            <input type="number" class="input-field pl-7" x-model.number="budget.income" @input="calcBudget()" />
+          </div>
+        </div>
+
+        <template x-for="(cat, i) in budget.categories" :key="i">
+          <div class="mb-4">
+            <div class="flex justify-between items-center mb-1">
+              <label class="label-text mb-0" x-text="cat.name"></label>
+              <span class="text-xs" style="color: #8b949e;" x-text="budgetPercent(cat.amount)"></span>
+            </div>
+            <div class="relative">
+              <span class="absolute left-3 top-1/2 -translate-y-1/2" style="color: #8b949e;">$</span>
+              <input type="number" class="input-field pl-7" x-model.number="cat.amount" @input="calcBudget()" />
+            </div>
+            <div class="progress-bar mt-2">
+              <div class="progress-fill" :style="'width:' + budgetBarWidth(cat.amount) + '%; background:' + cat.color"></div>
+            </div>
+          </div>
+        </template>
+      </div>
+
+      <!-- Remaining -->
+      <div class="card p-6">
+        <h2 class="text-lg font-bold mb-5" style="color: #e6edf3;">Overview</h2>
+        <div class="grid grid-cols-1 gap-4">
+          <div class="stat-card">
+            <div class="stat-label">Total Allocated</div>
+            <div class="stat-value accent" x-text="fmt(budget.totalAllocated)"></div>
+          </div>
+          <div class="stat-card" :class="budget.remaining >= 0 ? '' : 'border-red-500'">
+            <div class="stat-label">Remaining / Unallocated</div>
+            <div class="stat-value" :class="budget.remaining >= 0 ? 'green' : 'red'" x-text="fmt(budget.remaining)"></div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-label">Allocated</div>
+            <div class="stat-value" :class="budget.allocatedPercent > 100 ? 'red' : 'accent'" x-text="budget.allocatedPercent + '%'"></div>
+          </div>
+        </div>
+
+        <div class="mt-6">
+          <p class="text-xs uppercase tracking-wider mb-3" style="color: #8b949e;">Breakdown</p>
+          <template x-for="(cat, i) in budget.categories" :key="i">
+            <div class="flex items-center justify-between mb-2">
+              <div class="flex items-center gap-2">
+                <div class="w-3 h-3 rounded-full" :style="'background:' + cat.color"></div>
+                <span class="text-sm" x-text="cat.name"></span>
+              </div>
+              <span class="text-sm font-mono" style="color: #8b949e;" x-text="budgetPercent(cat.amount)"></span>
+            </div>
+          </template>
+        </div>
+      </div>
+
+      <!-- Chart -->
+      <div class="card p-6">
+        <h2 class="text-lg font-bold mb-5" style="color: #e6edf3;">Allocation</h2>
+        <div class="chart-container">
+          <canvas id="budgetChart"></canvas>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ============== COMPOUND INTEREST ============== -->
+  <div x-show="tab === 'compound'" x-transition:enter="transition ease-out duration-200" x-transition:enter-start="opacity-0 translate-y-2" x-transition:enter-end="opacity-100 translate-y-0" style="display:none;">
+
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+      <!-- Inputs -->
+      <div class="card p-6">
+        <h2 class="text-lg font-bold mb-5" style="color: #e6edf3;">Investment Details</h2>
+
+        <div class="mb-4">
+          <label class="label-text block">Initial Principal</label>
+          <div class="relative">
+            <span class="absolute left-3 top-1/2 -translate-y-1/2" style="color: #8b949e;">$</span>
+            <input type="number" class="input-field pl-7" x-model.number="compound.principal" @input="calcCompound()" />
+          </div>
+        </div>
+
+        <div class="mb-4">
+          <label class="label-text block">Monthly Contribution</label>
+          <div class="relative">
+            <span class="absolute left-3 top-1/2 -translate-y-1/2" style="color: #8b949e;">$</span>
+            <input type="number" class="input-field pl-7" x-model.number="compound.monthly" @input="calcCompound()" />
+          </div>
+        </div>
+
+        <div class="mb-4">
+          <label class="label-text block">Annual Rate (%)</label>
+          <div class="relative">
+            <input type="number" step="0.01" class="input-field pr-7" x-model.number="compound.rate" @input="calcCompound()" />
+            <span class="absolute right-3 top-1/2 -translate-y-1/2" style="color: #8b949e;">%</span>
+          </div>
+        </div>
+
+        <div class="mb-4">
+          <label class="label-text block">Years: <span style="color: #58a6ff;" x-text="compound.years"></span></label>
+          <input type="range" min="1" max="50" x-model.number="compound.years" @input="calcCompound()" />
+          <div class="flex justify-between text-xs" style="color: #484f58;"><span>1</span><span>50</span></div>
+        </div>
+      </div>
+
+      <!-- Stats -->
+      <div class="card p-6">
+        <h2 class="text-lg font-bold mb-5" style="color: #e6edf3;">Results</h2>
+        <div class="grid grid-cols-1 gap-4">
+          <div class="stat-card">
+            <div class="stat-label">Final Amount</div>
+            <div class="stat-value accent" x-text="fmt(compound.finalAmount)"></div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-label">Total Contributions</div>
+            <div class="stat-value" x-text="fmt(compound.totalContributions)"></div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-label">Interest Earned</div>
+            <div class="stat-value green" x-text="fmt(compound.interestEarned)"></div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-label">Effective Return</div>
+            <div class="stat-value green" x-text="compound.effectiveReturn + '%'"></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Chart -->
+      <div class="card p-6">
+        <h2 class="text-lg font-bold mb-5" style="color: #e6edf3;">Growth Over Time</h2>
+        <div class="chart-container">
+          <canvas id="compoundChart"></canvas>
+        </div>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<script>
+function financeApp() {
+  return {
+    tab: 'mortgage',
+    mortgageChart: null,
+    loanChart: null,
+    budgetChart: null,
+    compoundChart: null,
+
+    mortgage: {
+      price: 450000, downPayment: 90000, downPaymentInput: 90000, dpMode: 'amount',
+      downPaymentAmount: 90000, rate: 6.5, years: 30,
+      monthlyPayment: 0, loanAmount: 0, totalInterest: 0, totalCost: 0,
+      schedule: [], yearlySchedule: []
+    },
+
+    loan: {
+      amount: 25000, rate: 7.5, months: 60, extra: 0,
+      monthlyPayment: 0, totalInterest: 0, payoffDate: '',
+      acceleratedMonths: 0, monthsSaved: 0, interestSaved: 0,
+      normalSchedule: [], acceleratedSchedule: []
+    },
+
+    budget: {
+      income: 6000,
+      categories: [
+        { name: 'Housing', amount: 1800, color: '#58a6ff' },
+        { name: 'Food', amount: 600, color: '#3fb950' },
+        { name: 'Transport', amount: 400, color: '#d29922' },
+        { name: 'Entertainment', amount: 200, color: '#f85149' },
+        { name: 'Savings', amount: 800, color: '#bc8cff' },
+        { name: 'Other', amount: 300, color: '#8b949e' }
+      ],
+      totalAllocated: 0, remaining: 0, allocatedPercent: 0
+    },
+
+    compound: {
+      principal: 10000, monthly: 500, rate: 8, years: 20,
+      finalAmount: 0, totalContributions: 0, interestEarned: 0, effectiveReturn: 0,
+      yearData: []
+    },
+
+    init() {
+      this.calcMortgage();
+      this.calcLoan();
+      this.calcBudget();
+      this.calcCompound();
+    },
+
+    switchTab(t) {
+      this.tab = t;
+      this.$nextTick(() => {
+        if (t === 'mortgage') this.renderMortgageChart();
+        if (t === 'loan') this.renderLoanChart();
+        if (t === 'budget') this.renderBudgetChart();
+        if (t === 'compound') this.renderCompoundChart();
+      });
+    },
+
+    fmt(n) {
+      if (typeof n !== 'number' || isNaN(n)) return '$0.00';
+      return new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD', minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(n);
+    },
+
+    // ===== MORTGAGE =====
+    calcMortgage() {
+      const m = this.mortgage;
+      m.downPaymentAmount = m.dpMode === 'percent' ? m.price * (m.downPaymentInput / 100) : m.downPaymentInput;
+      m.loanAmount = Math.max(0, m.price - m.downPaymentAmount);
+      const r = m.rate / 100 / 12;
+      const n = m.years * 12;
+
+      if (m.loanAmount <= 0 || n <= 0) {
+        m.monthlyPayment = 0; m.totalInterest = 0; m.totalCost = m.downPaymentAmount;
+        m.schedule = []; m.yearlySchedule = [];
+        this.renderMortgageChart();
+        return;
+      }
+
+      if (r === 0) {
+        m.monthlyPayment = m.loanAmount / n;
+      } else {
+        m.monthlyPayment = m.loanAmount * (r * Math.pow(1 + r, n)) / (Math.pow(1 + r, n) - 1);
+      }
+
+      m.totalCost = m.monthlyPayment * n + m.downPaymentAmount;
+      m.totalInterest = m.monthlyPayment * n - m.loanAmount;
+
+      // Schedule
+      let balance = m.loanAmount;
+      let sched = [];
+      let yearly = {};
+      for (let i = 1; i <= n; i++) {
+        let interest = balance * r;
+        let principal = m.monthlyPayment - interest;
+        balance = Math.max(0, balance - principal);
+        sched.push({ month: i, payment: m.monthlyPayment, principal, interest, balance });
+
+        let yr = Math.ceil(i / 12);
+        if (!yearly[yr]) yearly[yr] = { year: yr, payment: 0, principal: 0, interest: 0 };
+        yearly[yr].payment += m.monthlyPayment;
+        yearly[yr].principal += principal;
+        yearly[yr].interest += interest;
+        yearly[yr].balance = balance;
+      }
+      m.schedule = sched;
+      m.yearlySchedule = Object.values(yearly);
+
+      this.renderMortgageChart();
+    },
+
+    renderMortgageChart() {
+      const ctx = document.getElementById('mortgageChart');
+      if (!ctx) return;
+      if (this.mortgageChart) this.mortgageChart.destroy();
+
+      const sched = this.mortgage.schedule;
+      if (!sched.length) return;
+
+      // Aggregate by year
+      const years = [];
+      const principalData = [];
+      const interestData = [];
+      for (let i = 0; i < sched.length; i += 12) {
+        const yrSlice = sched.slice(i, i + 12);
+        const yrNum = Math.floor(i / 12) + 1;
+        years.push('Year ' + yrNum);
+        principalData.push(yrSlice.reduce((s, r) => s + r.principal, 0));
+        interestData.push(yrSlice.reduce((s, r) => s + r.interest, 0));
+      }
+
+      this.mortgageChart = new Chart(ctx, {
+        type: 'bar',
+        data: {
+          labels: years,
+          datasets: [
+            { label: 'Principal', data: principalData, backgroundColor: '#3fb950', borderRadius: 3 },
+            { label: 'Interest', data: interestData, backgroundColor: '#d29922', borderRadius: 3 }
+          ]
+        },
+        options: {
+          responsive: true, maintainAspectRatio: false,
+          plugins: { legend: { labels: { color: '#8b949e' } } },
+          scales: {
+            x: { stacked: true, ticks: { color: '#8b949e' }, grid: { color: '#21262d' } },
+            y: { stacked: true, ticks: { color: '#8b949e', callback: v => '$' + (v / 1000).toFixed(0) + 'k' }, grid: { color: '#21262d' } }
+          }
+        }
+      });
+    },
+
+    // ===== LOAN =====
+    calcLoan() {
+      const l = this.loan;
+      const r = l.rate / 100 / 12;
+      const n = l.months;
+
+      if (l.amount <= 0 || n <= 0) { l.monthlyPayment = 0; l.totalInterest = 0; l.payoffDate = ''; return; }
+
+      if (r === 0) {
+        l.monthlyPayment = l.amount / n;
+      } else {
+        l.monthlyPayment = l.amount * (r * Math.pow(1 + r, n)) / (Math.pow(1 + r, n) - 1);
+      }
+
+      l.totalInterest = l.monthlyPayment * n - l.amount;
+      const d = new Date(); d.setMonth(d.getMonth() + n);
+      l.payoffDate = d.toLocaleDateString('en-US', { month: 'long', year: 'numeric' });
+
+      // Normal schedule
+      let balance = l.amount;
+      l.normalSchedule = [];
+      for (let i = 1; i <= n; i++) {
+        let interest = balance * r;
+        let princ = l.monthlyPayment - interest;
+        balance = Math.max(0, balance - princ);
+        l.normalSchedule.push({ month: i, balance });
+      }
+
+      // Accelerated
+      if (l.extra > 0) {
+        balance = l.amount;
+        l.acceleratedSchedule = [];
+        let month = 0;
+        while (balance > 0 && month < n + 120) {
+          month++;
+          let interest = balance * r;
+          let princ = l.monthlyPayment + l.extra - interest;
+          balance = Math.max(0, balance - princ);
+          l.acceleratedSchedule.push({ month, balance });
+        }
+        l.acceleratedMonths = month;
+        l.monthsSaved = n - month;
+        const accInterest = (l.monthlyPayment + l.extra) * month - l.amount;
+        l.interestSaved = Math.max(0, l.totalInterest - accInterest);
+      } else {
+        l.acceleratedSchedule = [];
+        l.acceleratedMonths = 0; l.monthsSaved = 0; l.interestSaved = 0;
+      }
+
+      this.renderLoanChart();
+    },
+
+    renderLoanChart() {
+      const ctx = document.getElementById('loanChart');
+      if (!ctx) return;
+      if (this.loanChart) this.loanChart.destroy();
+
+      const normal = this.loan.normalSchedule;
+      if (!normal.length) return;
+
+      const maxLen = Math.max(normal.length, this.loan.acceleratedSchedule.length);
+      const labels = Array.from({ length: Math.min(maxLen, 361) }, (_, i) => i + 1);
+      const nData = normal.slice(0, labels.length).map(r => r.balance);
+      const aData = this.loan.acceleratedSchedule.slice(0, labels.length).map(r => r.balance);
+
+      const datasets = [
+        { label: 'Standard', data: nData, borderColor: '#58a6ff', backgroundColor: 'rgba(88,166,255,0.1)', fill: true, tension: 0.3, pointRadius: 0 }
+      ];
+      if (aData.length) {
+        datasets.push({ label: 'With Extra', data: aData, borderColor: '#3fb950', backgroundColor: 'rgba(63,185,80,0.1)', fill: true, tension: 0.3, pointRadius: 0 });
+      }
+
+      this.loanChart = new Chart(ctx, {
+        type: 'line',
+        data: { labels, datasets },
+        options: {
+          responsive: true, maintainAspectRatio: false,
+          plugins: { legend: { labels: { color: '#8b949e' } } },
+          scales: {
+            x: { ticks: { color: '#8b949e', maxTicksLimit: 12 }, grid: { color: '#21262d' }, title: { display: true, text: 'Month', color: '#8b949e' } },
+            y: { ticks: { color: '#8b949e', callback: v => '$' + (v / 1000).toFixed(0) + 'k' }, grid: { color: '#21262d' } }
+          }
+        }
+      });
+    },
+
+    // ===== BUDGET =====
+    calcBudget() {
+      const b = this.budget;
+      b.totalAllocated = b.categories.reduce((s, c) => s + (c.amount || 0), 0);
+      b.remaining = b.income - b.totalAllocated;
+      b.allocatedPercent = b.income > 0 ? Math.round((b.totalAllocated / b.income) * 100) : 0;
+      this.renderBudgetChart();
+    },
+
+    budgetPercent(amount) {
+      if (!this.budget.income) return '0%';
+      return ((amount / this.budget.income) * 100).toFixed(1) + '%';
+    },
+
+    budgetBarWidth(amount) {
+      if (!this.budget.income) return 0;
+      return Math.min(100, (amount / this.budget.income) * 100);
+    },
+
+    renderBudgetChart() {
+      const ctx = document.getElementById('budgetChart');
+      if (!ctx) return;
+      if (this.budgetChart) this.budgetChart.destroy();
+
+      const cats = this.budget.categories;
+      this.budgetChart = new Chart(ctx, {
+        type: 'doughnut',
+        data: {
+          labels: cats.map(c => c.name),
+          datasets: [{
+            data: cats.map(c => c.amount || 0),
+            backgroundColor: cats.map(c => c.color),
+            borderColor: '#161b22', borderWidth: 2
+          }]
+        },
+        options: {
+          responsive: true, maintainAspectRatio: false,
+          cutout: '60%',
+          plugins: {
+            legend: { position: 'bottom', labels: { color: '#8b949e', padding: 16, usePointStyle: true } }
+          }
+        }
+      });
+    },
+
+    // ===== COMPOUND INTEREST =====
+    calcCompound() {
+      const c = this.compound;
+      const r = c.rate / 100 / 12;
+      const months = c.years * 12;
+
+      let data = [];
+      let balance = c.principal;
+      let totalContrib = c.principal;
+
+      for (let y = 1; y <= c.years; y++) {
+        for (let m = 0; m < 12; m++) {
+          balance = balance * (1 + r) + c.monthly;
+          totalContrib += c.monthly;
+        }
+        data.push({ year: y, balance, contributions: totalContrib, interest: balance - totalContrib });
+      }
+
+      c.yearData = data;
+      const last = data[data.length - 1] || { balance: c.principal, contributions: c.principal, interest: 0 };
+      c.finalAmount = last.balance;
+      c.totalContributions = last.contributions;
+      c.interestEarned = last.interest;
+      c.effectiveReturn = last.contributions > 0 ? ((last.interest / last.contributions) * 100).toFixed(1) : '0.0';
+
+      this.renderCompoundChart();
+    },
+
+    renderCompoundChart() {
+      const ctx = document.getElementById('compoundChart');
+      if (!ctx) return;
+      if (this.compoundChart) this.compoundChart.destroy();
+
+      const d = this.compound.yearData;
+      if (!d.length) return;
+
+      this.compoundChart = new Chart(ctx, {
+        type: 'line',
+        data: {
+          labels: d.map(r => 'Year ' + r.year),
+          datasets: [
+            {
+              label: 'Contributions',
+              data: d.map(r => r.contributions),
+              backgroundColor: 'rgba(88,166,255,0.3)',
+              borderColor: '#58a6ff',
+              fill: true, tension: 0.3, pointRadius: 0
+            },
+            {
+              label: 'Interest Earned',
+              data: d.map(r => r.balance),
+              backgroundColor: 'rgba(63,185,80,0.3)',
+              borderColor: '#3fb950',
+              fill: true, tension: 0.3, pointRadius: 0
+            }
+          ]
+        },
+        options: {
+          responsive: true, maintainAspectRatio: false,
+          plugins: { legend: { labels: { color: '#8b949e' } } },
+          scales: {
+            x: { ticks: { color: '#8b949e', maxTicksLimit: 10 }, grid: { color: '#21262d' } },
+            y: { ticks: { color: '#8b949e', callback: v => '$' + (v / 1000).toFixed(0) + 'k' }, grid: { color: '#21262d' } }
+          }
+        }
+      });
+    }
+  };
+}
+</script>
+
+</body>
+</html>

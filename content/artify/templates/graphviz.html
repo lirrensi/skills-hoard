@@ -1,0 +1,99 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>{{TITLE}}</title>
+  <style>
+    :root {
+      --bg: #f7f9fc;
+      --fg: #162234;
+      --muted: #5c6b80;
+      --panel: #ffffff;
+      --line: #d9e2ef;
+      --accent: #2e6fd0;
+      --error-bg: #fff1f0;
+      --error-line: #f2b8b5;
+      --error-text: #a43732;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      padding: 2rem;
+      background:
+        radial-gradient(circle at top right, rgba(46,111,208,0.08), transparent 24%),
+        radial-gradient(circle at top left, rgba(56,173,169,0.08), transparent 22%),
+        var(--bg);
+      color: var(--fg);
+      font: 16px/1.55 "Trebuchet MS", Verdana, sans-serif;
+    }
+    .wrap {
+      max-width: 1280px;
+      margin: 0 auto;
+    }
+    h1 {
+      margin: 0 0 0.4rem;
+      font-size: 1.5rem;
+    }
+    .subtitle {
+      margin: 0 0 1.5rem;
+      color: var(--muted);
+    }
+    .error-box {
+      display: none;
+      margin-bottom: 1rem;
+      padding: 1rem 1.2rem;
+      background: var(--error-bg);
+      border: 1px solid var(--error-line);
+      border-radius: 14px;
+      color: var(--error-text);
+      white-space: pre-wrap;
+      font: 13px/1.5 ui-monospace, monospace;
+    }
+    .diagram {
+      background: var(--panel);
+      border: 1px solid var(--line);
+      border-radius: 20px;
+      padding: 1.25rem;
+      overflow: auto;
+      box-shadow: 0 18px 55px rgba(31, 52, 79, 0.08);
+      min-height: 420px;
+    }
+    .diagram svg {
+      display: block;
+      max-width: 100%;
+      height: auto;
+      margin: 0 auto;
+    }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <h1>{{TITLE}}</h1>
+    <p class="subtitle">Graphviz DOT rendered in the browser as SVG.</p>
+    <div class="error-box" id="errorBox"></div>
+    <div class="diagram" id="diagramHost"></div>
+    <script id="dotSource" type="text/plain">{{DOT}}</script>
+  </div>
+
+  <script type="module">
+    import * as Viz from "https://cdn.jsdelivr.net/npm/@viz-js/viz@3.25.0/+esm";
+
+    const host = document.getElementById('diagramHost');
+    const errorBox = document.getElementById('errorBox');
+    const source = document.getElementById('dotSource').textContent;
+
+    try {
+      const viz = await Viz.instance();
+      const svg = viz.renderSVGElement(source.trim() || 'digraph { Empty }');
+      svg.removeAttribute('width');
+      svg.removeAttribute('height');
+      host.replaceChildren(svg);
+    } catch (err) {
+      errorBox.style.display = 'block';
+      errorBox.textContent = 'Graphviz render error:\n' + (err.message || String(err));
+      host.textContent = '';
+    }
+  </script>
+</body>
+</html>

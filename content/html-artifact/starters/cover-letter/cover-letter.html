@@ -1,0 +1,777 @@
+<!-- 
+  ============================================================
+  COVER LETTER + JOB APPLICATION KIT STARTER
+  ============================================================
+  
+  WHAT THIS IS:
+  A cover letter that looks like it came from a designer's desk,
+  not a Word template from 2003. Plus a lightweight job tracker
+  so you can keep tabs on your applications without yet another
+  SaaS subscription.
+  
+  USE THIS FOR:
+  - Your cover letter (one base, customized per application)
+  - Job application tracking (who, what, when, status)
+  - Freelancer proposals / pitch letters
+  - Any formal business letter
+  - Replace: .docx cover letters, Google Docs templates
+  
+  WHY HTML OVER DOCX:
+  - Typography that actually looks good (no default Calibri)
+  - Contenteditable — click to edit, no "track changes" mess
+  - Print to PDF for a pixel-perfect letter
+  - Placeholders that stand out so you don't forget to customize
+  - Job tracker built in — no separate spreadsheet needed
+  - LocalStorage means it works offline, no login required
+  
+  HOW TO CUSTOMIZE:
+  1. Edit your info in the header block (name, contact, title)
+  2. Write your base cover letter body
+  3. Use [BRACKETS] for per-application placeholders:
+     [COMPANY NAME], [ROLE TITLE], [SPECIFIC SKILL], etc.
+  4. For each application, clone the page (Save As), fill in brackets
+  5. Use the tracker below to log each application
+  6. Tracker data persists in browser localStorage
+  
+  CORE CONCEPTS:
+  - contenteditable="true" on paragraph divs for inline editing
+  - Placeholders use ::before/::after CSS or <mark> tags for visibility
+  - Tracker uses Alpine.js x-data with localStorage sync
+  - Print: @media print hides tracker, controls, shows letter only
+  - Theme toggle swaps between professional light and dark mode
+  
+  GOTCHAS:
+  - contenteditable doesn't save on its own — localStorage needed
+  - Print may break if fonts haven't loaded yet
+  - Placeholders: make them visually obvious so you don't send one unfilled
+  - Keep print to 1 page — use @page { margin: 1in } for letter format
+  - LocalStorage has ~5MB limit — more than enough for job data
+  
+  MORE DOCS:
+  - contenteditable: https://developer.mozilla.org/en-US/docs/Web/HTML/Global_attributes/contenteditable
+  - Alpine.js: https://alpinejs.dev/start-here
+  - Print CSS: https://developer.mozilla.org/en-US/docs/Web/CSS/CSS_media_queries/Printing
+  ============================================================
+-->
+<!DOCTYPE html>
+<html lang="en" x-data="coverLetterApp()" :class="{ 'dark': darkMode }">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Cover Letter &amp; Application Kit</title>
+
+  <!-- Tailwind CSS -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          fontFamily: {
+            serif: ['"Playfair Display"', 'Georgia', 'serif'],
+            sans: ['Inter', 'system-ui', 'sans-serif'],
+          },
+          colors: {
+            ink: {
+              50: '#fafaf9',
+              100: '#f5f5f4',
+              200: '#e7e5e4',
+              300: '#d6d3d1',
+              400: '#a8a29e',
+              500: '#78716c',
+              600: '#57534e',
+              700: '#44403c',
+              800: '#292524',
+              900: '#1c1917',
+              950: '#0c0a09',
+            },
+            accent: {
+              DEFAULT: '#8b5e3c',
+              light: '#c4956a',
+              dark: '#5e3a1e',
+              muted: '#d4b896',
+            }
+          }
+        }
+      }
+    }
+  </script>
+
+  <!-- Alpine.js -->
+  <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
+
+  <!-- Google Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,500;0,600;0,700;1,400;1,500&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
+
+  <style>
+    /* ===== Base Styles ===== */
+    html { scroll-behavior: smooth; }
+
+    body {
+      font-family: 'Inter', system-ui, sans-serif;
+      -webkit-font-smoothing: antialiased;
+      -moz-osx-font-smoothing: grayscale;
+    }
+
+    /* ===== Placeholder Highlights ===== */
+    mark.placeholder {
+      background: linear-gradient(135deg, #fef3c7, #fde68a);
+      color: #92400e;
+      padding: 2px 6px;
+      border-radius: 3px;
+      font-weight: 500;
+      font-style: normal;
+      text-decoration: none;
+      box-decoration-break: clone;
+      -webkit-box-decoration-break: clone;
+      cursor: default;
+      position: relative;
+      transition: all 0.2s ease;
+    }
+
+    mark.placeholder:hover {
+      background: linear-gradient(135deg, #fde68a, #fbbf24);
+      box-shadow: 0 1px 4px rgba(146, 64, 14, 0.2);
+    }
+
+    .dark mark.placeholder {
+      background: linear-gradient(135deg, #78350f, #92400e);
+      color: #fef3c7;
+    }
+
+    .dark mark.placeholder:hover {
+      background: linear-gradient(135deg, #92400e, #b45309);
+    }
+
+    /* ===== Contenteditable Styles ===== */
+    [contenteditable="true"] {
+      outline: none;
+      transition: background 0.2s ease;
+      border-radius: 4px;
+      padding: 2px 4px;
+      margin: -2px -4px;
+    }
+
+    [contenteditable="true"]:hover {
+      background: rgba(139, 94, 60, 0.04);
+    }
+
+    [contenteditable="true"]:focus {
+      background: rgba(139, 94, 60, 0.06);
+      box-shadow: inset 0 0 0 1.5px rgba(139, 94, 60, 0.15);
+    }
+
+    .dark [contenteditable="true"]:hover {
+      background: rgba(196, 149, 106, 0.06);
+    }
+
+    .dark [contenteditable="true"]:focus {
+      background: rgba(196, 149, 106, 0.08);
+      box-shadow: inset 0 0 0 1.5px rgba(196, 149, 106, 0.2);
+    }
+
+    /* ===== Letter Page Shadow ===== */
+    .letter-page {
+      box-shadow:
+        0 1px 3px rgba(0,0,0,0.04),
+        0 4px 12px rgba(0,0,0,0.06),
+        0 12px 40px rgba(0,0,0,0.04);
+    }
+
+    .dark .letter-page {
+      box-shadow:
+        0 1px 3px rgba(0,0,0,0.2),
+        0 4px 12px rgba(0,0,0,0.3),
+        0 12px 40px rgba(0,0,0,0.2);
+    }
+
+    /* ===== Divider ===== */
+    .letter-divider {
+      height: 1px;
+      background: linear-gradient(90deg, transparent, #d6d3d1, transparent);
+    }
+
+    .dark .letter-divider {
+      background: linear-gradient(90deg, transparent, #44403c, transparent);
+    }
+
+    /* ===== Status Badges ===== */
+    .badge-applied {
+      background: #dbeafe;
+      color: #1e40af;
+    }
+    .badge-interview {
+      background: #fef3c7;
+      color: #92400e;
+    }
+    .badge-offer {
+      background: #d1fae5;
+      color: #065f46;
+    }
+    .badge-rejected {
+      background: #fee2e2;
+      color: #991b1b;
+    }
+    .badge-saved {
+      background: #e5e7eb;
+      color: #374151;
+    }
+
+    .dark .badge-applied {
+      background: #1e3a5f;
+      color: #93c5fd;
+    }
+    .dark .badge-interview {
+      background: #78350f;
+      color: #fcd34d;
+    }
+    .dark .badge-offer {
+      background: #064e3b;
+      color: #6ee7b7;
+    }
+    .dark .badge-rejected {
+      background: #7f1d1d;
+      color: #fca5a5;
+    }
+    .dark .badge-saved {
+      background: #374151;
+      color: #d1d5db;
+    }
+
+    /* ===== Print Styles ===== */
+    @media print {
+      @page {
+        size: letter;
+        margin: 0.75in;
+      }
+
+      body {
+        background: white !important;
+        color: #1c1917 !important;
+        font-size: 11pt;
+        -webkit-print-color-adjust: exact;
+        print-color-adjust: exact;
+      }
+
+      .no-print {
+        display: none !important;
+      }
+
+      .letter-page {
+        box-shadow: none !important;
+        border: none !important;
+        max-width: 100% !important;
+        padding: 0 !important;
+        margin: 0 !important;
+      }
+
+      .dark mark.placeholder {
+        background: #fef3c7 !important;
+        color: #92400e !important;
+      }
+
+      [contenteditable="true"] {
+        background: transparent !important;
+        box-shadow: none !important;
+      }
+
+      mark.placeholder {
+        background: #fef3c7 !important;
+        color: #92400e !important;
+        border: 1px solid #fbbf24 !important;
+      }
+    }
+
+    /* ===== Smooth transitions for theme ===== */
+    .theme-transition,
+    .theme-transition *,
+    .theme-transition *::before,
+    .theme-transition *::after {
+      transition: background-color 0.3s ease, color 0.3s ease, border-color 0.3s ease, box-shadow 0.3s ease !important;
+    }
+  </style>
+</head>
+
+<body
+  class="min-h-screen bg-stone-50 dark:bg-ink-950 text-ink-800 dark:text-ink-200 transition-colors duration-300"
+  :class="{ 'theme-transition': transitioning }"
+>
+
+  <!-- ==================== TOP BAR ==================== -->
+  <header class="no-print sticky top-0 z-50 bg-white/80 dark:bg-ink-900/80 backdrop-blur-md border-b border-stone-200 dark:border-ink-800">
+    <div class="max-w-5xl mx-auto px-4 sm:px-6 py-3 flex items-center justify-between">
+      <div class="flex items-center gap-3">
+        <div class="w-8 h-8 rounded-lg bg-accent flex items-center justify-center">
+          <svg class="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
+          </svg>
+        </div>
+        <h1 class="font-serif text-lg font-semibold text-ink-900 dark:text-ink-100">Cover Letter Kit</h1>
+      </div>
+
+      <div class="flex items-center gap-2">
+        <!-- Print Button -->
+        <button
+          @click="printLetter()"
+          class="inline-flex items-center gap-2 px-3.5 py-2 text-sm font-medium rounded-lg bg-accent text-white hover:bg-accent-dark transition-colors"
+        >
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z"/>
+          </svg>
+          Print / PDF
+        </button>
+
+        <!-- Theme Toggle -->
+        <button
+          @click="toggleTheme()"
+          class="p-2 rounded-lg border border-stone-200 dark:border-ink-700 hover:bg-stone-100 dark:hover:bg-ink-800 transition-colors"
+          :title="darkMode ? 'Switch to light mode' : 'Switch to dark mode'"
+        >
+          <!-- Sun icon -->
+          <svg x-show="darkMode" class="w-5 h-5 text-amber-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z"/>
+          </svg>
+          <!-- Moon icon -->
+          <svg x-show="!darkMode" class="w-5 h-5 text-ink-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z"/>
+          </svg>
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <!-- ==================== SECTION 1: COVER LETTER ==================== -->
+  <main class="max-w-3xl mx-auto px-4 sm:px-6 py-8 sm:py-12">
+    <div class="letter-page bg-white dark:bg-ink-900 rounded-xl sm:rounded-2xl p-8 sm:p-12 md:p-16">
+
+      <!-- ===== Letterhead ===== -->
+      <header class="mb-8">
+        <h2
+          contenteditable="true"
+          class="font-serif text-3xl sm:text-4xl font-semibold text-ink-900 dark:text-ink-50 leading-tight"
+        >Your Name</h2>
+        <p
+          contenteditable="true"
+          class="mt-1 text-lg text-accent dark:text-accent-light font-medium"
+        >Your Professional Title</p>
+
+        <div class="mt-4 flex flex-wrap gap-x-5 gap-y-1 text-sm text-ink-500 dark:text-ink-400">
+          <span contenteditable="true" class="flex items-center gap-1.5">
+            <svg class="w-3.5 h-3.5 opacity-60" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/></svg>
+            your@email.com
+          </span>
+          <span contenteditable="true" class="flex items-center gap-1.5">
+            <svg class="w-3.5 h-3.5 opacity-60" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z"/></svg>
+            (555) 123-4567
+          </span>
+          <span contenteditable="true" class="flex items-center gap-1.5">
+            <svg class="w-3.5 h-3.5 opacity-60" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
+            City, State
+          </span>
+          <span contenteditable="true" class="flex items-center gap-1.5">
+            <svg class="w-3.5 h-3.5 opacity-60" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1"/></svg>
+            yourwebsite.com
+          </span>
+        </div>
+      </header>
+
+      <!-- ===== Decorative Rule ===== -->
+      <div class="letter-divider mb-8"></div>
+
+      <!-- ===== Date ===== -->
+      <p contenteditable="true" class="text-sm text-ink-500 dark:text-ink-400 mb-8">March 20, 2026</p>
+
+      <!-- ===== Recipient Block ===== -->
+      <address class="not-italic mb-8 text-sm leading-relaxed text-ink-700 dark:text-ink-300">
+        <p contenteditable="true" class="font-medium text-ink-900 dark:text-ink-100"><mark class="placeholder">[HIRING MANAGER NAME]</mark></p>
+        <p contenteditable="true"><mark class="placeholder">[COMPANY NAME]</mark></p>
+        <p contenteditable="true"><mark class="placeholder">[COMPANY ADDRESS]</mark></p>
+        <p contenteditable="true"><mark class="placeholder">[CITY, STATE ZIP]</mark></p>
+      </address>
+
+      <!-- ===== Salutation ===== -->
+      <p contenteditable="true" class="mb-6 text-ink-800 dark:text-ink-200">Dear <mark class="placeholder">[HIRING MANAGER NAME]</mark>,</p>
+
+      <!-- ===== Body Paragraphs ===== -->
+      <div class="space-y-5 text-[15px] leading-[1.75] text-ink-700 dark:text-ink-300">
+
+        <!-- Paragraph 1: Opening Hook -->
+        <p contenteditable="true">
+          I'm writing to express my strong interest in the <mark class="placeholder">[ROLE TITLE]</mark> position at <mark class="placeholder">[COMPANY NAME]</mark>. I discovered this opportunity through <mark class="placeholder">[SOURCE — e.g., LinkedIn, a referral, your careers page]</mark>, and I was immediately drawn to the role because it sits at the intersection of <mark class="placeholder">[KEY RESPONSIBILITY OR INTEREST]</mark> — exactly where I've spent the last several years honing my craft. The opportunity to contribute to <mark class="placeholder">[SPECIFIC COMPANY INITIATIVE OR PRODUCT]</mark> is genuinely exciting to me.
+        </p>
+
+        <!-- Paragraph 2: Relevant Experience -->
+        <p contenteditable="true">
+          In my current role as <mark class="placeholder">[CURRENT TITLE]</mark> at <mark class="placeholder">[CURRENT COMPANY]</mark>, I've led initiatives that directly mirror what you're looking for. Most notably, I <mark class="placeholder">[SPECIFIC ACHIEVEMENT WITH METRICS — e.g., increased conversion by 40%, built a system serving 100K users]</mark>. My deep experience with <mark class="placeholder">[SPECIFIC SKILL]</mark> and <mark class="placeholder">[SECOND SKILL]</mark> has given me a strong foundation for the challenges described in your job posting. I thrive in environments that demand <mark class="placeholder">[WORK STYLE — e.g., cross-functional collaboration, fast iteration, strategic thinking]</mark>.
+        </p>
+
+        <!-- Paragraph 3: Why This Company -->
+        <p contenteditable="true">
+          What sets <mark class="placeholder">[COMPANY NAME]</mark> apart, in my view, is <mark class="placeholder">[SPECIFIC THING YOU ADMIRE — e.g., their commitment to accessible design, their open-source contributions, their approach to sustainable growth]</mark>. I've followed <mark class="placeholder">[RECENT COMPANY NEWS, PRODUCT LAUNCH, OR LEADERSHIP TALK]</mark> and it reinforced my belief that this is a team where I can do meaningful work. The culture of <mark class="placeholder">[CULTURAL VALUE — e.g., ownership, transparency, craft]</mark> aligns closely with how I approach my own work.
+        </p>
+
+        <!-- Paragraph 4: Closing -->
+        <p contenteditable="true">
+          I'd welcome the opportunity to discuss how my background in <mark class="placeholder">[PRIMARY EXPERTISE AREA]</mark> can contribute to <mark class="placeholder">[COMPANY NAME]</mark>'s next chapter. I'm available for a conversation at your convenience and can be reached at <mark class="placeholder">[PHONE OR EMAIL]</mark>. Thank you for your time and consideration — I look forward to the possibility of joining your team.
+        </p>
+      </div>
+
+      <!-- ===== Sign-off ===== -->
+      <div class="mt-8 text-ink-800 dark:text-ink-200">
+        <p contenteditable="true" class="mb-1">Warm regards,</p>
+        <p contenteditable="true" class="font-serif text-xl font-semibold text-ink-900 dark:text-ink-50">Your Name</p>
+      </div>
+
+      <!-- ===== Placeholder Legend (hidden in print) ===== -->
+      <div class="no-print mt-10 pt-6 border-t border-stone-200 dark:border-ink-700">
+        <p class="text-xs font-medium text-ink-400 dark:text-ink-500 uppercase tracking-wider mb-2">Placeholders to fill</p>
+        <p class="text-xs text-ink-400 dark:text-ink-500 leading-relaxed">
+          Click any text above to edit. Fill every <mark class="placeholder text-[10px]">[HIGHLIGHTED BRACKET]</mark> before sending. Use <strong>Print / PDF</strong> to export a clean letter.
+        </p>
+      </div>
+    </div>
+
+    <!-- ==================== SECTION 2: APPLICATION TRACKER ==================== -->
+    <section class="no-print mt-12" x-data="{ showForm: false }">
+      <div class="flex items-center justify-between mb-6">
+        <div>
+          <h2 class="font-serif text-2xl font-semibold text-ink-900 dark:text-ink-50">Application Tracker</h2>
+          <p class="mt-1 text-sm text-ink-500 dark:text-ink-400">Track every application. Data saved in your browser.</p>
+        </div>
+        <button
+          @click="showForm = !showForm"
+          class="inline-flex items-center gap-2 px-4 py-2.5 text-sm font-medium rounded-lg border border-stone-200 dark:border-ink-700 hover:bg-stone-100 dark:hover:bg-ink-800 transition-colors text-ink-700 dark:text-ink-300"
+        >
+          <svg class="w-4 h-4" :class="{ 'rotate-45': showForm }" style="transition: transform 0.2s" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/>
+          </svg>
+          <span x-text="showForm ? 'Cancel' : 'Add Application'"></span>
+        </button>
+      </div>
+
+      <!-- ===== Quick-Add Form ===== -->
+      <div
+        x-show="showForm"
+        x-transition:enter="transition ease-out duration-200"
+        x-transition:enter-start="opacity-0 -translate-y-2"
+        x-transition:enter-end="opacity-100 translate-y-0"
+        x-transition:leave="transition ease-in duration-150"
+        x-transition:leave-start="opacity-100 translate-y-0"
+        x-transition:leave-end="opacity-0 -translate-y-2"
+        class="mb-6 bg-white dark:bg-ink-900 rounded-xl p-5 border border-stone-200 dark:border-ink-800"
+      >
+        <form @submit.prevent="addApplication(); showForm = false" class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <div>
+            <label class="block text-xs font-medium text-ink-500 dark:text-ink-400 mb-1.5">Company *</label>
+            <input
+              x-model="newApp.company"
+              type="text"
+              required
+              placeholder="Acme Corp"
+              class="w-full px-3 py-2 text-sm rounded-lg border border-stone-200 dark:border-ink-700 bg-white dark:bg-ink-800 text-ink-900 dark:text-ink-100 placeholder:text-ink-400 focus:outline-none focus:ring-2 focus:ring-accent/30 focus:border-accent transition-colors"
+            >
+          </div>
+          <div>
+            <label class="block text-xs font-medium text-ink-500 dark:text-ink-400 mb-1.5">Role *</label>
+            <input
+              x-model="newApp.role"
+              type="text"
+              required
+              placeholder="Senior Designer"
+              class="w-full px-3 py-2 text-sm rounded-lg border border-stone-200 dark:border-ink-700 bg-white dark:bg-ink-800 text-ink-900 dark:text-ink-100 placeholder:text-ink-400 focus:outline-none focus:ring-2 focus:ring-accent/30 focus:border-accent transition-colors"
+            >
+          </div>
+          <div>
+            <label class="block text-xs font-medium text-ink-500 dark:text-ink-400 mb-1.5">Date Applied</label>
+            <input
+              x-model="newApp.date"
+              type="date"
+              class="w-full px-3 py-2 text-sm rounded-lg border border-stone-200 dark:border-ink-700 bg-white dark:bg-ink-800 text-ink-900 dark:text-ink-100 focus:outline-none focus:ring-2 focus:ring-accent/30 focus:border-accent transition-colors"
+            >
+          </div>
+          <div>
+            <label class="block text-xs font-medium text-ink-500 dark:text-ink-400 mb-1.5">Status</label>
+            <select
+              x-model="newApp.status"
+              class="w-full px-3 py-2 text-sm rounded-lg border border-stone-200 dark:border-ink-700 bg-white dark:bg-ink-800 text-ink-900 dark:text-ink-100 focus:outline-none focus:ring-2 focus:ring-accent/30 focus:border-accent transition-colors"
+            >
+              <option value="Saved">Saved</option>
+              <option value="Applied">Applied</option>
+              <option value="Interview">Interview</option>
+              <option value="Offer">Offer</option>
+              <option value="Rejected">Rejected</option>
+            </select>
+          </div>
+          <div class="sm:col-span-2">
+            <label class="block text-xs font-medium text-ink-500 dark:text-ink-400 mb-1.5">Notes</label>
+            <textarea
+              x-model="newApp.notes"
+              rows="2"
+              placeholder="Referral from Sarah, hiring manager is Alex Chen..."
+              class="w-full px-3 py-2 text-sm rounded-lg border border-stone-200 dark:border-ink-700 bg-white dark:bg-ink-800 text-ink-900 dark:text-ink-100 placeholder:text-ink-400 focus:outline-none focus:ring-2 focus:ring-accent/30 focus:border-accent transition-colors resize-none"
+            ></textarea>
+          </div>
+          <div class="sm:col-span-2 flex justify-end">
+            <button
+              type="submit"
+              class="inline-flex items-center gap-2 px-4 py-2 text-sm font-medium rounded-lg bg-accent text-white hover:bg-accent-dark transition-colors"
+            >
+              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
+              </svg>
+              Save Application
+            </button>
+          </div>
+        </form>
+      </div>
+
+      <!-- ===== Application List ===== -->
+      <div class="space-y-3">
+        <template x-if="applications.length === 0">
+          <div class="text-center py-12 bg-white dark:bg-ink-900 rounded-xl border border-dashed border-stone-300 dark:border-ink-700">
+            <svg class="mx-auto w-10 h-10 text-ink-300 dark:text-ink-600 mb-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
+            </svg>
+            <p class="text-sm text-ink-400 dark:text-ink-500">No applications yet</p>
+            <p class="text-xs text-ink-300 dark:text-ink-600 mt-1">Click "Add Application" to get started</p>
+          </div>
+        </template>
+
+        <template x-for="(app, index) in applications" :key="app.id">
+          <div class="group bg-white dark:bg-ink-900 rounded-xl p-4 sm:p-5 border border-stone-200 dark:border-ink-800 hover:border-stone-300 dark:hover:border-ink-700 transition-colors">
+            <div class="flex items-start justify-between gap-4">
+              <div class="flex-1 min-w-0">
+                <div class="flex items-center gap-3 flex-wrap">
+                  <h3 class="font-medium text-ink-900 dark:text-ink-100" x-text="app.company"></h3>
+                  <span
+                    class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium"
+                    :class="statusBadge(app.status)"
+                    x-text="app.status"
+                  ></span>
+                </div>
+                <p class="text-sm text-ink-600 dark:text-ink-400 mt-0.5" x-text="app.role"></p>
+                <p class="text-xs text-ink-400 dark:text-ink-500 mt-1" x-text="'Applied: ' + formatDate(app.date)"></p>
+                <p
+                  x-show="app.notes"
+                  x-text="app.notes"
+                  class="text-sm text-ink-500 dark:text-ink-400 mt-2 leading-relaxed"
+                ></p>
+              </div>
+
+              <div class="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                <!-- Cycle status -->
+                <button
+                  @click="cycleStatus(index)"
+                  class="p-1.5 rounded-md hover:bg-stone-100 dark:hover:bg-ink-800 text-ink-400 hover:text-ink-600 dark:hover:text-ink-300 transition-colors"
+                  title="Next status"
+                >
+                  <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/>
+                  </svg>
+                </button>
+                <!-- Delete -->
+                <button
+                  @click="removeApplication(index)"
+                  class="p-1.5 rounded-md hover:bg-red-50 dark:hover:bg-red-900/20 text-ink-400 hover:text-red-500 dark:hover:text-red-400 transition-colors"
+                  title="Remove"
+                >
+                  <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/>
+                  </svg>
+                </button>
+              </div>
+            </div>
+          </div>
+        </template>
+      </div>
+
+      <!-- ===== Stats Bar ===== -->
+      <template x-if="applications.length > 0">
+        <div class="mt-6 flex flex-wrap gap-4 text-xs text-ink-400 dark:text-ink-500">
+          <span>
+            <strong class="text-ink-700 dark:text-ink-300" x-text="applications.length"></strong> total
+          </span>
+          <span>
+            <strong class="text-ink-700 dark:text-ink-300" x-text="applications.filter(a => a.status === 'Applied').length"></strong> applied
+          </span>
+          <span>
+            <strong class="text-amber-700 dark:text-amber-400" x-text="applications.filter(a => a.status === 'Interview').length"></strong> interviewing
+          </span>
+          <span>
+            <strong class="text-emerald-700 dark:text-emerald-400" x-text="applications.filter(a => a.status === 'Offer').length"></strong> offers
+          </span>
+          <span>
+            <strong class="text-red-600 dark:text-red-400" x-text="applications.filter(a => a.status === 'Rejected').length"></strong> rejected
+          </span>
+        </div>
+      </template>
+    </section>
+  </main>
+
+  <!-- ==================== FOOTER ==================== -->
+  <footer class="no-print max-w-5xl mx-auto px-4 sm:px-6 py-8 text-center">
+    <p class="text-xs text-ink-300 dark:text-ink-600">
+      Cover Letter Kit &middot; All data stored locally in your browser
+    </p>
+  </footer>
+
+  <!-- ==================== ALPINE.JS APP ==================== -->
+  <script>
+    function coverLetterApp() {
+      const STORAGE_KEY = 'coverletter-tracker-applications';
+      const THEME_KEY = 'coverletter-tracker-theme';
+
+      // Status cycle order
+      const STATUS_ORDER = ['Saved', 'Applied', 'Interview', 'Offer', 'Rejected'];
+
+      return {
+        // ---- State ----
+        darkMode: false,
+        transitioning: false,
+        applications: [],
+        newApp: {
+          company: '',
+          role: '',
+          date: new Date().toISOString().split('T')[0],
+          status: 'Applied',
+          notes: ''
+        },
+
+        // ---- Init ----
+        init() {
+          // Load theme
+          const savedTheme = localStorage.getItem(THEME_KEY);
+          if (savedTheme !== null) {
+            this.darkMode = savedTheme === 'dark';
+          } else {
+            this.darkMode = window.matchMedia('(prefers-color-scheme: dark)').matches;
+          }
+
+          // Load applications
+          try {
+            const saved = localStorage.getItem(STORAGE_KEY);
+            if (saved) {
+              this.applications = JSON.parse(saved);
+            }
+          } catch (e) {
+            console.warn('Could not load saved applications:', e);
+          }
+
+          // Watch for changes and persist
+          this.$watch('applications', (val) => {
+            try {
+              localStorage.setItem(STORAGE_KEY, JSON.stringify(val));
+            } catch (e) {
+              console.warn('Could not save applications:', e);
+            }
+          }, { deep: true });
+
+          // Save contenteditable on blur
+          this.setupContenteditableSave();
+        },
+
+        // ---- Theme ----
+        toggleTheme() {
+          this.darkMode = !this.darkMode;
+          localStorage.setItem(THEME_KEY, this.darkMode ? 'dark' : 'light');
+          this.transitioning = true;
+          setTimeout(() => { this.transitioning = false; }, 350);
+        },
+
+        // ---- Applications ----
+        addApplication() {
+          if (!this.newApp.company || !this.newApp.role) return;
+          this.applications.unshift({
+            id: Date.now(),
+            company: this.newApp.company.trim(),
+            role: this.newApp.role.trim(),
+            date: this.newApp.date || new Date().toISOString().split('T')[0],
+            status: this.newApp.status,
+            notes: this.newApp.notes.trim()
+          });
+          // Reset form
+          this.newApp = {
+            company: '',
+            role: '',
+            date: new Date().toISOString().split('T')[0],
+            status: 'Applied',
+            notes: ''
+          };
+        },
+
+        removeApplication(index) {
+          this.applications.splice(index, 1);
+        },
+
+        cycleStatus(index) {
+          const current = this.applications[index].status;
+          const currentIdx = STATUS_ORDER.indexOf(current);
+          const nextIdx = (currentIdx + 1) % STATUS_ORDER.length;
+          this.applications[index].status = STATUS_ORDER[nextIdx];
+        },
+
+        // ---- Helpers ----
+        statusBadge(status) {
+          const map = {
+            'Saved': 'badge-saved',
+            'Applied': 'badge-applied',
+            'Interview': 'badge-interview',
+            'Offer': 'badge-offer',
+            'Rejected': 'badge-rejected'
+          };
+          return map[status] || 'badge-saved';
+        },
+
+        formatDate(dateStr) {
+          if (!dateStr) return '—';
+          try {
+            const d = new Date(dateStr + 'T00:00:00');
+            return d.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+          } catch {
+            return dateStr;
+          }
+        },
+
+        printLetter() {
+          window.print();
+        },
+
+        // ---- Contenteditable Persistence ----
+        setupContenteditableSave() {
+          // Save editable content to localStorage on blur
+          const EDITABLE_KEY = 'coverletter-letter-content';
+
+          // Restore saved content
+          try {
+            const saved = localStorage.getItem(EDITABLE_KEY);
+            if (saved) {
+              const data = JSON.parse(saved);
+              document.querySelectorAll('[contenteditable="true"]').forEach((el, i) => {
+                if (data[i] !== undefined) {
+                  el.innerHTML = data[i];
+                }
+              });
+            }
+          } catch (e) { /* ignore */ }
+
+          // Save on change
+          document.addEventListener('focusout', (e) => {
+            if (e.target.hasAttribute && e.target.hasAttribute('contenteditable')) {
+              const allEditable = document.querySelectorAll('[contenteditable="true"]');
+              const data = {};
+              allEditable.forEach((el, i) => {
+                data[i] = el.innerHTML;
+              });
+              try {
+                localStorage.setItem(EDITABLE_KEY, JSON.stringify(data));
+              } catch (e) { /* ignore */ }
+            }
+          });
+        }
+      };
+    }
+  </script>
+</body>
+</html>

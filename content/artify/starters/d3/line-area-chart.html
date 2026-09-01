@@ -1,0 +1,345 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Line & Area Chart — D3 Starter</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      background: #0f0f0f;
+      color: #e0e0e0;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 2rem;
+      min-height: 100vh;
+    }
+    h1 { font-size: 1.4rem; font-weight: 600; margin-bottom: 0.3rem; }
+    .subtitle { font-size: 0.85rem; color: #888; margin-bottom: 1.5rem; }
+    #chart-wrap { width: 100%; max-width: 850px; }
+    svg { display: block; }
+
+    /* Tooltip */
+    .tooltip {
+      position: absolute;
+      background: #1a1a2e;
+      color: #fff;
+      padding: 10px 14px;
+      border-radius: 8px;
+      font-size: 13px;
+      pointer-events: none;
+      opacity: 0;
+      transition: opacity 0.15s;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.4);
+      line-height: 1.6;
+    }
+
+    /* Hover line */
+    .hover-line {
+      stroke: #555;
+      stroke-width: 1;
+      stroke-dasharray: 4,4;
+      pointer-events: none;
+    }
+
+    /* Hover dots */
+    .hover-dot {
+      pointer-events: none;
+      stroke: #0f0f0f;
+      stroke-width: 2;
+    }
+  </style>
+</head>
+<body>
+
+  <h1>Monthly Revenue — 2024</h1>
+  <p class="subtitle">Hover to compare · Three product lines</p>
+  <div id="chart-wrap">
+    <svg id="chart"></svg>
+  </div>
+  <div class="tooltip" id="tooltip"></div>
+
+  <script src="https://cdn.jsdelivr.net/npm/d3@7/dist/d3.min.js"></script>
+  <script>
+    // ============================================================
+    // DATA — replace with your own
+    // Each series has a `name`, a `color`, and an array of `{date, value}` points
+    // ============================================================
+    const parseDate = d3.timeParse("%Y-%m-%d");
+
+    const series = [
+      {
+        name: "Platform",
+        color: "#f97316",
+        values: [
+          { date: "2024-01-01", value: 120 },
+          { date: "2024-02-01", value: 135 },
+          { date: "2024-03-01", value: 128 },
+          { date: "2024-04-01", value: 155 },
+          { date: "2024-05-01", value: 170 },
+          { date: "2024-06-01", value: 162 },
+          { date: "2024-07-01", value: 188 },
+          { date: "2024-08-01", value: 195 },
+          { date: "2024-09-01", value: 210 },
+          { date: "2024-10-01", value: 245 },
+          { date: "2024-11-01", value: 268 },
+          { date: "2024-12-01", value: 290 },
+        ].map(d => ({ date: parseDate(d.date), value: d.value })),
+      },
+      {
+        name: "Services",
+        color: "#3b82f6",
+        values: [
+          { date: "2024-01-01", value: 80 },
+          { date: "2024-02-01", value: 85 },
+          { date: "2024-03-01", value: 92 },
+          { date: "2024-04-01", value: 88 },
+          { date: "2024-05-01", value: 105 },
+          { date: "2024-06-01", value: 112 },
+          { date: "2024-07-01", value: 108 },
+          { date: "2024-08-01", value: 125 },
+          { date: "2024-09-01", value: 130 },
+          { date: "2024-10-01", value: 138 },
+          { date: "2024-11-01", value: 145 },
+          { date: "2024-12-01", value: 155 },
+        ].map(d => ({ date: parseDate(d.date), value: d.value })),
+      },
+      {
+        name: "Support",
+        color: "#22c55e",
+        values: [
+          { date: "2024-01-01", value: 40 },
+          { date: "2024-02-01", value: 42 },
+          { date: "2024-03-01", value: 38 },
+          { date: "2024-04-01", value: 45 },
+          { date: "2024-05-01", value: 48 },
+          { date: "2024-06-01", value: 52 },
+          { date: "2024-07-01", value: 50 },
+          { date: "2024-08-01", value: 55 },
+          { date: "2024-09-01", value: 58 },
+          { date: "2024-10-01", value: 62 },
+          { date: "2024-11-01", value: 65 },
+          { date: "2024-12-01", value: 70 },
+        ].map(d => ({ date: parseDate(d.date), value: d.value })),
+      },
+    ];
+
+    // ============================================================
+    // DIMENSIONS
+    // ============================================================
+    const margin = { top: 20, right: 80, bottom: 40, left: 50 };
+    const W = 800, H = 400;
+    const w = W - margin.left - margin.right;
+    const h = H - margin.top - margin.bottom;
+
+    // ============================================================
+    // SVG SETUP
+    // ============================================================
+    const svg = d3.select("#chart")
+      .attr("viewBox", `0 0 ${W} ${H}`)
+      .attr("width", "100%");
+
+    const g = svg.append("g")
+      .attr("transform", `translate(${margin.left},${margin.top})`);
+
+    // ============================================================
+    // SCALES
+    // ============================================================
+    const allDates = series[0].values.map(d => d.date);
+    const allValues = series.flatMap(s => s.values.map(d => d.value));
+
+    const x = d3.scaleTime()
+      .domain(d3.extent(allDates))
+      .range([0, w]);
+
+    const y = d3.scaleLinear()
+      .domain([0, d3.max(allValues)])
+      .nice()
+      .range([h, 0]);
+
+    // ============================================================
+    // GRIDLINES
+    // ============================================================
+    g.append("g")
+      .attr("class", "grid-y")
+      .call(d3.axisLeft(y).ticks(5).tickSize(-w).tickFormat(""))
+      .selectAll("line")
+        .attr("stroke", "#222")
+        .attr("stroke-dasharray", "3,3");
+    g.select(".grid-y .domain").remove();
+
+    // ============================================================
+    // AXES
+    // ============================================================
+    g.append("g")
+      .attr("transform", `translate(0,${h})`)
+      .call(d3.axisBottom(x).ticks(d3.timeMonth.every(1)).tickFormat(d3.timeFormat("%b")))
+      .selectAll("text")
+        .attr("fill", "#888");
+
+    g.append("g")
+      .call(d3.axisLeft(y).ticks(5).tickFormat(d => `$${d}K`))
+      .selectAll("text")
+        .attr("fill", "#888");
+
+    // Style axis lines
+    g.selectAll(".domain").attr("stroke", "#333");
+    g.selectAll(".tick line").attr("stroke", "#333");
+
+    // ============================================================
+    // LINE GENERATOR
+    // ============================================================
+    const line = d3.line()
+      .x(d => x(d.date))
+      .y(d => y(d.value))
+      .curve(d3.curveCatmullRom.alpha(0.5));
+
+    // ============================================================
+    // AREA GENERATOR (for fill under lines)
+    // ============================================================
+    const area = d3.area()
+      .x(d => x(d.date))
+      .y0(h)
+      .y1(d => y(d.value))
+      .curve(d3.curveCatmullRom.alpha(0.5));
+
+    // ============================================================
+    // DRAW AREAS (subtle fills)
+    // ============================================================
+    series.forEach((s, i) => {
+      g.append("path")
+        .datum(s.values)
+        .attr("fill", s.color)
+        .attr("fill-opacity", 0.08)
+        .attr("d", area);
+    });
+
+    // ============================================================
+    // DRAW LINES — animated
+    // ============================================================
+    series.forEach((s) => {
+      const path = g.append("path")
+        .datum(s.values)
+        .attr("fill", "none")
+        .attr("stroke", s.color)
+        .attr("stroke-width", 2.5)
+        .attr("d", line);
+
+      // Animate: line draws itself from left to right
+      const totalLength = path.node().getTotalLength();
+      path
+        .attr("stroke-dasharray", totalLength)
+        .attr("stroke-dashoffset", totalLength)
+        .transition()
+        .duration(1500)
+        .ease(d3.easeCubicOut)
+        .attr("stroke-dashoffset", 0);
+    });
+
+    // ============================================================
+    // DIRECT LABELS — series name at end of each line
+    // ============================================================
+    series.forEach((s) => {
+      const last = s.values[s.values.length - 1];
+      g.append("text")
+        .attr("x", x(last.date) + 8)
+        .attr("y", y(last.value))
+        .attr("dy", "0.35em")
+        .attr("font-size", "12px")
+        .attr("font-weight", "600")
+        .attr("fill", s.color)
+        .text(s.name);
+    });
+
+    // ============================================================
+    // HOVER INTERACTION — vertical line + dots + tooltip
+    // ============================================================
+    const tooltip = d3.select("#tooltip");
+
+    // Bisector for finding nearest date
+    const bisect = d3.bisector(d => d.date).left;
+
+    // Hover vertical line
+    const hoverLine = g.append("line")
+      .attr("class", "hover-line")
+      .attr("y1", 0)
+      .attr("y2", h)
+      .style("opacity", 0);
+
+    // Hover dots (one per series)
+    const hoverDots = series.map((s) =>
+      g.append("circle")
+        .attr("class", "hover-dot")
+        .attr("r", 5)
+        .attr("fill", s.color)
+        .style("opacity", 0)
+    );
+
+    // Invisible overlay for mouse events
+    g.append("rect")
+      .attr("width", w)
+      .attr("height", h)
+      .attr("fill", "none")
+      .attr("pointer-events", "all")
+      .on("mousemove", onMouseMove)
+      .on("mouseout", onMouseOut);
+
+    function onMouseMove(event) {
+      const [mx] = d3.pointer(event);
+      const dateAtMouse = x.invert(mx);
+
+      // Find nearest data point in first series (all series share dates)
+      const idx = bisect(series[0].values, dateAtMouse, 1);
+      const d0 = series[0].values[idx - 1];
+      const d1 = series[0].values[idx];
+      const nearest = !d1 ? d0 : (!d0 ? d1 :
+        (dateAtMouse - d0.date > d1.date - dateAtMouse ? d1 : d0));
+
+      if (!nearest) return;
+
+      // Position hover line
+      const xPos = x(nearest.date);
+      hoverLine.attr("x1", xPos).attr("x2", xPos).style("opacity", 1);
+
+      // Position dots and build tooltip
+      let html = `<strong>${d3.timeFormat("%b %Y")(nearest.date)}</strong><br/>`;
+      series.forEach((s, i) => {
+        const point = s.values.find(v => +v.date === +nearest.date);
+        if (point) {
+          hoverDots[i]
+            .attr("cx", xPos)
+            .attr("cy", y(point.value))
+            .style("opacity", 1);
+          html += `<span style="color:${s.color}">●</span> ${s.name}: $${point.value}K<br/>`;
+        }
+      });
+
+      tooltip
+        .style("opacity", 1)
+        .html(html)
+        .style("left", (event.pageX + 14) + "px")
+        .style("top", (event.pageY - 20) + "px");
+    }
+
+    function onMouseOut() {
+      hoverLine.style("opacity", 0);
+      hoverDots.forEach(dot => dot.style("opacity", 0));
+      tooltip.style("opacity", 0);
+    }
+
+    // ============================================================
+    // HOW TO CUSTOMIZE:
+    // ============================================================
+    // 1. Replace `series` array: each series needs name, color, values[{date, value}]
+    // 2. Adjust date format: change "%Y-%m-%d" in parseDate and "%b" in tickFormat
+    // 3. Remove area fills: delete the "DRAW AREAS" section
+    // 4. Change curve: replace d3.curveCatmullRom.alpha(0.5) with:
+    //    d3.curveLinear (straight), d3.curveMonotoneX (smooth, no overshoot)
+    // 5. Add more series: just add another object to the `series` array
+    // 6. Change y-axis format: modify tickFormat(d => `$${d}K`)
+  </script>
+
+</body>
+</html>

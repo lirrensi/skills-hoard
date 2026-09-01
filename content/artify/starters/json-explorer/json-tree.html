@@ -1,0 +1,513 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>JSON Explorer</title>
+  <!--
+    ============================================================
+    JSON EXPLORER STARTER — Collapsible tree view for JSON data
+    ============================================================
+
+    WHAT IT DOES:
+    Paste or load JSON data. Displays as an interactive, collapsible
+    tree with search, type coloring, and copy-to-clipboard.
+    Pure vanilla JS — no dependencies.
+
+    HOW TO CUSTOMIZE:
+    1. Paste JSON in the input area or replace the default JSON
+    2. Search to highlight matching paths
+    3. Click arrows to expand/collapse nodes
+    4. Click values to copy them
+
+    TREE NODE TYPES:
+    - Object: { key: value } — expandable, shows key count
+    - Array: [items] — expandable, shows item count
+    - String: "text" — green, quoted
+    - Number: 42 — blue
+    - Boolean: true/false — purple
+    - null: null — gray, italic
+
+    FEATURES:
+    - Expand/collapse all (buttons)
+    - Search with highlighting
+    - Copy path on click
+    - Type-aware coloring
+    - Array index display
+    - Summary counts (keys/items)
+
+    JSON SYNTAX:
+    - Objects: { "key": value }
+    - Arrays: [value1, value2]
+    - Strings: "text" (must use double quotes)
+    - Numbers: 42, 3.14, -1, 1e10
+    - Booleans: true, false
+    - null: null
+    - Keys must be quoted strings
+
+    COMMON JSON GOTCHAS:
+    - Trailing commas are invalid
+    - Single quotes are invalid
+    - Comments are not allowed
+    - undefined is not valid JSON
+    - Keys must be unique
+
+    MORE DOCS: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/JSON
+
+    ============================================================
+  -->
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      background: #0f172a;
+      color: #e2e8f0;
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+      min-height: 100vh;
+      padding: 1.5rem;
+    }
+
+    /* Header */
+    .header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 1rem;
+      flex-wrap: wrap;
+      gap: 0.75rem;
+    }
+    .header h1 { font-size: 1.4rem; font-weight: 700; }
+    .header .actions { display: flex; gap: 0.5rem; }
+    .header button {
+      padding: 0.4rem 0.8rem;
+      background: #1e293b;
+      border: 1px solid #334155;
+      border-radius: 6px;
+      color: #94a3b8;
+      cursor: pointer;
+      font-size: 0.8rem;
+    }
+    .header button:hover { background: #334155; color: #e2e8f0; }
+
+    /* Input area */
+    .input-area {
+      margin-bottom: 1.5rem;
+    }
+    .input-area textarea {
+      width: 100%;
+      height: 120px;
+      background: #1e293b;
+      border: 1px solid #334155;
+      border-radius: 8px;
+      padding: 1rem;
+      color: #e2e8f0;
+      font-family: 'JetBrains Mono', 'Fira Code', monospace;
+      font-size: 0.85rem;
+      resize: vertical;
+      outline: none;
+    }
+    .input-area textarea:focus { border-color: #3b82f6; }
+    .input-area .parse-btn {
+      margin-top: 0.5rem;
+      padding: 0.5rem 1.5rem;
+      background: #3b82f6;
+      border: none;
+      border-radius: 6px;
+      color: #fff;
+      font-weight: 600;
+      cursor: pointer;
+      font-size: 0.85rem;
+    }
+    .input-area .parse-btn:hover { background: #2563eb; }
+    .input-area .error {
+      margin-top: 0.5rem;
+      color: #f87171;
+      font-size: 0.85rem;
+      font-family: monospace;
+    }
+
+    /* Search bar */
+    .search-bar {
+      margin-bottom: 1rem;
+    }
+    .search-bar input {
+      width: 100%;
+      padding: 0.5rem 1rem;
+      background: #1e293b;
+      border: 1px solid #334155;
+      border-radius: 8px;
+      color: #e2e8f0;
+      font-size: 0.9rem;
+      outline: none;
+    }
+    .search-bar input:focus { border-color: #3b82f6; }
+    .search-bar .match-count {
+      margin-top: 0.25rem;
+      font-size: 0.75rem;
+      color: #64748b;
+    }
+
+    /* Tree */
+    .tree {
+      background: #1e293b;
+      border: 1px solid #334155;
+      border-radius: 8px;
+      padding: 1rem;
+      font-family: 'JetBrains Mono', 'Fira Code', monospace;
+      font-size: 0.85rem;
+      line-height: 1.6;
+      overflow-x: auto;
+      max-height: 70vh;
+      overflow-y: auto;
+    }
+
+    /* Tree nodes */
+    .node { margin-left: 1.25rem; position: relative; }
+    .node.root { margin-left: 0; }
+
+    /* Toggle arrow */
+    .toggle {
+      display: inline-block;
+      width: 1rem;
+      text-align: center;
+      cursor: pointer;
+      color: #64748b;
+      user-select: none;
+      font-size: 0.7rem;
+      transition: transform 0.15s;
+    }
+    .toggle:hover { color: #e2e8f0; }
+    .toggle.collapsed { transform: rotate(-90deg); }
+
+    /* Key */
+    .key { color: #7dd3fc; }
+
+    /* Values by type */
+    .string { color: #86efac; }
+    .number { color: #93c5fd; }
+    .boolean { color: #c4b5fd; }
+    .null { color: #64748b; font-style: italic; }
+
+    /* Brackets */
+    .bracket { color: #64748b; }
+
+    /* Collapsed summary */
+    .summary { color: #475569; font-size: 0.8rem; margin-left: 0.25rem; }
+
+    /* Search highlight */
+    .highlight { background: rgba(250, 204, 21, 0.25); border-radius: 2px; }
+
+    /* Copy tooltip */
+    .copy-toast {
+      position: fixed;
+      bottom: 2rem;
+      left: 50%;
+      transform: translateX(-50%) translateY(1rem);
+      background: #22c55e;
+      color: #000;
+      padding: 0.4rem 1rem;
+      border-radius: 6px;
+      font-size: 0.8rem;
+      font-weight: 600;
+      opacity: 0;
+      transition: opacity 0.3s, transform 0.3s;
+      pointer-events: none;
+    }
+    .copy-toast.show {
+      opacity: 1;
+      transform: translateX(-50%) translateY(0);
+    }
+  </style>
+</head>
+<body>
+
+  <div class="header">
+    <h1>JSON Explorer</h1>
+    <div class="actions">
+      <button onclick="expandAll()">Expand All</button>
+      <button onclick="collapseAll()">Collapse All</button>
+      <button onclick="formatJSON()">Format</button>
+      <button onclick="loadSample()">Sample</button>
+    </div>
+  </div>
+
+  <!-- Input -->
+  <div class="input-area">
+    <textarea id="jsonInput" placeholder='Paste JSON here, e.g. { "name": "Alice", "age": 30 }'></textarea>
+    <button class="parse-btn" onclick="parseJSON()">Parse</button>
+    <div class="error" id="error"></div>
+  </div>
+
+  <!-- Search -->
+  <div class="search-bar" id="searchBar" style="display:none;">
+    <input type="text" id="searchInput" placeholder="Search keys and values..." oninput="searchTree()" />
+    <div class="match-count" id="matchCount"></div>
+  </div>
+
+  <!-- Tree -->
+  <div class="tree" id="tree"></div>
+
+  <!-- Copy toast -->
+  <div class="copy-toast" id="copyToast">Copied!</div>
+
+  <script>
+    // ============================================================
+    // STATE
+    // ============================================================
+    let parsedData = null;
+    let allNodes = [];  // for search and expand/collapse
+
+    // ============================================================
+    // PARSE
+    // ============================================================
+    function parseJSON() {
+      const text = document.getElementById('jsonInput').value.trim();
+      const errorEl = document.getElementById('error');
+      errorEl.textContent = '';
+
+      if (!text) {
+        errorEl.textContent = 'Please enter some JSON';
+        return;
+      }
+
+      try {
+        parsedData = JSON.parse(text);
+        document.getElementById('searchBar').style.display = '';
+        renderTree(parsedData);
+      } catch (e) {
+        errorEl.textContent = `Parse error: ${e.message}`;
+      }
+    }
+
+    // ============================================================
+    // RENDER TREE
+    // ============================================================
+    function renderTree(data) {
+      allNodes = [];
+      const tree = document.getElementById('tree');
+      tree.innerHTML = '';
+      tree.appendChild(createNode(data, null, true));
+    }
+
+    function createNode(value, key, isRoot = false) {
+      const div = document.createElement('div');
+      div.className = 'node' + (isRoot ? ' root' : '');
+      allNodes.push(div);
+
+      const type = getType(value);
+
+      if (type === 'object' || type === 'array') {
+        const entries = type === 'array' ? value.map((v, i) => [i, v]) : Object.entries(value);
+        const bracket = type === 'array' ? ['[', ']'] : ['{', '}'];
+        const summary = type === 'array' ? `${entries.length} items` : `${entries.length} keys`;
+
+        // Toggle + key + open bracket
+        const header = document.createElement('span');
+        const toggle = document.createElement('span');
+        toggle.className = 'toggle';
+        toggle.textContent = '▼';
+        toggle.addEventListener('click', () => {
+          toggle.classList.toggle('collapsed');
+          children.style.display = children.style.display === 'none' ? '' : 'none';
+          if (children.style.display === 'none') {
+            header.querySelector('.bracket-close').style.display = 'none';
+            collapsedSummary.style.display = '';
+          } else {
+            header.querySelector('.bracket-close').style.display = '';
+            collapsedSummary.style.display = 'none';
+          }
+        });
+
+        header.appendChild(toggle);
+
+        if (key !== null) {
+          const keySpan = document.createElement('span');
+          keySpan.className = 'key';
+          keySpan.textContent = `"${key}": `;
+          keySpan.addEventListener('click', () => copyValue(key, keySpan));
+          header.appendChild(keySpan);
+        }
+
+        const openBracket = document.createElement('span');
+        openBracket.className = 'bracket';
+        openBracket.textContent = bracket[0];
+        header.appendChild(openBracket);
+
+        // Collapsed summary
+        const collapsedSummary = document.createElement('span');
+        collapsedSummary.className = 'summary';
+        collapsedSummary.textContent = ` ${summary} `;
+        collapsedSummary.style.display = 'none';
+        header.appendChild(collapsedSummary);
+
+        // Close bracket (on same line when collapsed)
+        const closeBracket = document.createElement('span');
+        closeBracket.className = 'bracket bracket-close';
+        closeBracket.textContent = bracket[1];
+        header.appendChild(closeBracket);
+
+        div.appendChild(header);
+
+        // Children container
+        const children = document.createElement('div');
+        children.className = 'children';
+
+        entries.forEach(([k, v]) => {
+          children.appendChild(createNode(v, type === 'array' ? k : k));
+        });
+
+        // Trailing close bracket
+        const trailingClose = document.createElement('div');
+        trailingClose.className = 'bracket';
+        trailingClose.textContent = bracket[1];
+        children.appendChild(trailingClose);
+
+        div.appendChild(children);
+
+      } else {
+        // Leaf node (primitive)
+        if (key !== null) {
+          const keySpan = document.createElement('span');
+          keySpan.className = 'key';
+          keySpan.textContent = `"${key}": `;
+          keySpan.addEventListener('click', () => copyValue(key, keySpan));
+          div.appendChild(keySpan);
+        }
+
+        const valSpan = document.createElement('span');
+        valSpan.className = type;
+        valSpan.textContent = type === 'string' ? `"${escapeStr(value)}"` : String(value);
+        valSpan.addEventListener('click', () => copyValue(value, valSpan));
+        div.appendChild(valSpan);
+      }
+
+      return div;
+    }
+
+    // ============================================================
+    // UTILITIES
+    // ============================================================
+    function getType(val) {
+      if (val === null) return 'null';
+      if (Array.isArray(val)) return 'array';
+      return typeof val;
+    }
+
+    function escapeStr(str) {
+      return String(str).replace(/\\/g, '\\\\').replace(/"/g, '\\"').replace(/\n/g, '\\n');
+    }
+
+    function copyValue(val, el) {
+      const text = typeof val === 'object' ? JSON.stringify(val, null, 2) : String(val);
+      navigator.clipboard.writeText(text).then(() => {
+        const toast = document.getElementById('copyToast');
+        toast.textContent = `Copied: ${text.slice(0, 50)}${text.length > 50 ? '...' : ''}`;
+        toast.classList.add('show');
+        setTimeout(() => toast.classList.remove('show'), 1500);
+      });
+    }
+
+    // ============================================================
+    // EXPAND / COLLAPSE
+    // ============================================================
+    function expandAll() {
+      allNodes.forEach(node => {
+        const toggles = node.querySelectorAll('.toggle.collapsed');
+        toggles.forEach(t => t.click());
+      });
+    }
+
+    function collapseAll() {
+      allNodes.forEach(node => {
+        const toggles = node.querySelectorAll('.toggle:not(.collapsed)');
+        toggles.forEach(t => t.click());
+      });
+    }
+
+    // ============================================================
+    // SEARCH
+    // ============================================================
+    function searchTree() {
+      const query = document.getElementById('searchInput').value.toLowerCase();
+      let matches = 0;
+
+      // Remove old highlights
+      document.querySelectorAll('.highlight').forEach(el => {
+        el.classList.remove('highlight');
+      });
+
+      if (!query) {
+        document.getElementById('matchCount').textContent = '';
+        return;
+      }
+
+      // Search through visible text
+      document.querySelectorAll('.key, .string, .number, .boolean').forEach(el => {
+        if (el.textContent.toLowerCase().includes(query)) {
+          el.classList.add('highlight');
+          matches++;
+          // Expand parents
+          let parent = el.closest('.children');
+          while (parent) {
+            parent.style.display = '';
+            const toggle = parent.previousElementSibling?.querySelector('.toggle');
+            if (toggle) toggle.classList.remove('collapsed');
+            parent = parent.parentElement?.closest('.children');
+          }
+        }
+      });
+
+      document.getElementById('matchCount').textContent =
+        matches > 0 ? `${matches} match${matches !== 1 ? 'es' : ''} found` : 'No matches found';
+    }
+
+    // ============================================================
+    // FORMAT (re-render with proper indentation)
+    // ============================================================
+    function formatJSON() {
+      if (!parsedData) return;
+      document.getElementById('jsonInput').value = JSON.stringify(parsedData, null, 2);
+    }
+
+    // ============================================================
+    // SAMPLE DATA
+    // ============================================================
+    function loadSample() {
+      document.getElementById('jsonInput').value = JSON.stringify({
+        "name": "Acme API",
+        "version": "2.1.0",
+        "description": "Demo API for JSON Explorer",
+        "endpoints": [
+          { "method": "GET",  "path": "/users",    "auth": true,  "rateLimit": 100 },
+          { "method": "POST", "path": "/users",    "auth": true,  "rateLimit": 20 },
+          { "method": "GET",  "path": "/health",   "auth": false, "rateLimit": null },
+          { "method": "PUT",  "path": "/users/:id","auth": true,  "rateLimit": 50 }
+        ],
+        "config": {
+          "host": "0.0.0.0",
+          "port": 8080,
+          "cors": {
+            "enabled": true,
+            "origins": ["https://app.example.com", "https://admin.example.com"]
+          },
+          "database": {
+            "type": "postgresql",
+            "maxConnections": 25,
+            "ssl": true
+          }
+        },
+        "features": {
+          "rateLimiting": true,
+          "caching": true,
+          "logging": true,
+          "metrics": false
+        },
+        "tags": ["api", "rest", "production"],
+        "deprecated": false,
+        "lastDeployed": "2024-12-15T10:30:00Z"
+      }, null, 2);
+      parseJSON();
+    }
+  </script>
+
+</body>
+</html>

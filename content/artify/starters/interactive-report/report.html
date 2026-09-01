@@ -1,0 +1,505 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>EV Adoption Trends — Interactive Report</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <script>
+    tailwind.config = {
+      theme: { extend: { colors: {
+        bg: '#0d1117', card: '#161b22', border: '#30363d', text: '#e6edf3', accent: '#58a6ff',
+        green: '#3fb950', orange: '#d29922', red: '#f85149', purple: '#bc8cff'
+      }}}
+    }
+  </script>
+  <style>
+    [x-cloak] { display: none !important; }
+    @keyframes countUp { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+    .animate-in { animation: countUp 0.5s ease-out forwards; }
+    @media print { .no-print { display: none !important; } }
+  </style>
+  <!--
+    ============================================================
+    INTERACTIVE REPORT STARTER
+    ============================================================
+
+    WHAT THIS IS:
+    A report where the reader doesn't just consume — they explore.
+    Toggles, filters, and drill-downs turn passive readers into
+    active participants. The data adapts to their questions.
+
+    USE THIS FOR:
+    - Market analysis / research reports
+    - Financial quarterly reviews
+    - Survey results / poll findings
+    - Scientific data presentations
+    - Any analysis where "what if" matters
+    - Replace: static PDF reports, PowerPoint decks, Excel reports
+
+    WHY HTML OVER PDF/PPTX:
+    - "What if we include hybrids?" — toggle it, see the answer
+    - No 40-slide deck — everything on one scrollable page
+    - Charts are interactive (hover for data, click to drill down)
+    - Assumptions are visible and adjustable (transparency!)
+    - Responsive — works on tablet during meetings
+    - Searchable — Ctrl+F actually works
+
+    HOW TO CUSTOMIZE:
+    1. Replace the `reportData` object in x-data
+    2. Change the report title, summary, and key metrics
+    3. Replace chart data arrays with your numbers
+    4. Add/remove assumptions in the `assumptions` array
+    5. Customize the `recalculate()` function to apply your model
+    6. Add more regions/categories in the filter options
+
+    CORE CONCEPTS:
+    - Assumptions are Alpine.js reactive — toggle triggers recompute
+    - Charts are destroyed + recreated on data change
+    - Animated counters use requestAnimationFrame
+    - Drill-down: click chart element → show filtered table below
+
+    GOTCHAS:
+    - Chart.js destroy() before re-creating (memory leak otherwise)
+    - Animated counters need easing (easeOutCubic)
+    - Mobile: collapse sidebar filters to dropdown
+    - Data integrity: assumptions should produce plausible numbers
+
+    MORE DOCS:
+    - Chart.js: https://www.chartjs.org/docs/latest/
+    - Alpine.js: https://alpinejs.dev/start-here
+    ============================================================
+-->
+</head>
+<body class="bg-bg text-text font-sans min-h-screen" x-data="reportApp()" x-init="init()">
+
+  <div class="max-w-7xl mx-auto px-4 sm:px-6 py-8">
+
+    <!-- Header -->
+    <header class="mb-10">
+      <div class="flex items-center gap-2 text-sm text-gray-400 mb-2">
+        <span class="px-2 py-0.5 rounded bg-accent/20 text-accent text-xs font-medium">Market Analysis</span>
+        <span>·</span>
+        <span>March 2026</span>
+        <span>·</span>
+        <span>Confidential</span>
+      </div>
+      <h1 class="text-3xl sm:text-4xl font-bold mb-2">Electric Vehicle Adoption Trends</h1>
+      <p class="text-gray-400 max-w-3xl">A comprehensive analysis of global EV market dynamics, adoption trajectories, and competitive landscape — with interactive assumptions so you can test your own hypotheses.</p>
+    </header>
+
+    <!-- Key Metrics -->
+    <section class="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-10">
+      <template x-for="metric in metrics" :key="metric.label">
+        <div class="bg-card rounded-xl border border-border p-5">
+          <p class="text-xs text-gray-400 uppercase tracking-wider mb-1" x-text="metric.label"></p>
+          <p class="text-2xl lg:text-3xl font-bold animate-in" x-text="metric.display"></p>
+          <p class="text-xs mt-1" :class="metric.change > 0 ? 'text-green' : 'text-red'">
+            <span x-text="(metric.change > 0 ? '+' : '') + metric.change + '%'"></span> vs prior period
+          </p>
+        </div>
+      </template>
+    </section>
+
+    <!-- Assumptions Panel -->
+    <section class="bg-card rounded-xl border border-border p-5 mb-10 no-print">
+      <h2 class="text-sm font-semibold mb-3 flex items-center gap-2">
+        <svg class="w-4 h-4 text-accent" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6V4m0 2a2 2 0 100 4m0-4a2 2 0 110 4m-6 8a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4m6 6v10m6-2a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4"/></svg>
+        Adjust Assumptions
+      </h2>
+      <div class="flex flex-wrap gap-6">
+        <label class="flex items-center gap-2 cursor-pointer">
+          <input type="checkbox" x-model="assumptions.includeHybrids" @change="recalculate()" class="w-4 h-4 rounded border-border bg-bg text-accent focus:ring-accent">
+          <span class="text-sm">Include hybrid vehicles</span>
+        </label>
+        <label class="flex items-center gap-2 cursor-pointer">
+          <input type="checkbox" x-model="assumptions.includeFleet" @change="recalculate()" class="w-4 h-4 rounded border-border bg-bg text-accent focus:ring-accent">
+          <span class="text-sm">Include commercial fleet</span>
+        </label>
+        <div class="flex items-center gap-2">
+          <span class="text-sm text-gray-400">Confidence:</span>
+          <template x-for="level in ['Conservative','Moderate','Aggressive']" :key="level">
+            <button @click="assumptions.confidence = level; recalculate()"
+                    class="px-3 py-1 rounded-full text-xs font-medium transition-colors"
+                    :class="assumptions.confidence === level ? 'bg-accent text-white' : 'bg-bg border border-border text-gray-400 hover:text-text'">
+              <span x-text="level"></span>
+            </button>
+          </template>
+        </div>
+      </div>
+    </section>
+
+    <!-- Region Filter -->
+    <div class="flex flex-wrap gap-2 mb-6 no-print">
+      <template x-for="region in regions" :key="region">
+        <button @click="selectedRegion = region; updateCharts()"
+                class="px-4 py-1.5 rounded-full text-sm font-medium transition-colors"
+                :class="selectedRegion === region ? 'bg-accent text-white' : 'bg-card border border-border text-gray-400 hover:text-text'">
+          <span x-text="region"></span>
+        </button>
+      </template>
+    </div>
+
+    <!-- Charts Grid -->
+    <section class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-10">
+      <!-- Adoption Rate Line Chart -->
+      <div class="bg-card rounded-xl border border-border p-5">
+        <h3 class="text-sm font-semibold mb-3">EV Adoption Rate by Region</h3>
+        <div class="relative h-64">
+          <canvas id="adoptionChart"></canvas>
+        </div>
+      </div>
+
+      <!-- Market Share Bar Chart -->
+      <div class="bg-card rounded-xl border border-border p-5">
+        <h3 class="text-sm font-semibold mb-3">Manufacturer Market Share (2025)</h3>
+        <div class="relative h-64">
+          <canvas id="marketShareChart"></canvas>
+        </div>
+      </div>
+
+      <!-- Projected Growth Area Chart -->
+      <div class="bg-card rounded-xl border border-border p-5">
+        <h3 class="text-sm font-semibold mb-3">Projected Growth (Units Sold, Millions)</h3>
+        <div class="relative h-64">
+          <canvas id="growthChart"></canvas>
+        </div>
+      </div>
+
+      <!-- Vehicle Type Doughnut -->
+      <div class="bg-card rounded-xl border border-border p-5">
+        <h3 class="text-sm font-semibold mb-3">Vehicle Type Breakdown</h3>
+        <div class="relative h-64">
+          <canvas id="typeChart"></canvas>
+        </div>
+      </div>
+    </section>
+
+    <!-- Drill-down Table -->
+    <section class="bg-card rounded-xl border border-border p-5 mb-10" x-show="drilldownData.length > 0">
+      <h3 class="text-sm font-semibold mb-3">
+        Drill-Down: <span class="text-accent" x-text="selectedRegion"></span> — Country Breakdown
+      </h3>
+      <div class="overflow-x-auto">
+        <table class="w-full text-sm">
+          <thead>
+            <tr class="text-left text-gray-400 border-b border-border">
+              <th class="py-2 pr-4">Country</th>
+              <th class="py-2 pr-4">EV Sales (2025)</th>
+              <th class="py-2 pr-4">Adoption %</th>
+              <th class="py-2 pr-4">YoY Growth</th>
+              <th class="py-2">Charging Stations</th>
+            </tr>
+          </thead>
+          <tbody>
+            <template x-for="row in drilldownData" :key="row.country">
+              <tr class="border-b border-border/50 hover:bg-bg/50">
+                <td class="py-2 pr-4 font-medium" x-text="row.country"></td>
+                <td class="py-2 pr-4" x-text="row.sales.toLocaleString()"></td>
+                <td class="py-2 pr-4" x-text="row.adoption + '%'"></td>
+                <td class="py-2 pr-4" :class="row.growth > 0 ? 'text-green' : 'text-red'" x-text="(row.growth > 0 ? '+' : '') + row.growth + '%'"></td>
+                <td class="py-2" x-text="row.chargers.toLocaleString()"></td>
+              </tr>
+            </template>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <!-- Methodology -->
+    <section class="bg-card rounded-xl border border-border p-5 mb-10">
+      <button @click="showMethodology = !showMethodology" class="flex items-center justify-between w-full">
+        <h3 class="text-sm font-semibold">Methodology & Sources</h3>
+        <svg class="w-4 h-4 text-gray-400 transition-transform" :class="showMethodology ? 'rotate-180' : ''" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
+      </button>
+      <div x-show="showMethodology" x-cloak class="mt-4 text-sm text-gray-400 space-y-2">
+        <p>Data compiled from IEA Global EV Outlook 2025, BloombergNEF EV Outlook, and regional automotive associations. Adoption rate = EV sales as % of total new vehicle sales. Projections use a logistic growth model calibrated to 2020–2025 actuals.</p>
+        <p>Confidence levels adjust the growth rate ceiling: Conservative (15% CAGR cap), Moderate (22% CAGR cap), Aggressive (30% CAGR cap). Hybrid inclusion adds PHEV sales to BEV figures. Fleet inclusion adds commercial/ride-hail vehicles.</p>
+        <p class="text-xs text-gray-500">Last updated: March 2026 · This is a demo report with illustrative data.</p>
+      </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="text-center text-xs text-gray-500 py-6 border-t border-border">
+      Generated with html-artifact · Interactive Report Starter · <span x-text="new Date().toLocaleDateString()"></span>
+    </footer>
+
+  </div>
+
+  <script>
+    function reportApp() {
+      return {
+        showMethodology: false,
+        selectedRegion: 'Global',
+        regions: ['North America', 'Europe', 'Asia-Pacific', 'Global'],
+        assumptions: {
+          includeHybrids: true,
+          includeFleet: false,
+          confidence: 'Moderate'
+        },
+        charts: {},
+        drilldownData: [],
+        metrics: [],
+
+        // Base data
+        years: [2020, 2021, 2022, 2023, 2024, 2025, 2026, 2027, 2028, 2029, 2030],
+        adoption: {
+          'North America': [2.5, 4.2, 6.8, 9.1, 12.5, 16.2, 20.1, 24.5, 29.0, 33.8, 38.5],
+          'Europe': [10.2, 17.8, 21.0, 23.4, 26.8, 30.5, 34.2, 38.0, 42.0, 46.2, 50.5],
+          'Asia-Pacific': [4.8, 8.5, 13.2, 18.5, 24.0, 30.2, 36.0, 41.5, 47.0, 52.5, 58.0],
+          'Global': [4.2, 7.6, 11.8, 16.0, 20.5, 25.8, 31.0, 36.2, 41.5, 46.8, 52.0]
+        },
+        manufacturers: {
+          labels: ['Tesla', 'BYD', 'VW Group', 'Hyundai-Kia', 'Stellantis', 'Geely', 'Others'],
+          values: [18.5, 17.2, 8.8, 7.5, 5.2, 4.8, 38.0]
+        },
+        countryData: {
+          'North America': [
+            { country: 'United States', sales: 1850000, adoption: 12.5, growth: 28, chargers: 185000 },
+            { country: 'Canada', sales: 185000, adoption: 11.8, growth: 32, chargers: 22000 },
+            { country: 'Mexico', sales: 45000, adoption: 3.2, growth: 45, chargers: 4500 }
+          ],
+          'Europe': [
+            { country: 'Germany', sales: 580000, adoption: 24.5, growth: 15, chargers: 110000 },
+            { country: 'Norway', sales: 155000, adoption: 82.0, growth: 8, chargers: 25000 },
+            { country: 'France', sales: 380000, adoption: 21.0, growth: 22, chargers: 85000 },
+            { country: 'UK', sales: 420000, adoption: 20.5, growth: 25, chargers: 65000 },
+            { country: 'Netherlands', sales: 175000, adoption: 35.0, growth: 12, chargers: 48000 }
+          ],
+          'Asia-Pacific': [
+            { country: 'China', sales: 8500000, adoption: 35.5, growth: 22, chargers: 2200000 },
+            { country: 'Japan', sales: 320000, adoption: 8.5, growth: 35, chargers: 45000 },
+            { country: 'South Korea', sales: 280000, adoption: 15.2, growth: 28, chargers: 38000 },
+            { country: 'Australia', sales: 120000, adoption: 10.5, growth: 42, chargers: 8500 },
+            { country: 'India', sales: 95000, adoption: 2.1, growth: 65, chargers: 5200 }
+          ],
+          'Global': [
+            { country: 'China', sales: 8500000, adoption: 35.5, growth: 22, chargers: 2200000 },
+            { country: 'United States', sales: 1850000, adoption: 12.5, growth: 28, chargers: 185000 },
+            { country: 'Germany', sales: 580000, adoption: 24.5, growth: 15, chargers: 110000 },
+            { country: 'UK', sales: 420000, adoption: 20.5, growth: 25, chargers: 65000 },
+            { country: 'France', sales: 380000, adoption: 21.0, growth: 22, chargers: 85000 }
+          ]
+        },
+
+        confidenceMultiplier() {
+          return { Conservative: 0.75, Moderate: 1.0, Aggressive: 1.25 }[this.assumptions.confidence];
+        },
+
+        hybridBoost() {
+          return this.assumptions.includeHybrids ? 1.3 : 1.0;
+        },
+
+        fleetBoost() {
+          return this.assumptions.includeFleet ? 1.15 : 1.0;
+        },
+
+        getAdjustedAdoption(region) {
+          const base = this.adoption[region];
+          const m = this.confidenceMultiplier();
+          const h = this.hybridBoost();
+          const f = this.fleetBoost();
+          return base.map((v, i) => {
+            const projected = i > 4 ? v * m * h * f : v * h * f;
+            return Math.min(Math.round(projected * 10) / 10, 95);
+          });
+        },
+
+        init() {
+          this.drilldownData = this.countryData[this.selectedRegion];
+          this.updateMetrics();
+          this.$nextTick(() => {
+            this.createCharts();
+            // Animate counters
+            this.metrics.forEach(m => { m.display = '0'; });
+            setTimeout(() => this.animateCounters(), 300);
+          });
+        },
+
+        updateMetrics() {
+          const data = this.getAdjustedAdoption('Global');
+          const lastYear = data[data.length - 1];
+          const prevYear = data[data.length - 2];
+          const globalSales2025 = Math.round(18.5 * this.hybridBoost() * this.fleetBoost() * 10) / 10;
+          const chargers = this.assumptions.includeFleet ? '4.2M' : '3.8M';
+
+          this.metrics = [
+            { label: 'Global EV Adoption (2030)', display: lastYear + '%', change: Math.round((lastYear - prevYear) / prevYear * 100) },
+            { label: 'Global Sales 2025 (M)', display: globalSales2025 + 'M', change: 24 },
+            { label: 'Charging Stations', display: chargers, change: 35 },
+            { label: 'Market Value 2030', display: '$1.2T', change: 18 }
+          ];
+        },
+
+        animateCounters() {
+          this.metrics.forEach((m, i) => {
+            const target = m.display;
+            const num = parseFloat(target);
+            const suffix = target.replace(/[\d.,]/g, '');
+            const duration = 800;
+            const start = performance.now();
+            const animate = (now) => {
+              const elapsed = now - start;
+              const progress = Math.min(elapsed / duration, 1);
+              const eased = 1 - Math.pow(1 - progress, 3);
+              const current = Math.round(num * eased * 10) / 10;
+              this.metrics[i].display = current + suffix;
+              if (progress < 1) requestAnimationFrame(animate);
+            };
+            requestAnimationFrame(animate);
+          });
+        },
+
+        createCharts() {
+          Chart.defaults.color = '#8b949e';
+          Chart.defaults.borderColor = '#30363d';
+
+          this.createAdoptionChart();
+          this.createMarketShareChart();
+          this.createGrowthChart();
+          this.createTypeChart();
+        },
+
+        createAdoptionChart() {
+          const ctx = document.getElementById('adoptionChart');
+          if (!ctx) return;
+          if (this.charts.adoption) this.charts.adoption.destroy();
+
+          const datasets = this.regions.map((r, i) => ({
+            label: r,
+            data: this.getAdjustedAdoption(r),
+            borderColor: ['#58a6ff', '#3fb950', '#d29922', '#bc8cff'][i],
+            backgroundColor: 'transparent',
+            tension: 0.3,
+            pointRadius: 3
+          }));
+
+          this.charts.adoption = new Chart(ctx, {
+            type: 'line',
+            data: { labels: this.years, datasets },
+            options: {
+              responsive: true, maintainAspectRatio: false,
+              plugins: { legend: { position: 'bottom', labels: { boxWidth: 12 } } },
+              scales: {
+                y: { beginAtZero: true, ticks: { callback: v => v + '%' }, grid: { color: '#21262d' } },
+                x: { grid: { display: false } }
+              }
+            }
+          });
+        },
+
+        createMarketShareChart() {
+          const ctx = document.getElementById('marketShareChart');
+          if (!ctx) return;
+          if (this.charts.marketShare) this.charts.marketShare.destroy();
+
+          this.charts.marketShare = new Chart(ctx, {
+            type: 'bar',
+            data: {
+              labels: this.manufacturers.labels,
+              datasets: [{
+                data: this.manufacturers.values,
+                backgroundColor: ['#58a6ff', '#f85149', '#3fb950', '#d29922', '#bc8cff', '#f0883e', '#8b949e'],
+                borderRadius: 6
+              }]
+            },
+            options: {
+              responsive: true, maintainAspectRatio: false, indexAxis: 'y',
+              plugins: { legend: { display: false } },
+              scales: {
+                x: { ticks: { callback: v => v + '%' }, grid: { color: '#21262d' } },
+                y: { grid: { display: false } }
+              }
+            }
+          });
+        },
+
+        createGrowthChart() {
+          const ctx = document.getElementById('growthChart');
+          if (!ctx) return;
+          if (this.charts.growth) this.charts.growth.destroy();
+
+          const m = this.confidenceMultiplier();
+          const baseSales = [3.2, 4.5, 6.8, 10.2, 14.5, 18.5, 23.8, 29.5, 36.0, 43.5, 52.0];
+
+          this.charts.growth = new Chart(ctx, {
+            type: 'line',
+            data: {
+              labels: this.years,
+              datasets: [
+                {
+                  label: 'Projected Sales (M units)',
+                  data: baseSales.map(v => Math.round(v * m * this.hybridBoost() * this.fleetBoost() * 10) / 10),
+                  fill: true,
+                  backgroundColor: 'rgba(88,166,255,0.15)',
+                  borderColor: '#58a6ff',
+                  tension: 0.4
+                },
+                {
+                  label: 'Historical Sales',
+                  data: baseSales.map((v, i) => i <= 5 ? v : null),
+                  fill: false,
+                  borderColor: '#8b949e',
+                  borderDash: [5, 5],
+                  tension: 0.4,
+                  pointRadius: 3
+                }
+              ]
+            },
+            options: {
+              responsive: true, maintainAspectRatio: false,
+              plugins: { legend: { position: 'bottom', labels: { boxWidth: 12 } } },
+              scales: {
+                y: { beginAtZero: true, grid: { color: '#21262d' } },
+                x: { grid: { display: false } }
+              }
+            }
+          });
+        },
+
+        createTypeChart() {
+          const ctx = document.getElementById('typeChart');
+          if (!ctx) return;
+          if (this.charts.type) this.charts.type.destroy();
+
+          const bev = this.assumptions.includeHybrids ? 62 : 78;
+          const phev = this.assumptions.includeHybrids ? 28 : 12;
+          const fcev = 100 - bev - phev;
+
+          this.charts.type = new Chart(ctx, {
+            type: 'doughnut',
+            data: {
+              labels: ['Battery EV (BEV)', 'Plug-in Hybrid (PHEV)', 'Fuel Cell (FCEV)'],
+              datasets: [{
+                data: [bev, phev, fcev],
+                backgroundColor: ['#58a6ff', '#3fb950', '#bc8cff'],
+                borderColor: '#161b22',
+                borderWidth: 3
+              }]
+            },
+            options: {
+              responsive: true, maintainAspectRatio: false,
+              plugins: {
+                legend: { position: 'bottom', labels: { boxWidth: 12 } }
+              }
+            }
+          });
+        },
+
+        updateCharts() {
+          this.drilldownData = this.countryData[this.selectedRegion] || [];
+          this.createAdoptionChart();
+        },
+
+        recalculate() {
+          this.updateMetrics();
+          this.createCharts();
+          this.animateCounters();
+        }
+      }
+    }
+  </script>
+</body>
+</html>

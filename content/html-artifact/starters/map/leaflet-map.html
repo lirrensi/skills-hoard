@@ -1,0 +1,208 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Leaflet Map</title>
+  <!--
+    ============================================================
+    LEAFLET MAP STARTER — Interactive geo maps
+    ============================================================
+
+    WHAT IT DOES:
+    Interactive map with markers, popups, tile layers.
+    Uses Leaflet.js — the leading open-source mapping library.
+
+    HOW TO CUSTOMIZE:
+    1. Change map.setView([lat, lng], zoom) to your center point
+    2. Add/remove markers with L.marker([lat, lng]).addTo(map)
+    3. Change tile layer for different map styles
+    4. Add circles, polygons, polylines with L.circle, L.polygon, L.polyline
+
+    LEAFLET CORE API:
+    // Create map
+    const map = L.map('map').setView([lat, lng], zoom);
+
+    // Add tile layer (required — this is the map imagery)
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+      attribution: '© OpenStreetMap'
+    }).addTo(map);
+
+    // Add marker with popup
+    L.marker([lat, lng])
+      .addTo(map)
+      .bindPopup('<b>Title</b><br>Description');
+
+    // Add circle
+    L.circle([lat, lng], { radius: 500, color: 'red' }).addTo(map);
+
+    // Add polygon
+    L.polygon([[lat1,lng1], [lat2,lng2], [lat3,lng3]]).addTo(map);
+
+    // Add polyline (route/path)
+    L.polyline([[lat1,lng1], [lat2,lng2]], { color: 'blue' }).addTo(map);
+
+    MAP METHODS:
+    - map.setView([lat, lng], zoom) — center and zoom
+    - map.fitBounds(bounds) — fit all markers in view
+    - map.zoomIn() / map.zoomOut() — change zoom level
+    - map.on('click', fn) — handle map clicks
+
+    MARKER METHODS:
+    - marker.bindPopup(html) — attach popup
+    - marker.openPopup() — show popup
+    - marker.setIcon(icon) — change marker icon
+    - marker.setLatLng([lat, lng]) — move marker
+
+    TILE LAYER PROVIDERS (free):
+    - OpenStreetMap: https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png
+    - CartoDB Dark: https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png
+    - CartoDB Light: https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png
+    - Stamen Terrain: https://tiles.stadiamaps.com/tiles/stamen_terrain/{z}/{x}/{y}{r}.png
+
+    CUSTOM ICON:
+    const myIcon = L.icon({
+      iconUrl: 'url-to-icon.png',
+      iconSize: [32, 32],
+      iconAnchor: [16, 32],
+      popupAnchor: [0, -32]
+    });
+
+    MORE DOCS: https://leafletjs.com/reference.html
+
+    ============================================================
+  -->
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/leaflet@1/dist/leaflet.css" />
+  <script src="https://cdn.jsdelivr.net/npm/leaflet@1/dist/leaflet.js"></script>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+      background: #0f172a;
+      height: 100vh;
+      display: flex;
+      flex-direction: column;
+    }
+
+    /* Header bar */
+    .map-header {
+      background: #1e293b;
+      border-bottom: 1px solid #334155;
+      padding: 0.75rem 1.5rem;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    .map-header h1 { font-size: 1.1rem; font-weight: 600; color: #e2e8f0; }
+    .map-header .controls { display: flex; gap: 0.5rem; }
+    .map-header button {
+      background: #334155;
+      color: #e2e8f0;
+      border: none;
+      padding: 0.4rem 0.8rem;
+      border-radius: 6px;
+      cursor: pointer;
+      font-size: 0.8rem;
+    }
+    .map-header button:hover { background: #475569; }
+
+    /* Map fills remaining space */
+    #map { flex: 1; width: 100%; }
+
+    /* Override Leaflet popup for dark theme */
+    .leaflet-popup-content-wrapper {
+      background: #1e293b;
+      color: #e2e8f0;
+      border-radius: 8px;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.4);
+    }
+    .leaflet-popup-tip { background: #1e293b; }
+    .leaflet-popup-content { margin: 12px 16px; }
+    .leaflet-popup-content h3 { font-size: 0.95rem; margin-bottom: 0.25rem; }
+    .leaflet-popup-content p { font-size: 0.8rem; color: #94a3b8; margin: 0; }
+  </style>
+</head>
+<body>
+
+  <div class="map-header">
+    <h1>World Map</h1>
+    <div class="controls">
+      <button onclick="map.setView([20, 0], 2)">Reset View</button>
+      <button onclick="fitAllMarkers()">Fit All Markers</button>
+    </div>
+  </div>
+
+  <div id="map"></div>
+
+  <script>
+    // ============================================================
+    // MAP SETUP
+    // Change setView([lat, lng], zoom) to your preferred center
+    // ============================================================
+    const map = L.map('map').setView([20, 0], 2);
+
+    // ============================================================
+    // TILE LAYER — the map imagery
+    // Swap this URL for different map styles (see tile providers above)
+    // ============================================================
+    L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', {
+      attribution: '© OpenStreetMap contributors © CARTO',
+      maxZoom: 19
+    }).addTo(map);
+
+    // ============================================================
+    // MARKERS — replace with your locations
+    // Format: { coords: [lat, lng], title, description }
+    // ============================================================
+    const locations = [
+      { coords: [40.7128, -74.0060], title: 'New York', description: 'HQ Office — 450 employees' },
+      { coords: [51.5074, -0.1278],   title: 'London',   description: 'EMEA Hub — 120 employees' },
+      { coords: [35.6762, 139.6503],  title: 'Tokyo',    description: 'APAC Office — 85 employees' },
+      { coords: [-33.8688, 151.2093], title: 'Sydney',   description: 'APAC Support — 30 employees' },
+      { coords: [48.8566, 2.3522],    title: 'Paris',    description: 'Design Studio — 25 employees' },
+      { coords: [37.7749, -122.4194], title: 'San Francisco', description: 'Engineering — 200 employees' },
+    ];
+
+    const markers = [];
+
+    locations.forEach(loc => {
+      const marker = L.marker(loc.coords)
+        .addTo(map)
+        .bindPopup(`
+          <h3>${loc.title}</h3>
+          <p>${loc.description}</p>
+        `);
+      markers.push(marker);
+    });
+
+    // ============================================================
+    // OPTIONAL: Add a circle overlay
+    // L.circle([lat, lng], { radius: 500000, color: '#3b82f6', fillOpacity: 0.1 }).addTo(map);
+    // ============================================================
+
+    // ============================================================
+    // OPTIONAL: Add a polyline (route)
+    // L.polyline([[40.71, -74.00], [51.50, -0.12]], { color: '#f59e0b', weight: 2, dashArray: '5, 10' }).addTo(map);
+    // ============================================================
+
+    // ============================================================
+    // Fit all markers in view
+    // ============================================================
+    function fitAllMarkers() {
+      if (markers.length > 0) {
+        const group = L.featureGroup(markers);
+        map.fitBounds(group.getBounds().pad(0.1));
+      }
+    }
+
+    // ============================================================
+    // HOW TO ADD MARKERS INTERACTIVELY:
+    // map.on('click', function(e) {
+    //   L.marker([e.latlng.lat, e.latlng.lng]).addTo(map)
+    //     .bindPopup(`Lat: ${e.latlng.lat.toFixed(4)}, Lng: ${e.latlng.lng.toFixed(4)}`);
+    // });
+    // ============================================================
+  </script>
+
+</body>
+</html>

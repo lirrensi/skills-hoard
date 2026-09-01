@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>{{TITLE}}</title>
+<style>
+  :root { --bg: #ffffff; --fg: #1a1a2e; --muted: #6b7280; }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: 'Segoe UI', system-ui, sans-serif;
+    background: var(--bg);
+    color: var(--fg);
+    padding: 2rem;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+  }
+  h1 { font-size: 1.4rem; margin-bottom: 1.5rem; font-weight: 600; }
+  .svg-container {
+    max-width: 1000px;
+    width: 100%;
+    display: flex;
+    justify-content: center;
+  }
+  .svg-container svg { max-width: 100%; height: auto; }
+</style>
+</head>
+<body>
+<h1>{{TITLE}}</h1>
+<div class="svg-container">
+{{SVG_CONTENT}}
+</div>
+</body>
+</html>

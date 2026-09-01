@@ -1,0 +1,56 @@
+#!/usr/bin/env python3
+"""artify launcher — run the standalone CLI via uv, resolving deps on demand.
+
+This is the "no install required" entry point. It locates the standalone
+artify CLI package bundled in this skill (this file's sibling ``cli/``) and
+runs it through ``uv run --project`` so uv creates/uses a throwaway
+environment with the CLI's declared requirements — no global install needed.
+
+Usage:
+    artify open FILE.html
+    artify serve FILE.html [--webview]
+    artify list
+    artify kill PORT
+    artify restart PORT
+    artify snapshot PORT [--timeout N]
+"""
+
+import os
+import subprocess
+import sys
+from pathlib import Path
+
+# Resolve the standalone CLI project dir relative to this launcher.
+# This script lives in <skill>/scripts/, and the CLI project is <skill>/cli/.
+SKILL_ROOT = Path(__file__).resolve().parent.parent
+CLI_DIR = SKILL_ROOT / "cli"
+
+# Allow overriding uv if it's not on PATH (e.g. uv installed via pipx/elsewhere).
+UV = os.environ.get("ARTIFY_UV", "uv")
+
+
+def main() -> int:
+    if not CLI_DIR.is_dir():
+        print(
+            f"artify: standalone CLI not found at {CLI_DIR}",
+            file=sys.stderr,
+        )
+        return 1
+
+    # --project makes uv resolve the CLI's own pyproject.toml requirements
+    # into a per-project environment automatically. `--quiet` keeps the
+    # first-run "creating environment" noise off the terminal.
+    cmd = [UV, "run", "--project", str(CLI_DIR), "--quiet", "artify", *sys.argv[1:]]
+    try:
+        return subprocess.call(cmd)
+    except FileNotFoundError:
+        print(
+            "artify: could not find 'uv' on PATH. Install it (https://docs.astral.sh/uv/) "
+            "or set ARTIFY_UV to its path.",
+            file=sys.stderr,
+        )
+        return 1
+
+
+if __name__ == "__main__":
+    sys.exit(main())

@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>{{TITLE}}</title>
+<style>
+  :root { --bg: #ffffff; --fg: #1a1a2e; --muted: #6b7280; }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: 'Segoe UI', system-ui, sans-serif;
+    background: var(--bg);
+    color: var(--fg);
+    padding: 2rem;
+  }
+  h1 { font-size: 1.4rem; margin-bottom: 1.5rem; font-weight: 600; }
+  #viz {
+    max-width: 1000px;
+    margin: 0 auto;
+  }
+  svg { width: 100%; height: auto; }
+  .axis text { font-size: 12px; fill: var(--muted); }
+  .axis line, .axis path { stroke: #d1d5db; }
+  .tooltip {
+    position: absolute;
+    background: #1f2937;
+    color: #fff;
+    padding: 6px 10px;
+    border-radius: 4px;
+    font-size: 13px;
+    pointer-events: none;
+    opacity: 0;
+    transition: opacity 0.15s;
+  }
+</style>
+<script src="https://cdn.jsdelivr.net/npm/d3@7"></script>
+</head>
+<body>
+<h1>{{TITLE}}</h1>
+<div id="viz"></div>
+<div class="tooltip" id="tooltip"></div>
+<script>
+{{D3_CODE}}
+</script>
+</body>
+</html>

@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>{{TITLE}}</title>
+<style>
+  :root { --bg: #ffffff; --fg: #1a1a2e; --muted: #6b7280; --border: #e5e7eb; }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: 'Segoe UI', system-ui, sans-serif;
+    background: var(--bg);
+    color: var(--fg);
+    padding: 2rem;
+  }
+  h1 { font-size: 1.4rem; margin-bottom: 0.5rem; font-weight: 600; text-align: center; }
+  .subtitle { color: var(--muted); margin-bottom: 2rem; font-size: 0.95rem; text-align: center; }
+  .comparison {
+    display: grid;
+    grid-template-columns: {{GRID_COLS}};
+    gap: 1.5rem;
+    max-width: 1100px;
+    margin: 0 auto;
+  }
+  .col-header {
+    font-size: 1.1rem;
+    font-weight: 700;
+    text-align: center;
+    padding: 1rem;
+    border-bottom: 3px solid var(--border);
+    margin-bottom: 0.5rem;
+  }
+  .col-header.highlight { border-bottom-color: #3b82f6; color: #1e40af; }
+  .feature-row {
+    display: contents;
+  }
+  .feature-label {
+    font-size: 0.9rem;
+    font-weight: 600;
+    padding: 10px 0;
+    border-bottom: 1px solid var(--border);
+    display: flex;
+    align-items: center;
+  }
+  .feature-value {
+    font-size: 0.9rem;
+    padding: 10px 0;
+    border-bottom: 1px solid var(--border);
+    text-align: center;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  .check { color: #22c55e; font-weight: 700; }
+  .cross { color: #ef4444; font-weight: 700; }
+  .partial { color: #f59e0b; font-weight: 700; }
+  .winner { background: #f0f9ff; }
+</style>
+</head>
+<body>
+<h1>{{TITLE}}</h1>
+<p class="subtitle">{{SUBTITLE}}</p>
+<div class="comparison">
+{{COMPARISON_CONTENT}}
+</div>
+</body>
+</html>

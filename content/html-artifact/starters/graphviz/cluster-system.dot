@@ -1,0 +1,35 @@
+digraph {
+  rankdir=LR;
+  graph [pad=0.35, nodesep=0.45, ranksep=0.75];
+  node [shape=box, style="rounded,filled", fillcolor="#f5fbff", color="#5b80bf"];
+  edge [color="#70829a"];
+
+  subgraph cluster_frontend {
+    label="Frontend";
+    color="#b7d2f5";
+    Web;
+    UI;
+  }
+
+  subgraph cluster_backend {
+    label="Backend";
+    color="#b9e0d3";
+    API;
+    Worker;
+    Cache;
+  }
+
+  subgraph cluster_data {
+    label="Data";
+    color="#e7d1ad";
+    DB;
+    Queue;
+  }
+
+  Web -> API;
+  UI -> API;
+  API -> Worker;
+  API -> Cache;
+  Worker -> Queue;
+  Worker -> DB;
+}

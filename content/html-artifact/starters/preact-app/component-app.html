@@ -1,0 +1,291 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Preact App</title>
+  <!--
+    ============================================================
+    PREACT STARTER — React-like components without build setup
+    ============================================================
+
+    WHAT IT DOES:
+    React-like component architecture using Preact (3KB) + htm
+    for JSX-like syntax via tagged template literals. No build step,
+    no transpiler — just CDN scripts.
+
+    HOW TO CUSTOMIZE:
+    1. Define components as functions that return html`...`
+    2. Use useState() for reactive state (same API as React)
+    3. Use useEffect() for side effects
+    4. Use useMemo(), useCallback(), useRef() as needed
+    5. Pass props to child components
+
+    CORE API (same as React hooks):
+    const [value, setValue] = useState(initialValue)
+    useEffect(() => { /* effect */ return () => { /* cleanup */ } }, [deps])
+    const memoized = useMemo(() => compute(), [deps])
+    const callback = useCallback(fn, [deps])
+    const ref = useRef(initialValue)
+
+    HTM SYNTAX (instead of JSX):
+    Instead of:     <div className="foo" onClick={handler}>text</div>
+    You write:      html`<div class="foo" onClick=${handler}>text</div>`
+
+    Key differences from JSX:
+    - Use ${} instead of {}
+    - Use class= instead of className=
+    - Use html`...` tagged template instead of JSX
+    - Fragment: html`<${Fragment}>...</${Fragment}>` or html`<>...</>`
+    - Spread props: html`<div ...${props}>`
+    - Conditional: html`${condition && html`<div>...</div>`}`
+    - List: html`${items.map(item => html`<li key=${item.id}>${item.name}</li>`)}`
+
+    COMPONENT DEFINITION:
+    function MyComponent(props) {
+      const [count, setCount] = useState(0);
+      return html`
+        <div>
+          <p>Count: ${count}</p>
+          <button onClick=${() => setCount(count + 1)}>+1</button>
+        </div>
+      `;
+    }
+
+    RENDERING:
+    render(html`<${App} />`, document.getElementById('app'));
+
+    MORE DOCS:
+    - Preact: https://preactjs.com/guide/v10/getting-started
+    - htm: https://github.com/developit/htm
+
+    ============================================================
+  -->
+  <script src="https://cdn.jsdelivr.net/npm/preact@10/dist/preact.umd.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/htm@3/dist/htm.umd.js"></script>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      background: #0f172a;
+      color: #e2e8f0;
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+      min-height: 100vh;
+      padding: 2rem;
+    }
+  </style>
+</head>
+<body>
+
+  <div id="app"></div>
+
+  <script>
+    // ============================================================
+    // Setup: bind htm to Preact's createElement
+    // ============================================================
+    const { h, render, Component, Fragment } = preact;
+    const { useState, useEffect, useMemo, useCallback, useRef } = preact;
+    const html = htm.bind(h);
+
+    // ============================================================
+    // EXAMPLE APP: Todo List
+    // Replace with your own components
+    // ============================================================
+
+    // --- Single Todo Item Component ---
+    function TodoItem({ todo, onToggle, onDelete }) {
+      return html`
+        <li
+          style=${{
+            display: 'flex',
+            alignItems: 'center',
+            gap: '0.75rem',
+            padding: '0.75rem 1rem',
+            background: todo.completed ? '#1e293b' : '#0f172a',
+            borderRadius: '8px',
+            border: '1px solid #334155',
+            textDecoration: todo.completed ? 'line-through' : 'none',
+            opacity: todo.completed ? 0.6 : 1,
+          }}
+        >
+          <input
+            type="checkbox"
+            checked=${todo.completed}
+            onChange=${() => onToggle(todo.id)}
+            style=${{ cursor: 'pointer', width: '18px', height: '18px' }}
+          />
+          <span style=${{ flex: 1, color: todo.completed ? '#64748b' : '#e2e8f0' }}>
+            ${todo.text}
+          </span>
+          <button
+            onClick=${() => onDelete(todo.id)}
+            style=${{
+              background: 'none',
+              border: 'none',
+              color: '#64748b',
+              cursor: 'pointer',
+              fontSize: '1.2rem',
+              padding: '0 0.25rem',
+            }}
+            onMouseEnter=${e => e.target.style.color = '#ef4444'}
+            onMouseLeave=${e => e.target.style.color = '#64748b'}
+          >×</button>
+        </li>
+      `;
+    }
+
+    // --- Filter Tabs Component ---
+    function FilterTabs({ filter, onFilterChange, counts }) {
+      const filters = [
+        { id: 'all',       label: 'All',       count: counts.all },
+        { id: 'active',    label: 'Active',    count: counts.active },
+        { id: 'completed', label: 'Completed', count: counts.completed },
+      ];
+
+      return html`
+        <div style=${{ display: 'flex', gap: '0.5rem' }}>
+          ${filters.map(f => html`
+            <button
+              key=${f.id}
+              onClick=${() => onFilterChange(f.id)}
+              style=${{
+                padding: '0.4rem 0.8rem',
+                borderRadius: '6px',
+                border: 'none',
+                cursor: 'pointer',
+                fontSize: '0.85rem',
+                fontWeight: filter === f.id ? '600' : '400',
+                background: filter === f.id ? '#3b82f6' : '#1e293b',
+                color: filter === f.id ? '#fff' : '#94a3b8',
+              }}
+            >
+              ${f.label} (${f.count})
+            </button>
+          `)}
+        </div>
+      `;
+    }
+
+    // --- Main App Component ---
+    function App() {
+      const [todos, setTodos] = useState([
+        { id: 1, text: 'Learn Preact basics', completed: true },
+        { id: 2, text: 'Build a component', completed: false },
+        { id: 3, text: 'Add state management', completed: false },
+      ]);
+      const [input, setInput] = useState('');
+      const [filter, setFilter] = useState('all');
+      const [nextId, setNextId] = useState(4);
+
+      // Computed counts
+      const counts = useMemo(() => ({
+        all: todos.length,
+        active: todos.filter(t => !t.completed).length,
+        completed: todos.filter(t => t.completed).length,
+      }), [todos]);
+
+      // Filtered todos
+      const filteredTodos = useMemo(() => {
+        if (filter === 'active') return todos.filter(t => !t.completed);
+        if (filter === 'completed') return todos.filter(t => t.completed);
+        return todos;
+      }, [todos, filter]);
+
+      // Handlers
+      const addTodo = useCallback(() => {
+        if (!input.trim()) return;
+        setTodos(prev => [...prev, { id: nextId, text: input.trim(), completed: false }]);
+        setNextId(n => n + 1);
+        setInput('');
+      }, [input, nextId]);
+
+      const toggleTodo = useCallback((id) => {
+        setTodos(prev => prev.map(t => t.id === id ? { ...t, completed: !t.completed } : t));
+      }, []);
+
+      const deleteTodo = useCallback((id) => {
+        setTodos(prev => prev.filter(t => t.id !== id));
+      }, []);
+
+      // ============================================================
+      // RENDER — this is where you build your UI
+      // Use html`...` tagged templates, ${} for expressions
+      // ============================================================
+      return html`
+        <div style=${{ maxWidth: '500px', margin: '0 auto' }}>
+          <h1 style=${{ fontSize: '1.8rem', fontWeight: '700', marginBottom: '1.5rem', color: '#f8fafc' }}>
+            Todo List
+          </h1>
+
+          <!-- Input -->
+          <div style=${{ display: 'flex', gap: '0.5rem', marginBottom: '1rem' }}>
+            <input
+              type="text"
+              value=${input}
+              onInput=${e => setInput(e.target.value)}
+              onKeyDown=${e => e.key === 'Enter' && addTodo()}
+              placeholder="Add a task..."
+              style=${{
+                flex: 1,
+                padding: '0.6rem 1rem',
+                borderRadius: '8px',
+                border: '1px solid #334155',
+                background: '#1e293b',
+                color: '#e2e8f0',
+                fontSize: '0.95rem',
+                outline: 'none',
+              }}
+            />
+            <button
+              onClick=${addTodo}
+              style=${{
+                padding: '0.6rem 1.2rem',
+                borderRadius: '8px',
+                border: 'none',
+                background: '#3b82f6',
+                color: '#fff',
+                fontWeight: '600',
+                cursor: 'pointer',
+              }}
+            >Add</button>
+          </div>
+
+          <!-- Filters -->
+          <div style=${{ marginBottom: '1rem' }}>
+            <${FilterTabs} filter=${filter} onFilterChange=${setFilter} counts=${counts} />
+          </div>
+
+          <!-- Todo List -->
+          <ul style=${{ listStyle: 'none', display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
+            ${filteredTodos.map(todo => html`
+              <${TodoItem}
+                key=${todo.id}
+                todo=${todo}
+                onToggle=${toggleTodo}
+                onDelete=${deleteTodo}
+              />
+            `)}
+          </ul>
+
+          <!-- Empty state -->
+          ${filteredTodos.length === 0 && html`
+            <p style=${{ textAlign: 'center', color: '#64748b', padding: '2rem' }}>
+              No ${filter === 'all' ? '' : filter} tasks
+            </p>
+          `}
+
+          <!-- Footer -->
+          <p style=${{ textAlign: 'center', color: '#475569', fontSize: '0.8rem', marginTop: '1.5rem' }}>
+            ${counts.active} items left · ${counts.completed} completed
+          </p>
+        </div>
+      `;
+    }
+
+    // ============================================================
+    // Mount the app
+    // ============================================================
+    render(html`<${App} />`, document.getElementById('app'));
+  </script>
+
+</body>
+</html>

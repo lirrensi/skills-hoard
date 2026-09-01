@@ -1,0 +1,296 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Chart Dashboard</title>
+  <!--
+    ============================================================
+    CHART DASHBOARD STARTER — Chart.js + CSS Grid
+    ============================================================
+
+    WHAT IT DOES:
+    Multi-chart dashboard with stat cards, grid layout.
+    Uses Chart.js for bar, line, doughnut charts.
+
+    HOW TO CUSTOMIZE:
+    1. Replace the `datasets` in each chart config with your data
+    2. Change `labels` arrays to match your categories
+    3. Add/remove chart cards by copying the .card structure
+    4. Adjust grid layout with CSS grid-template-columns
+    5. Change colors in each chart's backgroundColor/borderColor
+
+    CHART.JS CORE API:
+    new Chart(canvasId, {
+      type: 'bar' | 'line' | 'pie' | 'doughnut' | 'radar' | 'scatter',
+      data: { labels: [...], datasets: [{ label, data, backgroundColor, borderColor }] },
+      options: {
+        responsive: true,
+        plugins: { legend: { position }, tooltip: { enabled } },
+        scales: { x: { ... }, y: { beginAtZero: true } }
+      }
+    })
+
+    CHART TYPES:
+    - bar: vertical bars, use for comparisons
+    - line: connected points, use for trends over time
+    - pie/doughnut: proportions, use for parts of a whole
+    - radar: multi-axis comparison, use for profiles/scores
+    - scatter: x-y points, use for correlations
+
+    COMMON DATASET OPTIONS:
+    - backgroundColor: fill color (string or array)
+    - borderColor: border color
+    - borderWidth: border width in px
+    - tension: curve smoothness (0 = straight, 0.4 = smooth)
+    - fill: true/false for area under line
+
+    MORE DOCS: https://www.chartjs.org/docs/latest/
+
+    ============================================================
+  -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      background: #0f172a;
+      color: #e2e8f0;
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+      padding: 1.5rem;
+    }
+
+    /* Header */
+    .dashboard-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 1.5rem;
+    }
+    .dashboard-header h1 { font-size: 1.5rem; font-weight: 700; }
+    .dashboard-header .timestamp { font-size: 0.85rem; color: #64748b; }
+
+    /* Stat cards row */
+    .stats-row {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 1rem;
+      margin-bottom: 1.5rem;
+    }
+    .stat-card {
+      background: #1e293b;
+      border: 1px solid #334155;
+      border-radius: 12px;
+      padding: 1.25rem;
+    }
+    .stat-card .label { font-size: 0.8rem; color: #94a3b8; text-transform: uppercase; letter-spacing: 0.05em; }
+    .stat-card .value { font-size: 2rem; font-weight: 700; margin: 0.25rem 0; }
+    .stat-card .change { font-size: 0.8rem; }
+    .stat-card .change.up { color: #4ade80; }
+    .stat-card .change.down { color: #f87171; }
+
+    /* Chart grid */
+    .chart-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
+      gap: 1.5rem;
+    }
+    .chart-card {
+      background: #1e293b;
+      border: 1px solid #334155;
+      border-radius: 12px;
+      padding: 1.5rem;
+    }
+    .chart-card h2 { font-size: 1rem; font-weight: 600; margin-bottom: 1rem; color: #cbd5e1; }
+    .chart-card canvas { width: 100% !important; }
+
+    /* Responsive */
+    @media (max-width: 500px) {
+      .chart-grid { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body>
+
+  <div class="dashboard-header">
+    <h1>Analytics Dashboard</h1>
+    <span class="timestamp" id="timestamp"></span>
+  </div>
+
+  <!-- Stat Cards -->
+  <div class="stats-row">
+    <div class="stat-card">
+      <div class="label">Total Revenue</div>
+      <div class="value">$124K</div>
+      <div class="change up">↑ 12.5% vs last month</div>
+    </div>
+    <div class="stat-card">
+      <div class="label">Active Users</div>
+      <div class="value">8,429</div>
+      <div class="change up">↑ 3.2% vs last month</div>
+    </div>
+    <div class="stat-card">
+      <div class="label">Conversion Rate</div>
+      <div class="value">3.8%</div>
+      <div class="change down">↓ 0.4% vs last month</div>
+    </div>
+    <div class="stat-card">
+      <div class="label">Avg Session</div>
+      <div class="value">4m 12s</div>
+      <div class="change up">↑ 8.1% vs last month</div>
+    </div>
+  </div>
+
+  <!-- Charts Grid -->
+  <div class="chart-grid">
+    <div class="chart-card">
+      <h2>Revenue by Month</h2>
+      <canvas id="revenueChart"></canvas>
+    </div>
+    <div class="chart-card">
+      <h2>Traffic Sources</h2>
+      <canvas id="trafficChart"></canvas>
+    </div>
+    <div class="chart-card">
+      <h2>Users Over Time</h2>
+      <canvas id="usersChart"></canvas>
+    </div>
+    <div class="chart-card">
+      <h2>Top Categories</h2>
+      <canvas id="categoriesChart"></canvas>
+    </div>
+  </div>
+
+  <script>
+    // ============================================================
+    // Timestamp
+    // ============================================================
+    document.getElementById('timestamp').textContent = new Date().toLocaleDateString('en-US', {
+      weekday: 'long', year: 'numeric', month: 'long', day: 'numeric'
+    });
+
+    // ============================================================
+    // Chart defaults (dark theme)
+    // ============================================================
+    Chart.defaults.color = '#94a3b8';
+    Chart.defaults.borderColor = '#334155';
+    Chart.defaults.font.family = "-apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif";
+
+    // ============================================================
+    // CHART 1: Revenue Bar Chart
+    // Replace labels and data with your monthly revenue
+    // ============================================================
+    new Chart(document.getElementById('revenueChart'), {
+      type: 'bar',
+      data: {
+        labels: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'],
+        datasets: [{
+          label: 'Revenue ($K)',
+          data: [65, 72, 80, 78, 95, 102, 98, 110, 105, 118, 115, 124],
+          backgroundColor: '#3b82f6',
+          borderRadius: 6,
+          borderSkipped: false,
+        }]
+      },
+      options: {
+        responsive: true,
+        plugins: { legend: { display: false } },
+        scales: {
+          y: { beginAtZero: true, grid: { color: '#1e293b' } },
+          x: { grid: { display: false } }
+        }
+      }
+    });
+
+    // ============================================================
+    // CHART 2: Traffic Doughnut
+    // Replace labels and data with your traffic source breakdown
+    // ============================================================
+    new Chart(document.getElementById('trafficChart'), {
+      type: 'doughnut',
+      data: {
+        labels: ['Organic', 'Direct', 'Referral', 'Social', 'Paid'],
+        datasets: [{
+          data: [35, 25, 20, 12, 8],
+          backgroundColor: ['#3b82f6', '#8b5cf6', '#06b6d4', '#f59e0b', '#ef4444'],
+          borderWidth: 0,
+          hoverOffset: 8,
+        }]
+      },
+      options: {
+        responsive: true,
+        cutout: '65%',
+        plugins: {
+          legend: { position: 'bottom', labels: { padding: 16, usePointStyle: true, pointStyle: 'circle' } }
+        }
+      }
+    });
+
+    // ============================================================
+    // CHART 3: Users Line Chart (area fill)
+    // Replace data points with your daily/weekly user counts
+    // ============================================================
+    new Chart(document.getElementById('usersChart'), {
+      type: 'line',
+      data: {
+        labels: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'],
+        datasets: [{
+          label: 'This Week',
+          data: [1200, 1350, 1180, 1420, 1580, 980, 720],
+          borderColor: '#3b82f6',
+          backgroundColor: 'rgba(59, 130, 246, 0.1)',
+          fill: true,
+          tension: 0.4,
+          pointRadius: 4,
+          pointHoverRadius: 6,
+        }, {
+          label: 'Last Week',
+          data: [1100, 1280, 1050, 1300, 1450, 900, 650],
+          borderColor: '#64748b',
+          borderDash: [5, 5],
+          fill: false,
+          tension: 0.4,
+          pointRadius: 0,
+        }]
+      },
+      options: {
+        responsive: true,
+        plugins: {
+          legend: { position: 'top', labels: { usePointStyle: true, pointStyle: 'circle' } }
+        },
+        scales: {
+          y: { beginAtZero: true, grid: { color: '#1e293b' } },
+          x: { grid: { display: false } }
+        }
+      }
+    });
+
+    // ============================================================
+    // CHART 4: Categories Horizontal Bar
+    // Replace with your category data
+    // ============================================================
+    new Chart(document.getElementById('categoriesChart'), {
+      type: 'bar',
+      data: {
+        labels: ['Electronics', 'Clothing', 'Home & Garden', 'Books', 'Sports', 'Food'],
+        datasets: [{
+          label: 'Sales ($K)',
+          data: [42, 35, 28, 18, 15, 12],
+          backgroundColor: ['#3b82f6', '#8b5cf6', '#06b6d4', '#10b981', '#f59e0b', '#ef4444'],
+          borderRadius: 6,
+          borderSkipped: false,
+        }]
+      },
+      options: {
+        indexAxis: 'y',  // horizontal bars
+        responsive: true,
+        plugins: { legend: { display: false } },
+        scales: {
+          x: { beginAtZero: true, grid: { color: '#1e293b' } },
+          y: { grid: { display: false } }
+        }
+      }
+    });
+  </script>
+
+</body>
+</html>

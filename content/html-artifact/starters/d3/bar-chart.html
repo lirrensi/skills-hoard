@@ -1,0 +1,196 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Bar Chart — D3 Starter</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      background: #0f0f0f;
+      color: #e0e0e0;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 2rem;
+      min-height: 100vh;
+    }
+    h1 { font-size: 1.4rem; font-weight: 600; margin-bottom: 0.3rem; }
+    .subtitle { font-size: 0.85rem; color: #888; margin-bottom: 1.5rem; }
+    #chart-wrap { width: 100%; max-width: 800px; }
+    svg { display: block; }
+
+    /* Tooltip */
+    .tooltip {
+      position: absolute;
+      background: #1a1a2e;
+      color: #fff;
+      padding: 8px 12px;
+      border-radius: 6px;
+      font-size: 13px;
+      pointer-events: none;
+      opacity: 0;
+      transition: opacity 0.15s;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.4);
+    }
+  </style>
+</head>
+<body>
+
+  <h1>Revenue by Region — Q4 2024</h1>
+  <p class="subtitle">Hover for details · Bars animate on load</p>
+  <div id="chart-wrap">
+    <svg id="chart"></svg>
+  </div>
+  <div class="tooltip" id="tooltip"></div>
+
+  <script src="https://cdn.jsdelivr.net/npm/d3@7/dist/d3.min.js"></script>
+  <script>
+    // ============================================================
+    // DATA — replace with your own
+    // ============================================================
+    const data = [
+      { label: "North America",  value: 1800 },
+      { label: "Europe (EMEA)",  value: 920 },
+      { label: "Asia Pacific",   value: 1240 },
+      { label: "Latin America",  value: 310 },
+      { label: "Middle East",    value: 180 },
+    ].sort((a, b) => b.value - a.value);  // sort descending
+
+    // ============================================================
+    // DIMENSIONS
+    // ============================================================
+    const margin = { top: 10, right: 60, bottom: 30, left: 130 };
+    const W = 700, H = data.length * 56 + margin.top + margin.bottom;
+    const w = W - margin.left - margin.right;
+    const h = H - margin.top - margin.bottom;
+
+    // ============================================================
+    // SVG SETUP — responsive via viewBox
+    // ============================================================
+    const svg = d3.select("#chart")
+      .attr("viewBox", `0 0 ${W} ${H}`)
+      .attr("width", "100%");
+
+    const g = svg.append("g")
+      .attr("transform", `translate(${margin.left},${margin.top})`);
+
+    // ============================================================
+    // SCALES
+    // ============================================================
+    const x = d3.scaleLinear()
+      .domain([0, d3.max(data, d => d.value)])
+      .nice()
+      .range([0, w]);
+
+    const y = d3.scaleBand()
+      .domain(data.map(d => d.label))
+      .range([0, h])
+      .padding(0.35);
+
+    // ============================================================
+    // GRIDLINES (horizontal, subtle)
+    // ============================================================
+    g.append("g")
+      .attr("class", "grid")
+      .call(d3.axisBottom(x).ticks(5).tickSize(h).tickFormat(""))
+      .selectAll("line")
+        .attr("stroke", "#222")
+        .attr("stroke-dasharray", "3,3");
+    g.select(".grid .domain").remove();
+
+    // ============================================================
+    // BARS — animated from left
+    // ============================================================
+    const bars = g.selectAll(".bar")
+      .data(data)
+      .enter().append("rect")
+        .attr("class", "bar")
+        .attr("x", 0)
+        .attr("y", d => y(d.label))
+        .attr("width", 0)
+        .attr("height", y.bandwidth())
+        .attr("fill", "#f97316")
+        .attr("rx", 4)
+        .style("cursor", "pointer");
+
+    bars.transition()
+      .duration(700)
+      .delay((d, i) => i * 100)
+      .ease(d3.easeCubicOut)
+      .attr("width", d => x(d.value));
+
+    // ============================================================
+    // DIRECT LABELS — value at end of bar
+    // ============================================================
+    const labels = g.selectAll(".bar-label")
+      .data(data)
+      .enter().append("text")
+        .attr("class", "bar-label")
+        .attr("x", d => x(d.value) + 8)
+        .attr("y", d => y(d.label) + y.bandwidth() / 2)
+        .attr("dy", "0.35em")
+        .attr("font-size", "13px")
+        .attr("fill", "#ccc")
+        .attr("opacity", 0)
+        .text(d => `$${d.value.toLocaleString()}K`);
+
+    labels.transition()
+      .delay((d, i) => 700 + i * 100)
+      .duration(300)
+      .attr("opacity", 1);
+
+    // ============================================================
+    // Y-AXIS LABELS (category names)
+    // ============================================================
+    g.selectAll(".y-label")
+      .data(data)
+      .enter().append("text")
+        .attr("x", -8)
+        .attr("y", d => y(d.label) + y.bandwidth() / 2)
+        .attr("dy", "0.35em")
+        .attr("text-anchor", "end")
+        .attr("font-size", "13px")
+        .attr("fill", "#aaa")
+        .text(d => d.label);
+
+    // ============================================================
+    // TOOLTIP
+    // ============================================================
+    const tooltip = d3.select("#tooltip");
+
+    bars
+      .on("mouseover", (event, d) => {
+        // Highlight bar
+        d3.select(event.target).attr("fill", "#fb923c");
+
+        tooltip
+          .style("opacity", 1)
+          .html(`<strong>${d.label}</strong><br/>$${d.value.toLocaleString()}K revenue`);
+      })
+      .on("mousemove", (event) => {
+        tooltip
+          .style("left", (event.pageX + 14) + "px")
+          .style("top", (event.pageY - 30) + "px");
+      })
+      .on("mouseout", (event) => {
+        d3.select(event.target).attr("fill", "#f97316");
+        tooltip.style("opacity", 0);
+      });
+
+    // ============================================================
+    // HOW TO CUSTOMIZE:
+    // ============================================================
+    // 1. Replace `data` array with your own labels + values
+    // 2. Adjust margin.left if labels are longer
+    // 3. Change bar color: replace "#f97316" (appears 3 times)
+    // 4. Change highlight color: replace "#fb923c"
+    // 5. For vertical bars, swap x/y scales and use:
+    //    x = scaleBand (categories), y = scaleLinear (values, range [h, 0])
+    //    bars: .attr("x", d => x(d.label)).attr("y", d => y(d.value))
+    //          .attr("width", x.bandwidth()).attr("height", d => h - y(d.value))
+  </script>
+
+</body>
+</html>

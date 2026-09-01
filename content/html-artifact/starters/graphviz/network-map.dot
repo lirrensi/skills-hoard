@@ -1,0 +1,14 @@
+graph {
+  layout=neato;
+  graph [pad=0.35, overlap=false, splines=true];
+  node [shape=circle, style=filled, fillcolor="#e8f4ef", color="#4b9274"];
+  edge [color="#78908a"];
+
+  TeamA -- TeamB;
+  TeamA -- TeamC;
+  TeamB -- TeamD;
+  TeamC -- TeamD;
+  TeamC -- TeamE;
+  TeamD -- TeamF;
+  TeamE -- TeamF;
+}

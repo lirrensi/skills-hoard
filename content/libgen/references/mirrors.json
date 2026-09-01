@@ -1,0 +1,52 @@
+{
+  "discovered_at": "2026-05-18T03:55:20Z",
+  "sources": {
+    "wikidata": [
+      "https://libgen.is"
+    ],
+    "known": [
+      "https://libgen.li",
+      "https://libgen.is",
+      "https://libgen.rs",
+      "https://libgen.st"
+    ]
+  },
+  "mirrors": [
+    {
+      "url": "https://libgen.is",
+      "reachable": false,
+      "has_search": false,
+      "has_json_api": false,
+      "has_ads": false,
+      "latency_ms": null,
+      "error": "<urlopen error timed out>"
+    },
+    {
+      "url": "https://libgen.li",
+      "reachable": true,
+      "has_search": true,
+      "has_json_api": true,
+      "has_ads": true,
+      "latency_ms": 433,
+      "error": null
+    },
+    {
+      "url": "https://libgen.rs",
+      "reachable": false,
+      "has_search": false,
+      "has_json_api": false,
+      "has_ads": false,
+      "latency_ms": null,
+      "error": "<urlopen error timed out>"
+    },
+    {
+      "url": "https://libgen.st",
+      "reachable": false,
+      "has_search": false,
+      "has_json_api": false,
+      "has_ads": false,
+      "latency_ms": null,
+      "error": "<urlopen error timed out>"
+    }
+  ]
+}

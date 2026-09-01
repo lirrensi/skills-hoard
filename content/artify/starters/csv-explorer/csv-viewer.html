@@ -1,0 +1,440 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>CSV Explorer</title>
+  <!--
+    ============================================================
+    CSV EXPLORER STARTER — PapaParse drag-drop CSV viewer
+    ============================================================
+
+    WHAT IT DOES:
+    Drag-drop a CSV file or paste CSV text. Parses it, displays
+    as a searchable, sortable table with pagination.
+    Uses PapaParse for robust CSV parsing.
+
+    HOW TO CUSTOMIZE:
+    1. Drop a CSV file onto the page or paste CSV text
+    2. Search/filter across all columns
+    3. Click column headers to sort
+    4. Paginate through large datasets
+
+    PAPAPARSE CORE API:
+    Papa.parse(csvString, {
+      header: true,        // use first row as headers
+      dynamicTyping: true, // auto-convert numbers/booleans
+      skipEmptyLines: true,
+      complete(results) {
+        results.data       // array of row objects
+        results.meta.fields // array of column names
+        results.errors     // parse errors
+      }
+    });
+
+    // Parse a file:
+    Papa.parse(file, { ... same options ... });
+
+    // Parse a remote URL:
+    Papa.parse(url, { download: true, ... });
+
+    PAPAPARSE OPTIONS:
+    - header: true — first row becomes keys
+    - dynamicTyping: true — "42" becomes 42
+    - delimiter: "," — auto-detected if omitted
+    - skipEmptyLines: true — ignore blank rows
+    - preview: N — parse only first N rows
+    - worker: true — parse in background thread (for huge files)
+    - step(row, parser) — callback per row (for streaming)
+    - transform(value, col) — modify each value during parse
+
+    RESULT OBJECT:
+    {
+      data: [{ col1: val1, col2: val2 }, ...],  // parsed rows
+      meta: {
+        fields: ["col1", "col2"],  // column names
+        delimiter: ",",             // detected delimiter
+        linebreak: "\n",            // detected line break
+        aborted: false,
+        truncated: false
+      },
+      errors: [{ type, code, message, row }]
+    }
+
+    MORE DOCS: https://www.papaparse.com/docs
+
+    ============================================================
+  -->
+  <script src="https://cdn.jsdelivr.net/npm/papaparse@5/papaparse.min.js"></script>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      background: #0f172a;
+      color: #e2e8f0;
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+      min-height: 100vh;
+      padding: 1.5rem;
+    }
+
+    /* Header */
+    .header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 1.5rem;
+      flex-wrap: wrap;
+      gap: 1rem;
+    }
+    .header h1 { font-size: 1.4rem; font-weight: 700; }
+    .header .stats { font-size: 0.85rem; color: #64748b; }
+
+    /* Drop zone */
+    .drop-zone {
+      border: 2px dashed #334155;
+      border-radius: 12px;
+      padding: 3rem 2rem;
+      text-align: center;
+      margin-bottom: 1.5rem;
+      transition: border-color 0.2s, background 0.2s;
+      cursor: pointer;
+    }
+    .drop-zone:hover, .drop-zone.dragover {
+      border-color: #3b82f6;
+      background: rgba(59, 130, 246, 0.05);
+    }
+    .drop-zone .icon { font-size: 2.5rem; margin-bottom: 0.75rem; }
+    .drop-zone p { color: #64748b; font-size: 0.95rem; }
+    .drop-zone .or { color: #475569; margin: 0.5rem 0; font-size: 0.85rem; }
+    .drop-zone input[type="file"] { display: none; }
+    .drop-zone .paste-area {
+      width: 100%;
+      max-width: 500px;
+      margin: 0.5rem auto 0;
+      background: #1e293b;
+      border: 1px solid #334155;
+      border-radius: 8px;
+      padding: 0.75rem;
+      color: #e2e8f0;
+      font-family: monospace;
+      font-size: 0.8rem;
+      resize: vertical;
+      min-height: 60px;
+    }
+
+    /* Toolbar */
+    .toolbar {
+      display: flex;
+      gap: 0.75rem;
+      margin-bottom: 1rem;
+      flex-wrap: wrap;
+      align-items: center;
+    }
+    .search-input {
+      flex: 1;
+      min-width: 200px;
+      padding: 0.5rem 1rem;
+      background: #1e293b;
+      border: 1px solid #334155;
+      border-radius: 8px;
+      color: #e2e8f0;
+      font-size: 0.9rem;
+      outline: none;
+    }
+    .search-input:focus { border-color: #3b82f6; }
+    .toolbar button {
+      padding: 0.5rem 1rem;
+      background: #1e293b;
+      border: 1px solid #334155;
+      border-radius: 8px;
+      color: #94a3b8;
+      cursor: pointer;
+      font-size: 0.85rem;
+    }
+    .toolbar button:hover { background: #334155; color: #e2e8f0; }
+
+    /* Table */
+    .table-wrap {
+      overflow-x: auto;
+      border: 1px solid #334155;
+      border-radius: 12px;
+      background: #1e293b;
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 0.85rem;
+    }
+    th {
+      background: #0f172a;
+      padding: 0.6rem 0.8rem;
+      text-align: left;
+      font-weight: 600;
+      color: #94a3b8;
+      border-bottom: 1px solid #334155;
+      cursor: pointer;
+      white-space: nowrap;
+      user-select: none;
+      position: sticky;
+      top: 0;
+    }
+    th:hover { color: #e2e8f0; }
+    th .sort-arrow { margin-left: 0.25rem; font-size: 0.7rem; }
+    td {
+      padding: 0.5rem 0.8rem;
+      border-bottom: 1px solid #1e293b;
+      white-space: nowrap;
+      max-width: 300px;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+    tr:hover td { background: rgba(59, 130, 246, 0.05); }
+
+    /* Pagination */
+    .pagination {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      gap: 0.5rem;
+      margin-top: 1rem;
+    }
+    .pagination button {
+      padding: 0.4rem 0.8rem;
+      background: #1e293b;
+      border: 1px solid #334155;
+      border-radius: 6px;
+      color: #94a3b8;
+      cursor: pointer;
+      font-size: 0.8rem;
+    }
+    .pagination button:hover:not(:disabled) { background: #334155; color: #e2e8f0; }
+    .pagination button:disabled { opacity: 0.3; cursor: default; }
+    .pagination .page-info { font-size: 0.8rem; color: #64748b; }
+
+    /* Empty state */
+    .empty { text-align: center; padding: 3rem; color: #475569; }
+  </style>
+</head>
+<body>
+
+  <div class="header">
+    <h1>CSV Explorer</h1>
+    <div class="stats" id="stats"></div>
+  </div>
+
+  <!-- Drop zone (shown when no data) -->
+  <div class="drop-zone" id="dropZone" onclick="document.getElementById('fileInput').click()">
+    <div class="icon">📄</div>
+    <p>Drag & drop a CSV file here</p>
+    <div class="or">— or —</div>
+    <p>click to browse</p>
+    <input type="file" id="fileInput" accept=".csv,.tsv,.txt" />
+    <div class="or" style="margin-top:1rem;">— or paste CSV below —</div>
+    <textarea class="paste-area" id="pasteArea" placeholder="name,age,city&#10;Alice,30,NYC&#10;Bob,25,LA" onclick="event.stopPropagation()"></textarea>
+    <button style="margin-top:0.5rem;padding:0.4rem 1rem;background:#334155;border:none;border-radius:6px;color:#e2e8f0;cursor:pointer;" onclick="event.stopPropagation(); parsePasted()">Parse</button>
+  </div>
+
+  <!-- Data view (shown when data loaded) -->
+  <div id="dataView" style="display:none;">
+    <div class="toolbar">
+      <input type="text" class="search-input" id="searchInput" placeholder="Search across all columns..." oninput="applyFilter()" />
+      <button onclick="exportCSV()">Export CSV</button>
+      <button onclick="reset()">Load New</button>
+    </div>
+    <div class="table-wrap">
+      <table>
+        <thead id="tableHead"></thead>
+        <tbody id="tableBody"></tbody>
+      </table>
+    </div>
+    <div class="pagination" id="pagination"></div>
+  </div>
+
+  <script>
+    // ============================================================
+    // STATE
+    // ============================================================
+    let allData = [];       // all parsed rows
+    let filteredData = [];  // after search filter
+    let columns = [];       // column names
+    let sortCol = null;
+    let sortDir = 'asc';    // 'asc' or 'desc'
+    let currentPage = 1;
+    const PAGE_SIZE = 50;
+
+    // ============================================================
+    // DRAG & DROP
+    // ============================================================
+    const dropZone = document.getElementById('dropZone');
+
+    dropZone.addEventListener('dragover', (e) => {
+      e.preventDefault();
+      dropZone.classList.add('dragover');
+    });
+    dropZone.addEventListener('dragleave', () => dropZone.classList.remove('dragover'));
+    dropZone.addEventListener('drop', (e) => {
+      e.preventDefault();
+      dropZone.classList.remove('dragover');
+      const file = e.dataTransfer.files[0];
+      if (file) parseFile(file);
+    });
+
+    document.getElementById('fileInput').addEventListener('change', (e) => {
+      if (e.target.files[0]) parseFile(e.target.files[0]);
+    });
+
+    // ============================================================
+    // PARSE
+    // ============================================================
+    function parseFile(file) {
+      Papa.parse(file, {
+        header: true,
+        dynamicTyping: true,
+        skipEmptyLines: true,
+        complete: onLoad,
+        error: (err) => alert('Parse error: ' + err.message),
+      });
+    }
+
+    function parsePasted() {
+      const text = document.getElementById('pasteArea').value.trim();
+      if (!text) return;
+      const result = Papa.parse(text, {
+        header: true,
+        dynamicTyping: true,
+        skipEmptyLines: true,
+      });
+      onLoad(result);
+    }
+
+    function onLoad(results) {
+      allData = results.data;
+      columns = results.meta.fields || Object.keys(allData[0] || {});
+      sortCol = null;
+      currentPage = 1;
+
+      // Show data view, hide drop zone
+      document.getElementById('dropZone').style.display = 'none';
+      document.getElementById('dataView').style.display = 'block';
+
+      applyFilter();
+    }
+
+    // ============================================================
+    // FILTER
+    // ============================================================
+    function applyFilter() {
+      const query = document.getElementById('searchInput').value.toLowerCase();
+
+      if (!query) {
+        filteredData = [...allData];
+      } else {
+        filteredData = allData.filter(row =>
+          columns.some(col => {
+            const val = row[col];
+            return val != null && String(val).toLowerCase().includes(query);
+          })
+        );
+      }
+
+      // Apply sort
+      if (sortCol) {
+        filteredData.sort((a, b) => {
+          const va = a[sortCol];
+          const vb = b[sortCol];
+          const cmp = (va ?? '') < (vb ?? '') ? -1 : (va ?? '') > (vb ?? '') ? 1 : 0;
+          return sortDir === 'asc' ? cmp : -cmp;
+        });
+      }
+
+      currentPage = 1;
+      render();
+    }
+
+    // ============================================================
+    // SORT
+    // ============================================================
+    function sortBy(col) {
+      if (sortCol === col) {
+        sortDir = sortDir === 'asc' ? 'desc' : 'asc';
+      } else {
+        sortCol = col;
+        sortDir = 'asc';
+      }
+      applyFilter();
+    }
+
+    // ============================================================
+    // RENDER
+    // ============================================================
+    function render() {
+      const start = (currentPage - 1) * PAGE_SIZE;
+      const pageData = filteredData.slice(start, start + PAGE_SIZE);
+      const totalPages = Math.ceil(filteredData.length / PAGE_SIZE);
+
+      // Stats
+      document.getElementById('stats').textContent =
+        `${filteredData.length.toLocaleString()} rows · ${columns.length} columns` +
+        (filteredData.length !== allData.length ? ` (filtered from ${allData.length.toLocaleString()})` : '');
+
+      // Header
+      document.getElementById('tableHead').innerHTML = '<tr>' + columns.map(col => {
+        const arrow = sortCol === col ? (sortDir === 'asc' ? '▲' : '▼') : '⇅';
+        return `<th onclick="sortBy('${col}')">${escapeHtml(col)} <span class="sort-arrow">${arrow}</span></th>`;
+      }).join('') + '</tr>';
+
+      // Body
+      document.getElementById('tableBody').innerHTML = pageData.map(row =>
+        '<tr>' + columns.map(col => `<td title="${escapeHtml(String(row[col] ?? ''))}">${escapeHtml(String(row[col] ?? ''))}</td>`).join('') + '</tr>'
+      ).join('');
+
+      // Pagination
+      document.getElementById('pagination').innerHTML = `
+        <button onclick="goPage(${currentPage - 1})" ${currentPage <= 1 ? 'disabled' : ''}>← Prev</button>
+        <span class="page-info">Page ${currentPage} of ${totalPages || 1}</span>
+        <button onclick="goPage(${currentPage + 1})" ${currentPage >= totalPages ? 'disabled' : ''}>Next →</button>
+      `;
+    }
+
+    function goPage(page) {
+      const totalPages = Math.ceil(filteredData.length / PAGE_SIZE);
+      if (page < 1 || page > totalPages) return;
+      currentPage = page;
+      render();
+    }
+
+    // ============================================================
+    // EXPORT
+    // ============================================================
+    function exportCSV() {
+      const csv = Papa.unparse(filteredData, { columns });
+      const blob = new Blob([csv], { type: 'text/csv' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = 'export.csv';
+      a.click();
+      URL.revokeObjectURL(url);
+    }
+
+    // ============================================================
+    // RESET
+    // ============================================================
+    function reset() {
+      allData = [];
+      filteredData = [];
+      columns = [];
+      document.getElementById('dropZone').style.display = '';
+      document.getElementById('dataView').style.display = 'none';
+      document.getElementById('searchInput').value = '';
+      document.getElementById('pasteArea').value = '';
+    }
+
+    function escapeHtml(str) {
+      const div = document.createElement('div');
+      div.textContent = str;
+      return div.innerHTML;
+    }
+  </script>
+
+</body>
+</html>

@@ -1,0 +1,113 @@
+# Publish — Skill Library
+
+> **Auto-generated** by `generate_readme.py` — run `py generate_readme.py` after any skill change.
+> Last generated: 2026-09-01 21:12:16
+>
+> **7 categories · 56 skills**
+
+---
+
+## content — 17 skills
+
+Content-creation and media skills: building single-file HTML artifacts (artify, html-artifact, scrollytelling), generating and editing documents (PDF/DOCX/XLSX/PPTX), producing video and audio, distilling voice and philosophy from writing, social media posting, and library research (LibGen). If it's about making something people read, watch, or interact with, it lives here.
+
+| Skill | Description |
+|---|---|
+| [artify](content/artify/SKILL.md) | Build self-contained, single-file HTML artifacts and serve them with the artify CLI. Use for visualizations, interactive tools, presentations, living documents, forms and quizzes that return structured data via artify snapshot, and any browser-native replacement for static files. Prefer adapting st… |
+| [brainstorm-ideas](content/brainstorm-ideas/SKILL.md) | Use when the user needs more and better options before evaluating, deciding, or planning. Trigger on brainstorming, ideation, "give me ideas", "what are other approaches", creative block, early product or architecture exploration, research directions, naming work, or when the current option set is… |
+| [delivery-discovery](content/delivery-discovery/SKILL.md) | Help a user decide how they want to experience an existing essence. Use when the user is unsure which delivery format or modality fits best, wants examples, or needs recommendations grounded in current workspace capabilities. This skill is conversational guidance, not rendering. |
+| [document-extractor](content/document-extractor/SKILL.md) | Convert hard-to-read files into clear Markdown with MarkItDown. Use for PDF, Word, PowerPoint, Excel, images, audio, HTML, CSV, JSON, XML, ZIP, EPUB, Outlook, and YouTube inputs. Check whether `markitdown` is installed first, prefer `uv tool install`, fall back to `pipx`, and use the upstream docs… |
+| [document-generator](content/document-generator/SKILL.md) | "Use this skill whenever the user wants to create, read, edit, or convert any document file. This includes: PDFs (.pdf), Word documents (.docx), Excel/spreadsheets (.xlsx, .csv), PowerPoint presentations (.pptx), and other office formats. Triggers on any request involving document files — creating… |
+| [essay](content/essay/SKILL.md) | Essay finishing orchestrator for messy notes, partial drafts, and nearly-done essays. Use when the user already has substantial material and wants it finalized, reviewed, or polished while following shared editorial principles from EDITING.md and optional voice guidance from VOICE.md. Optimized for… |
+| [html-artifact](content/html-artifact/SKILL.md) | Build self-contained, single-file HTML artifacts and open them in the browser. Use for visualizations, interactive tools, presentations, living documents, and browser-native replacements for PDF, DOCX, PPTX, and spreadsheets. Prefer adapting starters when there is a close fit; otherwise build from… |
+| [knowledge-accumulator](content/knowledge-accumulator/SKILL.md) | Build or maintain a long-lived knowledge base in one folder. Use whenever the user wants to accumulate research, expert notes, codebase understanding, manuals, links, taxonomies, source maps, or gap lists over multiple sessions instead of jumping straight to a small procedural skill. Also use when… |
+| [libgen](content/libgen/SKILL.md) | Search, download, and manage books from Library Genesis (LibGen). Mirror auto-discovery, hybrid HTML+JSON API search, format conversion with calibre, and reading list scanning. |
+| [manifesto-coach](content/manifesto-coach/SKILL.md) | Rhetorical analysis and coaching for persuasive writing — manifestos, essays, speeches, calls to action, op-eds, campaign texts, movement statements, or any text meant to move people. Use this skill whenever a user pastes writing and asks for feedback on how to make it more persuasive, more urgent,… |
+| [philosophy-distiller](content/philosophy-distiller/SKILL.md) | Distill a living PHILOSOPHY.md from a large body of writing, then iteratively refine it in the same session as new samples or corrections arrive. Use when the user dumps essays, posts, comments, drafts, transcripts, or mixed writing and wants a reusable worldview document rather than a one-off topi… |
+| [scrollytelling-page-generator](content/scrollytelling-page-generator/SKILL.md) | Build self-contained, single-file HTML long-form reading article. Transforming long texts like a book or very long papers, essays, complex long material into a single interactive page. |
+| [social-media-post-creator](content/social-media-post-creator/SKILL.md) | Transform any content essence into platform-native social media posts. Use when the user wants to create social media content from structured data (bullet points, outlines, key takeaways), unstructured ideas (messy notes, concepts, presentations), or needs to adapt one piece of content for multiple… |
+| [ultra-humanizer](content/ultra-humanizer/SKILL.md) | Aggressively strip AI-generated writing patterns ("slop") from text and restore a natural human voice. Use whenever the user asks to humanize, de-slop, anti-slop, "make this sound human," "remove AI tells," or edit/review/revise any prose that feels robotic, generic, LLM-polished, or overly formal.… |
+| [video-creator](content/video-creator/SKILL.md) | Use this skill whenever the user wants to create, edit, automate, or package videos with Remotion, MoviePy, or a hybrid pipeline. Trigger for motion-graphics templates, animated title cards, lower thirds, data-driven scenes, stitched footage, subtitles, aspect-ratio variants, audio swaps, batch exp… |
+| [voice-distiller](content/voice-distiller/SKILL.md) | Distill a living VOICE.md from a large body of writing, then iteratively refine it in the same session as new samples or corrections arrive. Use when the user dumps articles, posts, drafts, comments, transcripts, or mixed writing and wants a reusable voice document rather than a one-off style summa… |
+| [writing-editor](content/writing-editor/SKILL.md) | Acts as a tough but collaborative writing editor who routes between a structure pass and a style pass. Diagnoses contradictions, weak sequencing, missing setup/payoff, tone drift, clarity problems, and audience mismatch. Gives feedback and brief illustrative rewrite examples when useful, but never… |
+
+## devops — 10 skills
+
+Self-hosting and infra-adjacent skills: Docker hardening, reverse proxies (Caddy, self-signed TLS), dynamic DNS (DuckDNS), file sharing (dufs, Syncthing), IPFS hosting, stealth browser automation (CloakBrowser, Playwright stable profiles), torrent management, and exposure/firewall diagnostics. For getting services up on real servers and keeping them reachable.
+
+| Skill | Description |
+|---|---|
+| [cloakbrowser](devops/cloakbrowser/SKILL.md) | Use this skill whenever the user wants to use CloakBrowser, migrate from Playwright or Puppeteer to CloakBrowser, manage the CloakBrowser binary from the CLI, or do stealth browser automation with a nearly drop-in Playwright API. Trigger on: "cloakbrowser", "CloakBrowser", "stealth playwright", "an… |
+| [docker-best-practices](devops/docker-best-practices/SKILL.md) | Harden Docker Compose services for real servers by adding resource limits, restart policy, log rotation, health checks, and volume backup plans. Use whenever the user asks to review or write docker-compose.yml/compose.yaml for production, self-hosting, homelab/server deployment, Docker reliability,… |
+| [duckdns-setup](devops/duckdns-setup/SKILL.md) | Set up DuckDNS for a server, keep the hostname updated, and hand it off to HTTPS/self-hosting when the user has no domain. Use whenever the user says DuckDNS, dynamic DNS, free hostname, stable URL, no domain, or needs a server reachable by name without buying a domain. |
+| [dufs-share](devops/dufs-share/SKILL.md) | Share any server folder with dufs, including mobile-friendly upload/download links, auth, search, archive downloads, and standalone TLS when there is no domain or proxy. Use whenever the user says dufs, share a folder, serve a directory, file share, upload/download links, folder zip download, LAN s… |
+| [exposure-check](devops/exposure-check/SKILL.md) | Diagnose whether a self-hosted service is reachable the way the user thinks it is, including local bind issues, firewall/NAT trouble, DNS mismatch, TLS fingerprint mismatch, blocked ports, and hoster restrictions. Use whenever the user says debug exposure, why is my site unreachable, check if this… |
+| [ipfs-host](devops/ipfs-host/SKILL.md) | Host a directory or static site on Kubo-backed IPFS, keep the daemon running, and return a shareable CID plus optional IPNS handoff. Use whenever the user says host on IPFS, deploy to IPFS, give me a CID, keep this IPFS content alive, publish via IPNS, or wants a self-hosted IPFS workflow without r… |
+| [playwright-stable-profile](devops/playwright-stable-profile/SKILL.md) | Use this skill whenever the user wants Playwright or playwright-cli to reuse a stable real-browser profile with persistent logins, tabs, cookies, or session state. Trigger on: "persistent playwright profile", "reuse chrome profile", "attach playwright to existing browser", "keep logins between runs… |
+| [selfsigned-proxy](devops/selfsigned-proxy/SKILL.md) | Build a no-domain reverse proxy with one self-signed certificate, one SHA-256 fingerprint, and multiple local services behind Caddy. Use whenever the user says no domain, self-signed cert, fingerprint pinning, Caddy admin API, one cert many services, or wants a stable server identity without ACME. |
+| [syncthing-setup](devops/syncthing-setup/SKILL.md) | Set up Syncthing for server, local machine, phone, and agent collaboration with secure defaults. Use whenever the user says Syncthing, share folders, sync server and laptop, phone-friendly workspace, headless sync, remote GUI, SSH tunnel, or needs a private file collaboration channel that is richer… |
+| [torrent-manager](devops/torrent-manager/SKILL.md) | Manage torrent downloads using qBittorrent (Web API + Python client) or aria2c (lightweight CLI). Use this skill when the user wants to download torrents, manage seeding, check download status, add/remove trackers, set categories, or automate any torrent-related workflow. Supports both full-feature… |
+
+## ml-apps — 3 skills
+
+On-device and edge ML tooling: audio generation, text-to-speech with edge-tts, and Supertonic for multilingual 44.1kHz speech synthesis with no GPU or cloud required. Small but potent — each skill ships a working CLI you can run today.
+
+| Skill | Description |
+|---|---|
+| [audio-generation](ml-apps/audio-generation/SKILL.md) | Use this skill whenever the user wants to generate audio from text, create podcast episodes, convert articles or long-form content into narrated audio, or produce any kind of spoken-word audio track. Triggers on phrases like "text to speech", "make this into audio", "create a podcast", "read this a… |
+| [edge-tts](ml-apps/edge-tts/SKILL.md) | Generate complete, production-ready TTS (Text-to-Speech) scripts and CLI tools using edge-tts — Microsoft's neural voice engine with 400+ natural-sounding voices. Use this skill whenever the user wants to speak text aloud from the terminal/PowerShell, list or search voices, select voices by name/la… |
+| [supertonic-tts](ml-apps/supertonic/SKILL.md) | 'On-device multilingual text-to-speech using Supertonic. Generate studio-quality 44.1kHz speech in 31 languages from the command line. No cloud, no API keys, no GPU required. Triggers on: "generate speech", "text to speech", "TTS", "supertonic", "synthesize voice", "make audio from text". NOT for a… |
+
+## planning — 8 skills
+
+Thinking-and-deciding skills: structured decision frameworks, task/knowledge decomposition, essence extraction, and a family of thinking modes (graph reasoning, opponents, partners, personas). Use these when you need to think harder, not just answer faster.
+
+| Skill | Description |
+|---|---|
+| [decision-framework](planning/decision-framework/SKILL.md) | Use whenever a user needs to move from options to commitment under uncertainty. Invoke for trade-off choices, "should I do X or Y", deciding whether to act now or wait, one-way vs two-way door calls, prioritization, tool or vendor selection, job or partnership choices, stakeholder decisions, or whe… |
+| [essence-workbench](planning/essence-workbench/SKILL.md) | Create editable source-of-truth essence documents from raw material. Use when turning notes, transcripts, research, specs, reports, or mixed source data into structured Markdown or YAML that stays easy to revise. This skill is only for data preparation and essence extraction, not for rendering the… |
+| [mental-models](planning/mental-models/SKILL.md) | Use then user wants to have a thinking session against common biases, errors, and so on. Contains a huge library of thinking tools to check for. |
+| [task-decomposition](planning/task-decomposition/SKILL.md) | Build a scoped decomposition tree for any broad topic, field, project, or goal. Use whenever the user asks to break something down, wants a knowledge graph, learning map, prerequisite tree, task hierarchy, question array, or a way to see what they do not know yet before acting. Also use when a prob… |
+| [thinking-graph](planning/thinking-graph/SKILL.md) | Use for hard, ambiguous problems that need deeper graph-style reasoning instead of a fast first answer. Trigger on architecture choices, deep debugging, strategy design, research synthesis, root-cause work, or any task where multiple live hypotheses, reflective pruning, and deliberate convergence w… |
+| [thinking-opponent](planning/thinking-opponent/SKILL.md) | Use whenever the user wants an idea attacked instead of supported. Trigger on requests to red team, destroy, tear apart, hostile review, cross-examine, prosecute, play devil's advocate, do opposition research, sabotage-test, or stress-test a belief, argument, plan, strategy, policy, product, narrat… |
+| [thinking-partner](planning/thinking-partner/SKILL.md) | Use whenever the user wants to think something through instead of getting a fast answer. Trigger on messy decisions, half-formed ideas, conflicting priorities, rambling problem statements, requests for a sounding board or sparring partner, coach-like questioning, reflective listening, structured ch… |
+| [thinking-personas](planning/thinking-personas/SKILL.md) | Use when the user wants a cast of distinct personas or worldviews rather than one unified answer. Trigger on requests to generate personas, simulate multiple people, roleplay 6 voices, show how different kinds of minds would see something, create a council of perspectives, expose worldview diversit… |
+
+## research — 6 skills
+
+Deep investigation skills: multi-source research with resumable file-backed corpora, best-practices research, multi-disciplinary analysis (14 analyst lenses), fact-checking, and end-to-end academic paper production. Built for questions that need evidence, not guesses.
+
+| Skill | Description |
+|---|---|
+| [best-practices-researcher](research/best-practices-researcher/SKILL.md) | A meta-skill for researching current best practices and making technology decisions. Use when the user asks about best practices, coding standards, patterns, or needs to choose between technologies for ANY stack. Trigger on "best practices", "industry standard", "recommended way", "how do people us… |
+| [deep-research](research/deep-research/SKILL.md) | Run file-backed, resumable research inside the current workspace. Use when a task needs multi-source synthesis, comparison, fact-finding, trade-off analysis, current-state checking, or a written brief grounded in collected evidence. Avoid for simple lookups, routine debugging, one-source questions,… |
+| [fact-check](research/fact-checker/SKILL.md) | Systematically verify factual claims using evidence-based analysis and trusted sources. Use this skill when asked to fact-check, verify, or audit claims in any content — a sentence, paragraph, article, document, or generated AI output. Distinct from research - this skill does not generate new knowl… |
+| [multi-analyst](research/multi-analyst/SKILL.md) | Invoke one or more disciplinary analysts to examine a topic through multiple expert lenses simultaneously. Use when the user wants deep analysis from specific perspectives — e.g. "look at this as an economist and ethicist", "give me engineer + psychologist takes", "analyze through multiple lenses",… |
+| [paper-writing](research/paper-writing/SKILL.md) | End-to-end academic paper production pipeline from literature search to final submission. Use for ANY research paper task: searching papers, writing sections, generating figures/tables, LaTeX formatting, citation management, compilation, or peer review responses. |
+| [power-research](research/power-research/SKILL.md) | Two-mode research methodology (Plan + Collect) that builds an interrogable corpus, not a dead document. Use when the user wants to research something — investigate, gather information, "let's research X", "look into Y", "find out about Z", "I need to understand". Trigger on any request that needs s… |
+
+## self-improvement — 5 skills
+
+Skills about improving the agent and the human using it: creating and refining skills, converting repos into skills, persistent memory across sessions, structured reflection journals, and dialogue-based thought extraction. The meta-layer of this library.
+
+| Skill | Description |
+|---|---|
+| [advanced-skill-creator](self-improvement/advanced-skill-creator/SKILL.md) | Create, distill, improve, and evaluate agent skills from source material and large corpora. Use this skill when the user wants to turn a repo, manual, idea dump, or source corpus into a field-manual-style skill, revise an existing skill folder, sharpen triggering, reduce bloat, or audit a skill usi… |
+| [git-to-skill](self-improvement/git-to-skill/SKILL.md) | 'Converts any git repository into an executable skill package — CLI references, usage guides, automation scripts, and shell integrations. Triggers on: "turn this repo into a skill", "git-to-skill", "make a skill from this repo", "generate skill from GitHub", "create a skill for this project", "skil… |
+| [memory-bank](self-improvement/memory-bank/SKILL.md) | "Use this skill to save, recall, or organize memories across conversations. Trigger on: 'remember this', 'save this', 'note this', 'what did we discuss about...', 'check your notes', 'do you remember', 'recall'. Also use proactively when the user seems to be resuming previous work, referencing past… |
+| [podcast-interrogation](self-improvement/podcast-interrogation/SKILL.md) | A two-phase conversational skill for extracting and developing thoughts through dialogue. Use this skill when the user wants to think BY talking rather than writing — when they find it hard to formulate ideas alone but can answer questions easily. Triggers on phrases like "interrogate me", "intervi… |
+| [reflection-journal](self-improvement/reflection-journal/SKILL.md) | A thinking instrument for self-knowledge that compounds across sessions. Captures raw brain dumps, stores and tags them over time, and surfaces patterns in your thinking that are invisible in the moment. Use for end-of-day/week/month reflection, "what patterns do you see in my thinking", journal en… |
+
+## swe — 7 skills
+
+Software engineering workflows: batch task execution, autonomous "engage" mode, dogfooding/real-world product testing, UI redesign experiments, micropatching forks, and deep Rust development guides. For building, shipping, and keeping code honest.
+
+| Skill | Description |
+|---|---|
+| [batch-task-executor](swe/batch-task-executor/SKILL.md) | Experimental workflow skill for coordinating many related tasks from any source. Use when the user asks to mass-process, batch-execute, fan out, parallelize, audit, review, summarize, migrate, or solve a list of tasks from a file, issue tracker, pasted list, directory, table, CSV, markdown checklis… |
+| [calm-down](swe/calm-down/SKILL.md) | Invoke this skill ONLY when you are actively making edits or executing a plan and the user shows clear frustration with the direction things are going: repeated swearing (3+ expletives in a message), phrases like "that's not what I wanted", "you did it again", "wrong", "stop", "undo that", "you don… |
+| [dogfood-tester](swe/dogfood-simulator/SKILL.md) | Autonomous dogfooding and real-world product testing focused on MEANING — what users are actually trying to do, where they get confused, and why the product fails them. Use this skill whenever the user wants to test their own product, find missing features, discover gaps, simulate real user experie… |
+| [engage](swe/engage/SKILL.md) | Autonomous execution mode triggered by the word "engage". Use when the user has finished planning and wants the agent to execute autonomously without further questions until the workflow is fully complete. The agent must build, test, verify, and deliver proof of work — never exiting with an incompl… |
+| [micropatch](swe/micropatch/SKILL.md) | Use this skill when the user wants to capture, document, re-apply, or maintain customizations made to a forked upstream project as semantic MicroPatches. Trigger when the user wants to extract intentional fork changes, carry a feature forward onto a newer upstream release, sync a long-lived fork wi… |
+| [rust-complete-dev-guide](swe/rust-complete-dev-guide/SKILL.md) | Mega Rust Skill — a progressive-disclosure router into 14 reference modules and 7 domain mini-skills covering ownership, lifetimes, concurrency, async, error handling, type-driven design, testing, performance, anti-patterns, DDD, resource lifecycle, mental models, and domain-specific patterns. Use… |
+| [ui-multiple-design-experiment](swe/ui-multiple-design-experiment/SKILL.md) | Generate 5 divergent redesigns of an existing interface from code and/or a screenshot. Use this skill whenever the user wants to explore multiple UI directions, get design variations, see different takes on the same interface, or says anything like "give me 5 versions", "show me variations", "explo… |

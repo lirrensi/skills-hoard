@@ -1,0 +1,546 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Decision Brief</title>
+    <!--
+    HYBRID DECISION BRIEF
+
+    Use this when one file needs to do three jobs:
+    1. Read like a memo before the meeting.
+    2. Present one section at a time during the meeting.
+    3. Stick around as the written rationale after the decision.
+
+    Swap the headings, criteria table, and recommendation blocks.
+    Keep each panel independently understandable so slide mode works cleanly.
+  -->
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Fraunces:wght@500;600;700&family=Manrope:wght@400;500;600;700&display=swap"
+      rel="stylesheet"
+    />
+    <style>
+      :root {
+        --bg: #eff4f1;
+        --surface: rgba(255, 255, 255, 0.92);
+        --surface-strong: #ffffff;
+        --text: #1b2622;
+        --muted: #58655f;
+        --line: rgba(27, 38, 34, 0.14);
+        --accent: #166534;
+        --accent-soft: rgba(22, 101, 52, 0.12);
+        --shadow: 0 24px 60px rgba(22, 35, 29, 0.1);
+      }
+      * {
+        box-sizing: border-box;
+      }
+      html {
+        scroll-behavior: smooth;
+      }
+      body {
+        margin: 0;
+        font-family: "Manrope", sans-serif;
+        color: var(--text);
+        background: linear-gradient(180deg, #f7fbf8 0%, var(--bg) 100%);
+      }
+      h1,
+      h2,
+      h3 {
+        margin: 0;
+        font-family: "Fraunces", serif;
+      }
+      p {
+        margin: 0;
+        line-height: 1.7;
+      }
+      .toolbar {
+        position: sticky;
+        top: 0;
+        z-index: 20;
+        display: flex;
+        justify-content: space-between;
+        gap: 1rem;
+        padding: 1rem 1.25rem;
+        background: rgba(239, 244, 241, 0.84);
+        backdrop-filter: blur(16px);
+        border-bottom: 1px solid var(--line);
+      }
+      .controls {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 0.5rem;
+        align-items: center;
+      }
+      button {
+        font: inherit;
+        border: 1px solid var(--line);
+        background: var(--surface-strong);
+        border-radius: 999px;
+        padding: 0.55rem 0.9rem;
+        cursor: pointer;
+      }
+      button[aria-pressed="true"] {
+        background: var(--text);
+        color: #fff;
+        border-color: var(--text);
+      }
+      .shell {
+        max-width: 1400px;
+        margin: 0 auto;
+        padding: 1.25rem;
+        display: grid;
+        grid-template-columns: 260px minmax(0, 1fr);
+        gap: 1.25rem;
+      }
+      .toc {
+        position: sticky;
+        top: 5.75rem;
+        align-self: start;
+        padding: 1rem;
+        border: 1px solid var(--line);
+        border-radius: 24px;
+        background: var(--surface);
+        box-shadow: var(--shadow);
+      }
+      .toc nav {
+        display: grid;
+        gap: 0.45rem;
+        margin-top: 0.75rem;
+      }
+      .toc a {
+        text-decoration: none;
+        color: var(--muted);
+        padding: 0.5rem 0.7rem;
+        border-radius: 14px;
+      }
+      .toc a[aria-current="page"] {
+        background: var(--accent-soft);
+        color: var(--accent);
+        font-weight: 700;
+      }
+      .panel {
+        display: block;
+        margin-bottom: 1rem;
+        padding: 1.6rem;
+        border: 1px solid var(--line);
+        border-radius: 28px;
+        background: var(--surface);
+        box-shadow: var(--shadow);
+      }
+      .eyebrow {
+        text-transform: uppercase;
+        letter-spacing: 0.14em;
+        font-size: 0.76rem;
+        color: var(--accent);
+        margin-bottom: 0.8rem;
+      }
+      .lede {
+        font-size: 1.05rem;
+        color: var(--muted);
+        margin-top: 0.8rem;
+        max-width: 70ch;
+      }
+      .grid {
+        display: grid;
+        gap: 1rem;
+        margin-top: 1.2rem;
+      }
+      .grid.two {
+        grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+      }
+      .card,
+      table,
+      details {
+        border: 1px solid var(--line);
+        border-radius: 20px;
+        background: var(--surface-strong);
+      }
+      .card {
+        padding: 1rem;
+      }
+      table {
+        width: 100%;
+        border-collapse: collapse;
+        overflow: hidden;
+      }
+      th,
+      td {
+        padding: 0.9rem 1rem;
+        border-bottom: 1px solid var(--line);
+        text-align: left;
+      }
+      tr:last-child td {
+        border-bottom: none;
+      }
+      .chip {
+        display: inline-flex;
+        padding: 0.25rem 0.55rem;
+        border-radius: 999px;
+        background: var(--accent-soft);
+        color: var(--accent);
+        font-weight: 700;
+        font-size: 0.82rem;
+      }
+      .note {
+        display: none;
+        margin-top: 1rem;
+        padding: 0.9rem 1rem;
+        border-left: 4px solid var(--accent);
+        background: var(--accent-soft);
+        border-radius: 16px;
+      }
+      body.show-notes .note {
+        display: block;
+      }
+      .slide-nav {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.4rem;
+      }
+      .slide-count {
+        min-width: 3.5rem;
+        text-align: center;
+        color: var(--muted);
+        font-weight: 700;
+      }
+      body[data-audience="summary"] [data-audience-block="full"],
+      body[data-audience="summary"] [data-audience-block="appendix"],
+      body[data-audience="full"] [data-audience-block="appendix"] {
+        display: none !important;
+      }
+      body.mode-focus main {
+        scroll-snap-type: y proximity;
+      }
+      body.mode-focus .panel {
+        min-height: calc(100svh - 7rem);
+        scroll-snap-align: start;
+      }
+      body.mode-slides .shell {
+        grid-template-columns: 1fr;
+      }
+      body.mode-slides .toc {
+        display: none;
+      }
+      body.mode-slides .panel {
+        display: none;
+        min-height: calc(100svh - 6.5rem);
+        margin: 0;
+        border-radius: 0;
+        box-shadow: none;
+      }
+      body.mode-slides .panel.active {
+        display: block;
+      }
+      @media (max-width: 960px) {
+        .shell {
+          grid-template-columns: 1fr;
+        }
+        .toc {
+          position: static;
+        }
+      }
+      @media print {
+        .toolbar,
+        .toc {
+          display: none;
+        }
+        .shell {
+          display: block;
+          padding: 0;
+        }
+        .panel {
+          box-shadow: none;
+          break-inside: avoid;
+        }
+      }
+    </style>
+  </head>
+  <body class="mode-read" data-audience="full">
+    <header class="toolbar">
+      <div>
+        <h1>Decision Brief</h1>
+        <p style="margin-top: 0.35rem; color: var(--muted)">
+          A reusable shell for choosing between real options, not just writing
+          vibes in a memo.
+        </p>
+      </div>
+      <div class="controls">
+        <button data-mode="read" aria-pressed="true">Read</button
+        ><button data-mode="focus" aria-pressed="false">Focus</button
+        ><button data-mode="slides" aria-pressed="false">Slides</button>
+        <button data-audience-select="summary" aria-pressed="false">
+          Summary</button
+        ><button data-audience-select="full" aria-pressed="true">Full</button
+        ><button data-audience-select="appendix" aria-pressed="false">
+          Appendix
+        </button>
+        <button data-toggle-notes aria-pressed="false">Notes</button>
+        <span class="slide-nav"
+          ><button data-step="prev">Prev</button
+          ><span class="slide-count" id="slide-count">1/4</span
+          ><button data-step="next">Next</button></span
+        >
+      </div>
+    </header>
+    <div class="shell">
+      <aside class="toc">
+        <strong>Decision flow</strong>
+        <nav id="toc"></nav>
+      </aside>
+      <main>
+        <section class="panel active" id="decision" data-title="Decision">
+          <div class="eyebrow">Decision</div>
+          <h2>
+            Should we ship a hybrid document starter system as a first-class
+            lane in html-artifact?
+          </h2>
+          <p class="lede">
+            This starter is for product bets, vendor picks, staffing calls,
+            tooling changes, pricing moves, or any other choice that benefits
+            from explicit criteria and a recommendation.
+          </p>
+          <div class="grid two">
+            <div class="card">
+              <span class="chip">Recommended</span>
+              <h3 style="margin-top: 0.7rem">Yes, ship the hybrid lane now.</h3>
+              <p style="margin-top: 0.6rem">
+                It unifies long-read and presentation work into one artifact,
+                which lowers authoring friction and makes the skill more
+                distinct.
+              </p>
+            </div>
+            <div class="card">
+              <strong>Decision deadline</strong>
+              <p style="margin-top: 0.45rem">
+                End of sprint, so starter naming and file structure stay clean
+                before more examples accrete like mold.
+              </p>
+            </div>
+          </div>
+          <div class="note">
+            Presenter note: say the recommendation in the first thirty seconds
+            so the room knows what is being asked of them.
+          </div>
+        </section>
+        <section class="panel" id="options" data-title="Options">
+          <div class="eyebrow">Options</div>
+          <h2>Compare the paths honestly.</h2>
+          <div class="grid two">
+            <div class="card">
+              <strong>Option A</strong>
+              <p>
+                Keep the existing library as-is. Lowest effort, weakest
+                differentiation.
+              </p>
+            </div>
+            <div class="card">
+              <strong>Option B</strong>
+              <p>
+                Add a few hybrid examples only. Better signal, but still fuzzy
+                taxonomy.
+              </p>
+            </div>
+            <div class="card">
+              <strong>Option C</strong>
+              <p>
+                Define a hybrid starter family with shared read, focus, and
+                slides behavior.
+              </p>
+            </div>
+          </div>
+          <details
+            data-audience-block="full"
+            style="margin-top: 1rem; padding: 1rem"
+          >
+            <summary>What changed compared to the old framing?</summary>
+            <p style="margin-top: 0.8rem">
+              We stopped thinking in dead file types and started thinking in
+              reusable document moves plus presentation-ready shells.
+            </p>
+          </details>
+        </section>
+        <section class="panel" id="criteria" data-title="Criteria">
+          <div class="eyebrow">Criteria</div>
+          <h2>Score against criteria that matter.</h2>
+          <table>
+            <thead>
+              <tr>
+                <th>Criterion</th>
+                <th>Weight</th>
+                <th>Option A</th>
+                <th>Option B</th>
+                <th>Option C</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>Reuse speed</td>
+                <td>30%</td>
+                <td>2</td>
+                <td>3</td>
+                <td>5</td>
+              </tr>
+              <tr>
+                <td>Presentation quality</td>
+                <td>25%</td>
+                <td>2</td>
+                <td>4</td>
+                <td>5</td>
+              </tr>
+              <tr>
+                <td>Library coherence</td>
+                <td>25%</td>
+                <td>2</td>
+                <td>3</td>
+                <td>5</td>
+              </tr>
+              <tr>
+                <td>Build effort</td>
+                <td>20%</td>
+                <td>5</td>
+                <td>4</td>
+                <td>3</td>
+              </tr>
+            </tbody>
+          </table>
+          <div
+            class="card"
+            data-audience-block="appendix"
+            style="margin-top: 1rem"
+          >
+            <strong>Scoring note</strong>
+            <p style="margin-top: 0.45rem">
+              Use a 1-5 scale, document assumptions, and add a sensitivity note
+              if one weight change could flip the answer.
+            </p>
+          </div>
+        </section>
+        <section class="panel" id="recommendation" data-title="Recommendation">
+          <div class="eyebrow">Recommendation</div>
+          <h2>Close with a decision, not a shrug.</h2>
+          <div class="grid two">
+            <div class="card">
+              <strong>Recommended path</strong>
+              <p>
+                Adopt Option C and launch with a broad starter set so users
+                immediately understand the new lane.
+              </p>
+            </div>
+            <div class="card">
+              <strong>Risk and mitigation</strong>
+              <p>
+                The main risk is inconsistency across files. Mitigate by giving
+                every starter the same mode toggles and section logic.
+              </p>
+            </div>
+          </div>
+        </section>
+      </main>
+    </div>
+    <script>
+      (() => {
+        const body = document.body,
+          panels = Array.from(document.querySelectorAll(".panel")),
+          toc = document.getElementById("toc"),
+          slideCount = document.getElementById("slide-count");
+        let active = 0;
+        const sync = () => {
+          slideCount.textContent = `${active + 1}/${panels.length}`;
+          Array.from(toc.querySelectorAll("a")).forEach((link, i) =>
+            link.setAttribute("aria-current", i === active ? "page" : "false"),
+          );
+        };
+        const show = (index) => {
+          active = (index + panels.length) % panels.length;
+          panels.forEach((panel, i) =>
+            panel.classList.toggle("active", i === active),
+          );
+          sync();
+        };
+        const setMode = (mode) => {
+          body.classList.remove("mode-read", "mode-focus", "mode-slides");
+          body.classList.add(`mode-${mode}`);
+          document
+            .querySelectorAll("[data-mode]")
+            .forEach((button) =>
+              button.setAttribute(
+                "aria-pressed",
+                String(button.dataset.mode === mode),
+              ),
+            );
+          if (mode === "slides") show(active);
+          else panels.forEach((panel) => panel.classList.add("active"));
+        };
+        toc.innerHTML = panels
+          .map(
+            (panel, i) =>
+              `<a href="#${panel.id}" data-index="${i}">${i + 1}. ${panel.dataset.title}</a>`,
+          )
+          .join("");
+        toc.addEventListener("click", (event) => {
+          const link = event.target.closest("a");
+          if (!link) return;
+          active = Number(link.dataset.index);
+          if (body.classList.contains("mode-slides")) {
+            event.preventDefault();
+            show(active);
+          }
+        });
+        document.addEventListener("click", (event) => {
+          const modeButton = event.target.closest("[data-mode]");
+          if (modeButton) setMode(modeButton.dataset.mode);
+          const audienceButton = event.target.closest("[data-audience-select]");
+          if (audienceButton) {
+            body.dataset.audience = audienceButton.dataset.audienceSelect;
+            document
+              .querySelectorAll("[data-audience-select]")
+              .forEach((button) =>
+                button.setAttribute(
+                  "aria-pressed",
+                  String(button === audienceButton),
+                ),
+              );
+          }
+          const notesButton = event.target.closest("[data-toggle-notes]");
+          if (notesButton) {
+            body.classList.toggle("show-notes");
+            notesButton.setAttribute(
+              "aria-pressed",
+              String(body.classList.contains("show-notes")),
+            );
+          }
+          const stepButton = event.target.closest("[data-step]");
+          if (stepButton)
+            show(active + (stepButton.dataset.step === "next" ? 1 : -1));
+        });
+        document.addEventListener("keydown", (event) => {
+          if (!body.classList.contains("mode-slides")) return;
+          if (["ArrowRight", "PageDown", " "].includes(event.key)) {
+            event.preventDefault();
+            show(active + 1);
+          }
+          if (["ArrowLeft", "PageUp"].includes(event.key)) {
+            event.preventDefault();
+            show(active - 1);
+          }
+        });
+        const observer = new IntersectionObserver(
+          (entries) => {
+            if (body.classList.contains("mode-slides")) return;
+            const visible = entries
+              .filter((entry) => entry.isIntersecting)
+              .sort((a, b) => b.intersectionRatio - a.intersectionRatio)[0];
+            if (!visible) return;
+            active = panels.indexOf(visible.target);
+            sync();
+          },
+          { threshold: [0.35, 0.7] },
+        );
+        panels.forEach((panel) => observer.observe(panel));
+        sync();
+      })();
+    </script>
+  </body>
+</html>

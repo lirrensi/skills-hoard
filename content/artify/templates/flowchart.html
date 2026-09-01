@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>{{TITLE}}</title>
+<style>
+  :root {
+    --bg: #ffffff; --fg: #1a1a2e; --muted: #6b7280;
+    --node-bg: #eff6ff; --node-border: #3b82f6;
+    --decision-bg: #fef3c7; --decision-border: #f59e0b;
+    --terminal-bg: #dcfce7; --terminal-border: #22c55e;
+    --io-bg: #f3e8ff; --io-border: #a855f7;
+    --arrow: #94a3b8;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: 'Segoe UI', system-ui, sans-serif;
+    background: var(--bg);
+    color: var(--fg);
+    padding: 2rem;
+  }
+  h1 { font-size: 1.4rem; margin-bottom: 1.5rem; font-weight: 600; text-align: center; }
+  .flowchart {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0;
+  }
+  .node {
+    padding: 12px 24px;
+    border-radius: 8px;
+    border: 2px solid var(--node-border);
+    background: var(--node-bg);
+    font-size: 0.95rem;
+    font-weight: 500;
+    text-align: center;
+    min-width: 160px;
+    max-width: 300px;
+  }
+  .node.decision {
+    background: var(--decision-bg);
+    border-color: var(--decision-border);
+    transform: rotate(0deg);
+    border-radius: 4px;
+    clip-path: polygon(50% 0%, 100% 50%, 50% 100%, 0% 50%);
+    padding: 24px 32px;
+    min-width: 180px;
+    min-height: 80px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  .node.terminal {
+    background: var(--terminal-bg);
+    border-color: var(--terminal-border);
+    border-radius: 24px;
+  }
+  .node.io {
+    background: var(--io-bg);
+    border-color: var(--io-border);
+    border-radius: 4px;
+    transform: skewX(-8deg);
+  }
+  .node.io span { display: inline-block; transform: skewX(8deg); }
+  .arrow {
+    width: 2px;
+    height: 28px;
+    background: var(--arrow);
+    position: relative;
+  }
+  .arrow::after {
+    content: '';
+    position: absolute;
+    bottom: 0;
+    left: 50%;
+    transform: translateX(-50%);
+    border-left: 5px solid transparent;
+    border-right: 5px solid transparent;
+    border-top: 8px solid var(--arrow);
+  }
+  .arrow-label {
+    font-size: 0.8rem;
+    color: var(--muted);
+    margin: -12px 0;
+    padding: 2px 8px;
+    background: var(--bg);
+  }
+  .branch {
+    display: flex;
+    gap: 3rem;
+    align-items: flex-start;
+  }
+  .branch-col {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0;
+  }
+  .legend {
+    margin-top: 2rem;
+    display: flex;
+    gap: 1.5rem;
+    justify-content: center;
+    flex-wrap: wrap;
+    font-size: 0.85rem;
+    color: var(--muted);
+  }
+  .legend-item {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+  .legend-swatch {
+    width: 14px;
+    height: 14px;
+    border-radius: 3px;
+    border: 2px solid;
+  }
+</style>
+</head>
+<body>
+<h1>{{TITLE}}</h1>
+<div class="flowchart">
+{{FLOWCHART_NODES}}
+</div>
+{{LEGEND}}
+</body>
+</html>

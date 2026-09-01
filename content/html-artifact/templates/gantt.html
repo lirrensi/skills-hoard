@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>{{TITLE}}</title>
+<style>
+  :root { --bg: #ffffff; --fg: #1a1a2e; --muted: #6b7280; --border: #e5e7eb; --track: #f3f4f6; }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: 'Segoe UI', system-ui, sans-serif;
+    background: var(--bg);
+    color: var(--fg);
+    padding: 2rem;
+  }
+  h1 { font-size: 1.4rem; margin-bottom: 1.5rem; font-weight: 600; text-align: center; }
+  .gantt {
+    max-width: 1000px;
+    margin: 0 auto;
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    overflow: hidden;
+  }
+  .gantt-header {
+    display: flex;
+    background: #f9fafb;
+    border-bottom: 2px solid var(--border);
+    font-size: 0.75rem;
+    font-weight: 600;
+    color: var(--muted);
+    text-transform: uppercase;
+    letter-spacing: 0.03em;
+  }
+  .gantt-label-col { width: 200px; padding: 10px 14px; flex-shrink: 0; }
+  .gantt-timeline-col { flex: 1; display: flex; }
+  .gantt-tick { flex: 1; padding: 10px 4px; text-align: center; border-left: 1px solid var(--border); }
+  .gantt-row {
+    display: flex;
+    border-bottom: 1px solid var(--border);
+    min-height: 40px;
+    align-items: center;
+  }
+  .gantt-row:last-child { border-bottom: none; }
+  .gantt-row:hover { background: #fafafa; }
+  .gantt-task-name {
+    width: 200px;
+    padding: 8px 14px;
+    font-size: 0.9rem;
+    font-weight: 500;
+    flex-shrink: 0;
+  }
+  .gantt-bar-area {
+    flex: 1;
+    position: relative;
+    display: flex;
+    align-items: center;
+  }
+  .gantt-bar {
+    position: absolute;
+    height: 24px;
+    border-radius: 4px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.7rem;
+    font-weight: 600;
+    color: #fff;
+    min-width: 20px;
+  }
+  .gantt-grid {
+    flex: 1;
+    display: flex;
+    position: absolute;
+    inset: 0;
+  }
+  .gantt-cell {
+    flex: 1;
+    border-left: 1px solid var(--border);
+  }
+  .gantt-cell:first-child { border-left: none; }
+</style>
+</head>
+<body>
+<h1>{{TITLE}}</h1>
+<div class="gantt">
+  <div class="gantt-header">
+    <div class="gantt-label-col">Task</div>
+    <div class="gantt-timeline-col">
+{{GANTT_HEADER}}
+    </div>
+  </div>
+{{GANTT_ROWS}}
+</div>
+</body>
+</html>

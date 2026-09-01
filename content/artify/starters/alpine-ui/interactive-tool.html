@@ -1,0 +1,292 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Interactive Tool</title>
+  <!--
+    ============================================================
+    ALPINE.JS + TAILWIND STARTER — Interactive tools & calculators
+    ============================================================
+
+    WHAT IT DOES:
+    Reactive UI with Alpine.js (like Vue but tiny, no build step).
+    Tailwind CSS for styling via CDN. Perfect for calculators,
+    generators, forms, interactive tools.
+
+    HOW TO CUSTOMIZE:
+    1. Add x-data="{}" to a parent div to define reactive state
+    2. Use x-model for two-way binding on inputs
+    3. Use x-show, x-if, x-text for conditional rendering
+    4. Use @click, @input, @submit for event handlers
+    5. Use computed properties with getters in x-data
+
+    ALPINE.JS CORE DIRECTIVES:
+    x-data="{ count: 0, name: '' }"   — component state (reactive object)
+    x-model="count"                    — two-way bind input to state
+    x-text="count"                     — render state as text
+    x-html="richText"                  — render as innerHTML (careful with XSS)
+    x-show="count > 0"                 — show/hide (display:none)
+    x-if="count > 0"                   — add/remove from DOM (use with <template>)
+    x-for="item in items"              — loop (use with <template>)
+    x-on:click="count++"               — event handler (shorthand: @click)
+    x-bind:class="{ active: isActive}" — dynamic attributes (shorthand: :class)
+    x-init="init()"                    — run on component init
+    x-ref="myRef"                      — reference element ($refs.myRef)
+    x-cloak                            — hide until Alpine loads (add [x-cloak] { display: none } to CSS)
+
+    ALPINE.JS MAGIC PROPERTIES:
+    $el           — current element
+    $refs         — x-ref elements
+    $store.name   — global store access
+    $dispatch('event', data) — dispatch custom event
+    $watch('prop', (val) => {}) — watch state changes
+    $nextTick(() => {}) — run after DOM update
+
+    ALPINE.JS GLOBAL STORE (for sharing state across components):
+    Alpine.store('name', { key: value })
+    Access: $store.name.key
+
+    ALPINE.JS COMPONENTS (reusable):
+    Alpine.data('counter', () => ({ count: 0, increment() { this.count++ } }))
+    Use: <div x-data="counter">
+
+    TAILWIND UTILITY CHEAT SHEET:
+    Layout: flex, grid, block, hidden, relative, absolute, fixed
+    Spacing: p-4 (padding), m-4 (margin), gap-4 (grid/flex gap)
+    Sizing: w-full, h-screen, max-w-md, min-h-0
+    Typography: text-sm, text-lg, font-bold, text-center
+    Colors: bg-blue-500, text-gray-200, border-slate-700
+    Borders: rounded-lg, border, shadow-md
+    Responsive: sm:, md:, lg:, xl: (prefix any utility)
+    Dark mode: dark: (prefix any utility)
+
+    MORE DOCS:
+    - Alpine.js: https://alpinejs.dev/start-here
+    - Tailwind: https://tailwindcss.com/docs
+
+    ============================================================
+  -->
+  <script src="https://cdn.jsdelivr.net/npm/alpinejs@3/dist/cdn.min.js" defer></script>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    /* Hide elements until Alpine loads */
+    [x-cloak] { display: none !important; }
+  </style>
+</head>
+<body class="bg-slate-900 text-slate-200 min-h-screen" x-cloak>
+
+  <!--
+    ============================================================
+    EXAMPLE: Unit Converter Tool
+    Replace this with your own calculator/generator/form
+    ============================================================
+  -->
+  <div class="max-w-2xl mx-auto p-6" x-data="unitConverter()">
+
+    <!-- Header -->
+    <div class="mb-8">
+      <h1 class="text-2xl font-bold text-white mb-2">Unit Converter</h1>
+      <p class="text-slate-400">Convert between common units instantly</p>
+    </div>
+
+    <!-- Category Selector -->
+    <div class="flex gap-2 mb-6">
+      <template x-for="cat in categories" :key="cat.id">
+        <button
+          class="px-4 py-2 rounded-lg text-sm font-medium transition-colors"
+          :class="activeCategory === cat.id
+            ? 'bg-blue-600 text-white'
+            : 'bg-slate-800 text-slate-400 hover:bg-slate-700'"
+          @click="activeCategory = cat.id; convert()"
+          x-text="cat.label"
+        ></button>
+      </template>
+    </div>
+
+    <!-- Converter Card -->
+    <div class="bg-slate-800 border border-slate-700 rounded-xl p-6">
+
+      <!-- Input Side -->
+      <div class="mb-4">
+        <label class="block text-sm text-slate-400 mb-1">From</label>
+        <div class="flex gap-3">
+          <input
+            type="number"
+            x-model.number="inputValue"
+            @input="convert()"
+            class="flex-1 bg-slate-900 border border-slate-600 rounded-lg px-4 py-3 text-lg text-white focus:outline-none focus:border-blue-500"
+            placeholder="Enter value"
+          />
+          <select
+            x-model="fromUnit"
+            @change="convert()"
+            class="bg-slate-900 border border-slate-600 rounded-lg px-4 py-3 text-white focus:outline-none focus:border-blue-500"
+          >
+            <template x-for="unit in currentUnits" :key="unit.id">
+              <option :value="unit.id" x-text="unit.label"></option>
+            </template>
+          </select>
+        </div>
+      </div>
+
+      <!-- Swap Button -->
+      <div class="flex justify-center my-2">
+        <button
+          @click="swapUnits()"
+          class="bg-slate-700 hover:bg-slate-600 rounded-full p-2 transition-colors"
+        >
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16V4m0 0L3 8m4-4l4 4m6 0v12m0 0l4-4m-4 4l-4-4"/>
+          </svg>
+        </button>
+      </div>
+
+      <!-- Output Side -->
+      <div>
+        <label class="block text-sm text-slate-400 mb-1">To</label>
+        <div class="flex gap-3">
+          <div class="flex-1 bg-slate-900 border border-slate-600 rounded-lg px-4 py-3 text-lg text-white font-mono">
+            <span x-text="outputValue"></span>
+          </div>
+          <select
+            x-model="toUnit"
+            @change="convert()"
+            class="bg-slate-900 border border-slate-600 rounded-lg px-4 py-3 text-white focus:outline-none focus:border-blue-500"
+          >
+            <template x-for="unit in currentUnits" :key="unit.id">
+              <option :value="unit.id" x-text="unit.label"></option>
+            </template>
+          </select>
+        </div>
+      </div>
+
+      <!-- Result Summary -->
+      <div class="mt-4 pt-4 border-t border-slate-700 text-sm text-slate-400" x-show="inputValue">
+        <span x-text="inputValue"></span>
+        <span x-text="getUnitSymbol(fromUnit)"></span>
+        =
+        <span class="text-white font-semibold" x-text="outputValue"></span>
+        <span x-text="getUnitSymbol(toUnit)"></span>
+      </div>
+    </div>
+
+  </div>
+
+  <script>
+    // ============================================================
+    // ALPINE COMPONENT — define state and methods here
+    // ============================================================
+    function unitConverter() {
+      return {
+        // State
+        inputValue: 100,
+        fromUnit: 'meters',
+        toUnit: 'feet',
+        activeCategory: 'length',
+
+        // Categories and their units
+        categories: [
+          { id: 'length', label: 'Length' },
+          { id: 'weight', label: 'Weight' },
+          { id: 'temp',   label: 'Temperature' },
+          { id: 'speed',  label: 'Speed' },
+        ],
+
+        units: {
+          length: [
+            { id: 'meters',  label: 'Meters (m)',    toBase: 1 },
+            { id: 'feet',    label: 'Feet (ft)',     toBase: 0.3048 },
+            { id: 'inches',  label: 'Inches (in)',   toBase: 0.0254 },
+            { id: 'km',      label: 'Kilometers',    toBase: 1000 },
+            { id: 'miles',   label: 'Miles',         toBase: 1609.34 },
+            { id: 'cm',      label: 'Centimeters',   toBase: 0.01 },
+          ],
+          weight: [
+            { id: 'kg',      label: 'Kilograms (kg)', toBase: 1 },
+            { id: 'lbs',     label: 'Pounds (lbs)',   toBase: 0.453592 },
+            { id: 'oz',      label: 'Ounces (oz)',    toBase: 0.0283495 },
+            { id: 'grams',   label: 'Grams (g)',      toBase: 0.001 },
+          ],
+          temp: [
+            { id: 'celsius',    label: 'Celsius (°C)' },
+            { id: 'fahrenheit', label: 'Fahrenheit (°F)' },
+            { id: 'kelvin',     label: 'Kelvin (K)' },
+          ],
+          speed: [
+            { id: 'kmh',  label: 'km/h',  toBase: 1 },
+            { id: 'mph',  label: 'mph',   toBase: 1.60934 },
+            { id: 'ms',   label: 'm/s',   toBase: 3.6 },
+            { id: 'knots', label: 'Knots', toBase: 1.852 },
+          ],
+        },
+
+        // Computed
+        get currentUnits() {
+          return this.units[this.activeCategory] || [];
+        },
+
+        get outputValue() {
+          return this.convert();
+        },
+
+        // Methods
+        convert() {
+          if (!this.inputValue && this.inputValue !== 0) return '—';
+
+          const cat = this.activeCategory;
+
+          // Temperature needs special handling
+          if (cat === 'temp') {
+            return this.convertTemp(this.inputValue, this.fromUnit, this.toUnit);
+          }
+
+          // General: convert through base unit
+          const from = this.units[cat].find(u => u.id === this.fromUnit);
+          const to   = this.units[cat].find(u => u.id === this.toUnit);
+          if (!from || !to) return '—';
+
+          const baseValue = this.inputValue * from.toBase;
+          const result = baseValue / to.toBase;
+
+          // Smart rounding
+          return result < 0.01 ? result.toExponential(3) :
+                 result > 10000 ? result.toLocaleString(undefined, { maximumFractionDigits: 1 }) :
+                 parseFloat(result.toPrecision(6));
+        },
+
+        convertTemp(val, from, to) {
+          // Convert to Celsius first
+          let c;
+          if (from === 'celsius')    c = val;
+          if (from === 'fahrenheit') c = (val - 32) * 5/9;
+          if (from === 'kelvin')     c = val - 273.15;
+
+          // Convert from Celsius to target
+          let result;
+          if (to === 'celsius')    result = c;
+          if (to === 'fahrenheit') result = c * 9/5 + 32;
+          if (to === 'kelvin')     result = c + 273.15;
+
+          return parseFloat(result.toFixed(2));
+        },
+
+        swapUnits() {
+          [this.fromUnit, this.toUnit] = [this.toUnit, this.fromUnit];
+        },
+
+        getUnitSymbol(unitId) {
+          const symbols = {
+            meters: 'm', feet: 'ft', inches: 'in', km: 'km', miles: 'mi', cm: 'cm',
+            kg: 'kg', lbs: 'lbs', oz: 'oz', grams: 'g',
+            celsius: '°C', fahrenheit: '°F', kelvin: 'K',
+            kmh: 'km/h', mph: 'mph', ms: 'm/s', knots: 'kn',
+          };
+          return symbols[unitId] || unitId;
+        },
+      };
+    }
+  </script>
+
+</body>
+</html>

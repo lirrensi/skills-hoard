@@ -1,0 +1,3027 @@
+<!-- Scrollytelling template v3 -->
+<!doctype html>
+<!-- CHANGE lang AND dir FOR YOUR BOOK'S LANGUAGE
+     Arabic/Hebrew: lang="ar" dir="rtl"
+     English: lang="en" dir="ltr"
+     Russian: lang="ru" dir="ltr"
+     Japanese: lang="ja" dir="ltr"
+     The dir attribute handles all RTL layout automatically. -->
+<html lang="en" dir="ltr" data-theme="dark-vesepia" data-font="sans">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+    <!-- ╔══════════════════════════════════════════════════════════════╗
+     ║  BOOK TEMPLATE — Scrollytelling Scaffold                    ║
+     ║  Replace all [PLACEHOLDER] text with your content.          ║
+     ║  Everything works out of the box. Just fill it in.          ║
+     ╚══════════════════════════════════════════════════════════════╝ -->
+
+    <title>[Book Title] — Interactive Edition</title>
+
+    <!-- ════════════════════════════════════════════════════════════
+     THEME INIT (in head to prevent flash)
+     ════════════════════════════════════════════════════════════ -->
+    <script>
+      ;(function () {
+        const t = localStorage.getItem('theme')
+        if (t) document.documentElement.setAttribute('data-theme', t)
+        else if (window.matchMedia('(prefers-color-scheme: light)').matches)
+          document.documentElement.setAttribute('data-theme', 'light-pure')
+        else document.documentElement.setAttribute('data-theme', 'dark-vesepia')
+        const f = localStorage.getItem('font')
+        if (f) document.documentElement.setAttribute('data-font', f)
+        const a = localStorage.getItem('a11y')
+        if (a) document.documentElement.setAttribute('data-a11y', a)
+        const fs = localStorage.getItem('fontSize')
+        if (fs)
+          document.documentElement.style.setProperty(
+            '--root-font-size',
+            fs + 'px'
+          )
+      })()
+    </script>
+
+    <!-- ════════════════════════════════════════════════════════════
+     CSS — EVERYTHING STYLED WITH CUSTOM PROPERTIES
+     Light mode is default. Dark mode overrides below.
+     ════════════════════════════════════════════════════════════ -->
+    <style>
+      /* ── RESET ── */
+      *,
+      *::before,
+      *::after {
+        box-sizing: border-box;
+        margin: 0;
+        padding: 0;
+      }
+      html {
+        scroll-behavior: smooth;
+        scroll-padding-top: 60px;
+        overflow-x: hidden;
+      }
+      body {
+        min-height: 100vh;
+        overflow-x: hidden;
+      }
+      /* ── FONT SIZE ROOT (JS modifiable via slider) ── */
+      html {
+        font-size: var(--root-font-size, 16px);
+      }
+
+      /* ── VIEW TRANSITIONS (smooth theme switch) ── */
+      ::view-transition-group(*),
+      ::view-transition-old(*),
+      ::view-transition-new(*) {
+        animation-duration: 0.25s;
+        animation-timing-function: cubic-bezier(0.19, 1, 0.22, 1);
+      }
+
+      /* ── FONT OPTIONS ── */
+      [data-font='sans'] body {
+        font-family:
+          -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
+      }
+      [data-font='serif'] body {
+        font-family: Georgia, 'Times New Roman', serif;
+      }
+
+      /* ── THEMES ── */
+
+      /* Light: Pure White (default) */
+      [data-theme='light-pure'],
+      :root {
+        --bg: #ffffff;
+        --bg-subtle: #f5f5f5;
+        --surface: #ffffff;
+        --surface-2: #fafafa;
+        --border: #e5e5e5;
+        --border-subtle: #eeeeee;
+        --text: #1a1a2e;
+        --text-dim: #555555;
+        --text-muted: #999999;
+        --accent: #d04030;
+        --accent-dim: rgba(208, 64, 48, 0.08);
+        --accent-2: #5048b0;
+        --accent-2-dim: rgba(80, 72, 176, 0.08);
+        --gold: #b08820;
+        --green: #208848;
+        --red: #c03030;
+        --shadow: 0 2px 12px rgba(0, 0, 0, 0.05);
+        --bar-bg: rgba(255, 255, 255, 0.9);
+      }
+
+      /* Light: Paper Inspired */
+      [data-theme='light-paper'] {
+        --bg: #faf8f3;
+        --bg-subtle: #f0ede6;
+        --surface: #fffcf7;
+        --surface-2: #f5f3ed;
+        --border: #d4cfc0;
+        --border-subtle: #e0d8cc;
+        --text: #2d2a24;
+        --text-dim: #5c574f;
+        --text-muted: #8a857d;
+        --accent: #c9553a;
+        --accent-dim: rgba(201, 85, 58, 0.1);
+        --accent-2: #6b5b8f;
+        --accent-2-dim: rgba(107, 91, 143, 0.1);
+        --gold: #a67c3e;
+        --green: #3d8f5c;
+        --red: #c44a4a;
+        --shadow: 0 2px 12px rgba(45, 42, 36, 0.08);
+        --bar-bg: rgba(250, 248, 243, 0.92);
+      }
+
+      /* Light: Dusk */
+      [data-theme='light-dusk'] {
+        --bg: #eef1f6;
+        --bg-subtle: #e5e9f0;
+        --surface: #f4f6fc;
+        --surface-2: #eef2f8;
+        --border: #c8d0dd;
+        --border-subtle: #d4dce8;
+        --text: #2b3245;
+        --text-dim: #5a637a;
+        --text-muted: #8a94a8;
+        --accent: #e85d44;
+        --accent-dim: rgba(232, 93, 68, 0.1);
+        --accent-2: #5c7bc7;
+        --accent-2-dim: rgba(92, 123, 199, 0.1);
+        --gold: #cc9933;
+        --green: #4a9d7a;
+        --red: #d94d4d;
+        --shadow: 0 2px 12px rgba(43, 50, 69, 0.08);
+        --bar-bg: rgba(238, 241, 246, 0.92);
+      }
+
+      /* Dark: Vesepia (warm sepia) */
+      [data-theme='dark-vesepia'] {
+        --bg: #2a2622;
+        --bg-subtle: #24201d;
+        --surface: #2e2a25;
+        --surface-2: #28241f;
+        --border: #3d3630;
+        --border-subtle: #36302a;
+        --text: #e8e0d5;
+        --text-dim: #a8a095;
+        --text-muted: #706960;
+        --accent: #d47a5a;
+        --accent-dim: rgba(212, 122, 90, 0.15);
+        --accent-2: #8b7a9a;
+        --accent-2-dim: rgba(139, 122, 154, 0.15);
+        --gold: #c4a055;
+        --green: #6a9d7f;
+        --red: #c4666a;
+        --shadow: 0 2px 12px rgba(0, 0, 0, 0.3);
+        --bar-bg: rgba(42, 38, 34, 0.92);
+      }
+
+      /* Dark: OLED Pure Black */
+      [data-theme='dark-oled'] {
+        --bg: #000000;
+        --bg-subtle: #050505;
+        --surface: #080808;
+        --surface-2: #0a0a0a;
+        --border: #1a1a1a;
+        --border-subtle: #151515;
+        --text: #ffffff;
+        --text-dim: #b0b0b0;
+        --text-muted: #707070;
+        --accent: #ff6b4a;
+        --accent-dim: rgba(255, 107, 74, 0.12);
+        --accent-2: #7c94ff;
+        --accent-2-dim: rgba(124, 148, 255, 0.12);
+        --gold: #ffcc5c;
+        --green: #5cdd8a;
+        --red: #ff6b6b;
+        --shadow: 0 2px 12px rgba(255, 255, 255, 0.05);
+        --bar-bg: rgba(0, 0, 0, 0.92);
+      }
+
+      /* Dark: Dimmed Dark */
+      [data-theme='dark-dimmed'] {
+        --bg: #1a1a20;
+        --bg-subtle: #15151a;
+        --surface: #1e1e26;
+        --surface-2: #1a1a22;
+        --border: #2a2a35;
+        --border-subtle: #25252e;
+        --text: #c8c8d0;
+        --text-dim: #80808a;
+        --text-muted: #555560;
+        --accent: #cc5540;
+        --accent-dim: rgba(204, 85, 64, 0.12);
+        --accent-2: #6a5a8a;
+        --accent-2-dim: rgba(106, 90, 138, 0.12);
+        --gold: #b0903a;
+        --green: #4a9070;
+        --red: #c05a5a;
+        --shadow: 0 2px 12px rgba(0, 0, 0, 0.35);
+        --bar-bg: rgba(26, 26, 32, 0.92);
+      }
+
+      /* Dark: Midnight (blue-tinted) */
+      [data-theme='dark-midnight'] {
+        --bg: #0d1117;
+        --bg-subtle: #090c13;
+        --surface: #121822;
+        --surface-2: #0f151d;
+        --border: #21262d;
+        --border-subtle: #1a1f26;
+        --text: #d0d5db;
+        --text-dim: #8a929b;
+        --text-muted: #5a6168;
+        --accent: #ff7b72;
+        --accent-dim: rgba(255, 123, 114, 0.12);
+        --accent-2: #a5d6ff;
+        --accent-2-dim: rgba(165, 214, 255, 0.12);
+        --gold: #d29922;
+        --green: #7ee787;
+        --red: #f85149;
+        --shadow: 0 2px 12px rgba(0, 0, 0, 0.4);
+        --bar-bg: rgba(13, 17, 23, 0.94);
+      }
+
+      /* Legacy light/dark theme aliases (for backward compatibility) */
+      [data-theme='light'] {
+        --bg: #fafafa;
+        --bg-subtle: #f0f0f4;
+        --surface: #ffffff;
+        --surface-2: #f5f5f8;
+        --border: #e0e0e6;
+        --border-subtle: #eaeaef;
+        --text: #1a1a2e;
+        --text-dim: #555568;
+        --text-muted: #9999aa;
+        --accent: #d04030;
+        --accent-dim: rgba(208, 64, 48, 0.1);
+        --accent-2: #5048b0;
+        --accent-2-dim: rgba(80, 72, 176, 0.1);
+        --gold: #b08820;
+        --green: #208848;
+        --red: #c03030;
+        --shadow: 0 2px 12px rgba(0, 0, 0, 0.06);
+        --bar-bg: rgba(250, 250, 250, 0.85);
+      }
+
+      [data-theme='dark'] {
+        --bg: #0a0a0f;
+        --bg-subtle: #101018;
+        --surface: #14141e;
+        --surface-2: #1a1a28;
+        --border: #2a2a3e;
+        --border-subtle: #1e1e30;
+        --text: #e8e8f0;
+        --text-dim: #8888aa;
+        --text-muted: #555570;
+        --accent: #e85d44;
+        --accent-dim: rgba(232, 93, 68, 0.15);
+        --accent-2: #7b68ee;
+        --accent-2-dim: rgba(123, 104, 238, 0.15);
+        --gold: #d4a843;
+        --green: #4caf82;
+        --red: #e05555;
+        --shadow: 0 2px 12px rgba(0, 0, 0, 0.3);
+        --bar-bg: rgba(10, 10, 15, 0.88);
+      }
+
+      /* ── ACCESSIBILITY FILTERS ── */
+      [data-a11y='protanopia'] {
+        filter: url(#filter-protanopia);
+      }
+      [data-a11y='deuteranopia'] {
+        filter: url(#filter-deuteranopia);
+      }
+      [data-a11y='tritanopia'] {
+        filter: url(#filter-tritanopia);
+      }
+
+      /* ── BODY ── */
+      body {
+        background: var(--bg);
+        color: var(--text);
+        font-size: 1rem;
+        line-height: 1.7;
+        transition:
+          background 0.3s,
+          color 0.3s;
+      }
+
+      /* ── LAYOUT HELPERS ── */
+      .content {
+        max-width: var(--content-width, 680px);
+        margin: 0 auto;
+        padding: 0 1.5rem;
+        transition: max-width 0.2s ease;
+      }
+      .content-wide {
+        max-width: var(--content-wide-width, 900px);
+        margin: 0 auto;
+        padding: 0 1.5rem;
+        transition: max-width 0.2s ease;
+      }
+
+      /* Line height control */
+      body {
+        line-height: var(--body-line-height, 1.7);
+        transition: line-height 0.2s ease;
+      }
+
+      /* ══════════════════════════════════════════
+   TOP BAR
+   ══════════════════════════════════════════ */
+      .topbar {
+        position: fixed;
+        top: 0;
+        left: 0;
+        right: 0;
+        z-index: 1000;
+        height: 48px;
+        background: var(--bar-bg);
+        backdrop-filter: blur(16px);
+        -webkit-backdrop-filter: blur(16px);
+        border-bottom: 1px solid var(--border-subtle);
+        display: flex;
+        align-items: center;
+        padding: 0 1rem;
+        gap: 0.75rem;
+        transition: background 0.3s;
+      }
+      .topbar-left {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        flex-shrink: 0;
+      }
+      .topbar-center {
+        flex: 1;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        overflow: hidden;
+      }
+      .topbar-right {
+        display: flex;
+        align-items: center;
+        gap: 0.25rem;
+        flex-shrink: 0;
+      }
+
+      /* Sidebar toggle */
+      .sidebar-toggle {
+        background: none;
+        border: none;
+        color: var(--text-dim);
+        font-size: 1.1rem;
+        cursor: pointer;
+        padding: 6px 8px;
+        border-radius: 6px;
+        transition:
+          background 0.15s,
+          color 0.15s;
+        line-height: 1;
+      }
+      .sidebar-toggle:hover {
+        background: var(--accent-dim);
+        color: var(--text);
+      }
+
+      /* Chapter title in bar */
+      .bar-chapter {
+        font-size: 0.75rem;
+        letter-spacing: 0.06em;
+        color: var(--text-dim);
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        max-width: 200px;
+        transition: color 0.3s;
+      }
+
+      /* Progress bar */
+      .progress-track {
+        flex: 1;
+        height: 3px;
+        background: var(--border-subtle);
+        border-radius: 3px;
+        overflow: hidden;
+        max-width: 300px;
+      }
+      .progress-fill {
+        height: 100%;
+        width: 0%;
+        background: linear-gradient(90deg, var(--accent), var(--accent-2));
+        border-radius: 3px;
+        transition: width 0.1s linear;
+      }
+
+      /* Toggle buttons */
+      .toggle-btn {
+        background: none;
+        border: none;
+        color: var(--text-muted);
+        font-size: 0.85rem;
+        cursor: pointer;
+        padding: 6px 8px;
+        border-radius: 6px;
+        transition:
+          background 0.15s,
+          color 0.15s;
+        line-height: 1;
+        display: flex;
+        align-items: center;
+        gap: 4px;
+      }
+      .toggle-btn:hover {
+        background: var(--accent-dim);
+        color: var(--text);
+      }
+      .toggle-btn .label {
+        font-size: 0.65rem;
+        letter-spacing: 0.04em;
+      }
+
+      /* ══════════════════════════════════════════
+   SIDEBAR
+   ══════════════════════════════════════════ */
+      .sidebar-overlay {
+        position: fixed;
+        inset: 0;
+        z-index: 1100;
+        background: rgba(0, 0, 0, 0.3);
+        opacity: 0;
+        pointer-events: none;
+        transition: opacity 0.25s;
+      }
+      .sidebar-overlay.open {
+        opacity: 1;
+        pointer-events: auto;
+      }
+
+      .sidebar {
+        position: fixed;
+        top: 0;
+        left: 0;
+        bottom: 0;
+        z-index: 1200;
+        width: 280px;
+        max-width: 80vw;
+        background: var(--surface);
+        border-right: 1px solid var(--border);
+        transform: translateX(-100%);
+        transition: transform 0.3s cubic-bezier(0.19, 1, 0.22, 1);
+        display: flex;
+        flex-direction: column;
+        overflow-y: auto;
+      }
+      .sidebar.open {
+        transform: translateX(0);
+      }
+
+      .sidebar-header {
+        padding: 1.25rem 1.25rem 0.75rem;
+        border-bottom: 1px solid var(--border-subtle);
+      }
+      .sidebar-title {
+        font-size: 0.85rem;
+        font-weight: 600;
+        color: var(--text);
+        margin-bottom: 0.25rem;
+      }
+      .sidebar-author {
+        font-size: 0.75rem;
+        color: var(--text-muted);
+      }
+
+      .sidebar-chapters {
+        padding: 0.5rem 0;
+        flex: 1;
+      }
+      .sidebar-chapter {
+        display: block;
+        padding: 0.5rem 1.25rem;
+        font-size: 0.82rem;
+        color: var(--text-dim);
+        text-decoration: none;
+        border-left: 3px solid transparent;
+        transition:
+          background 0.15s,
+          color 0.15s,
+          border-color 0.15s;
+        cursor: pointer;
+      }
+      .sidebar-chapter:hover {
+        background: var(--accent-dim);
+        color: var(--text);
+      }
+      .sidebar-chapter.active {
+        border-left-color: var(--accent);
+        color: var(--text);
+        background: var(--accent-dim);
+      }
+      .sidebar-chapter-num {
+        font-size: 0.7rem;
+        color: var(--text-muted);
+        margin-right: 0.5rem;
+        letter-spacing: 0.04em;
+      }
+
+      .sidebar-footer {
+        padding: 0.75rem 1.25rem;
+        border-top: 1px solid var(--border-subtle);
+        display: flex;
+        gap: 0.5rem;
+        flex-wrap: wrap;
+      }
+
+      /* ══════════════════════════════════════════
+   BOOK HERO
+   ══════════════════════════════════════════ */
+      .book-hero {
+        min-height: 100vh;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        text-align: center;
+        padding: 6rem 1.5rem 4rem;
+        position: relative;
+      }
+      .book-hero-label {
+        font-size: 0.7rem;
+        letter-spacing: 0.2em;
+        text-transform: uppercase;
+        color: var(--text-muted);
+        margin-bottom: 1.5rem;
+      }
+      .book-hero h1 {
+        font-size: clamp(2rem, 5vw, 3.5rem);
+        font-weight: 300;
+        letter-spacing: 0.02em;
+        line-height: 1.2;
+        margin-bottom: 0.75rem;
+      }
+      .book-hero-author {
+        font-size: 1rem;
+        color: var(--text-dim);
+        margin-bottom: 0.5rem;
+      }
+      .book-hero-tagline {
+        font-size: 1rem;
+        color: var(--text-muted);
+        max-width: 500px;
+        margin: 0 auto 2rem;
+        font-style: italic;
+        line-height: 1.6;
+      }
+      .book-hero-meta {
+        display: flex;
+        gap: 1.5rem;
+        align-items: center;
+        font-size: 0.8rem;
+        color: var(--text-muted);
+        margin-bottom: 3rem;
+      }
+      .book-hero-meta span {
+        display: flex;
+        align-items: center;
+        gap: 0.35rem;
+      }
+      .scroll-hint {
+        font-size: 0.75rem;
+        letter-spacing: 0.12em;
+        text-transform: uppercase;
+        color: var(--text-muted);
+        animation: hint-pulse 2s ease-in-out infinite;
+      }
+      @keyframes hint-pulse {
+        0%,
+        100% {
+          opacity: 0.4;
+        }
+        50% {
+          opacity: 1;
+        }
+      }
+
+      /* ══════════════════════════════════════════
+   TABLE OF CONTENTS
+   ══════════════════════════════════════════ */
+      .toc-section {
+        padding: 4rem 1.5rem 6rem;
+        max-width: 680px;
+        margin: 0 auto;
+      }
+      .toc-label {
+        font-size: 0.7rem;
+        letter-spacing: 0.2em;
+        text-transform: uppercase;
+        color: var(--text-muted);
+        margin-bottom: 2rem;
+        text-align: center;
+      }
+      .toc-list {
+        list-style: none;
+      }
+      .toc-item {
+        border-bottom: 1px solid var(--border-subtle);
+      }
+      .toc-item a {
+        display: flex;
+        align-items: baseline;
+        gap: 1rem;
+        padding: 1rem 0;
+        text-decoration: none;
+        color: var(--text);
+        transition: color 0.15s;
+      }
+      .toc-item a:hover {
+        color: var(--accent);
+      }
+      .toc-num {
+        font-size: 0.75rem;
+        color: var(--text-muted);
+        letter-spacing: 0.06em;
+        flex-shrink: 0;
+        width: 2rem;
+        text-align: right;
+      }
+      .toc-title {
+        font-size: 0.95rem;
+        line-height: 1.4;
+      }
+      .toc-hook {
+        font-size: 0.8rem;
+        color: var(--text-muted);
+        margin-top: 0.25rem;
+        line-height: 1.5;
+        font-style: italic;
+      }
+
+      /* ══════════════════════════════════════════
+   CHAPTER SECTIONS
+   ══════════════════════════════════════════ */
+      .chapter {
+        padding: 0 0 4rem;
+        border-top: 1px solid var(--border-subtle);
+      }
+      /* Background alternation */
+      .chapter:nth-child(odd) {
+        background: var(--bg);
+      }
+      .chapter:nth-child(even) {
+        background: var(--bg-subtle);
+      }
+
+      /* Chapter hero */
+      .chapter-hero {
+        padding: 6rem 1.5rem 3rem;
+        text-align: center;
+        position: relative;
+      }
+      .chapter-number {
+        font-size: clamp(4rem, 12vw, 8rem);
+        font-weight: 200;
+        line-height: 1;
+        color: var(--border);
+        position: absolute;
+        top: 2rem;
+        left: 50%;
+        transform: translateX(-50%);
+        pointer-events: none;
+        user-select: none;
+        opacity: 0.5;
+      }
+      .chapter-label {
+        font-size: 0.7rem;
+        letter-spacing: 0.2em;
+        text-transform: uppercase;
+        color: var(--text-muted);
+        margin-bottom: 1rem;
+        position: relative;
+        z-index: 1;
+      }
+      .chapter-hero h2 {
+        font-size: clamp(1.5rem, 4vw, 2.5rem);
+        font-weight: 300;
+        line-height: 1.3;
+        margin-bottom: 1rem;
+        position: relative;
+        z-index: 1;
+      }
+      .chapter-hook {
+        font-size: 1rem;
+        color: var(--text-dim);
+        max-width: 560px;
+        margin: 0 auto;
+        font-style: italic;
+        line-height: 1.6;
+        position: relative;
+        z-index: 1;
+      }
+
+      /* Chapter body */
+      .chapter-body {
+        padding: 2rem 1.5rem 3rem;
+        max-width: 680px;
+        margin: 0 auto;
+      }
+      .chapter-body p {
+        margin-bottom: 1.5rem;
+        line-height: 1.75;
+        color: var(--text);
+      }
+      .chapter-body p.dim {
+        color: var(--text-dim);
+      }
+
+      /* ── Section labels ── */
+      .section-label {
+        font-size: 0.7rem;
+        letter-spacing: 0.18em;
+        text-transform: uppercase;
+        color: var(--text-muted);
+        margin-bottom: 1.5rem;
+      }
+
+      /* ── Key Ideas ── */
+      .key-ideas {
+        margin: 3rem 0;
+      }
+      .key-ideas-grid {
+        display: flex;
+        flex-direction: column;
+        gap: 1rem;
+      }
+      .key-idea {
+        background: var(--surface);
+        border: 1px solid var(--border);
+        border-left: 3px solid var(--gold);
+        border-radius: 0 10px 10px 0;
+        padding: 1.25rem 1.5rem;
+      }
+      .key-idea-label {
+        font-size: 0.7rem;
+        letter-spacing: 0.12em;
+        text-transform: uppercase;
+        color: var(--gold);
+        margin-bottom: 0.5rem;
+      }
+      .key-idea-text {
+        font-size: 0.95rem;
+        line-height: 1.6;
+        color: var(--text);
+      }
+
+      /* ── Comparison ── */
+      .comparison {
+        margin: 3rem 0;
+      }
+      .comparison-grid {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 1px;
+        background: var(--border);
+        border-radius: 12px;
+        overflow: hidden;
+      }
+      .comparison-col {
+        background: var(--surface);
+        padding: 1.5rem;
+      }
+      .comparison-header {
+        font-size: 0.7rem;
+        letter-spacing: 0.12em;
+        text-transform: uppercase;
+        margin-bottom: 1rem;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+      }
+      .comparison-header .dot {
+        width: 8px;
+        height: 8px;
+        border-radius: 50%;
+        flex-shrink: 0;
+      }
+      .comparison-col:nth-child(1) .comparison-header {
+        color: var(--accent);
+      }
+      .comparison-col:nth-child(1) .dot {
+        background: var(--accent);
+      }
+      .comparison-col:nth-child(3) .comparison-header {
+        color: var(--accent-2);
+      }
+      .comparison-col:nth-child(3) .dot {
+        background: var(--accent-2);
+      }
+      .comparison-heading {
+        font-size: 1rem;
+        font-weight: 500;
+        margin-bottom: 0.75rem;
+        color: var(--text);
+      }
+      .comparison-points {
+        list-style: none;
+      }
+      .comparison-points li {
+        font-size: 0.9rem;
+        color: var(--text-dim);
+        line-height: 1.6;
+        padding: 0.4rem 0;
+        border-bottom: 1px solid var(--border-subtle);
+      }
+      .comparison-points li:last-child {
+        border-bottom: none;
+      }
+      .comparison-points li::before {
+        content: '• ';
+        color: var(--text-muted);
+      }
+      .comparison-divider {
+        display: none; /* visible only when grid stacks on mobile */
+      }
+
+      /* ── Stats ── */
+      .stats {
+        margin: 3rem 0;
+      }
+      .stats-row {
+        display: flex;
+        gap: 2rem;
+        justify-content: center;
+        flex-wrap: wrap;
+      }
+      .stat {
+        text-align: center;
+        flex: 1;
+        min-width: 120px;
+      }
+      .stat-number {
+        font-size: 2.5rem;
+        font-weight: 300;
+        line-height: 1;
+        margin-bottom: 0.5rem;
+      }
+      .stat-bar {
+        width: 80px;
+        height: 4px;
+        background: var(--border);
+        border-radius: 4px;
+        margin: 0.5rem auto;
+        overflow: hidden;
+      }
+      .stat-fill {
+        height: 100%;
+        width: 0%;
+        border-radius: 4px;
+        transition: width 1.5s ease;
+      }
+      .animate .stat-fill {
+        width: var(--w);
+      }
+      .stat-label {
+        font-size: 0.8rem;
+        color: var(--text-dim);
+        line-height: 1.4;
+      }
+
+      /* ── Pull Quote ── */
+      .pull-quote {
+        margin: 3rem auto;
+        max-width: 600px;
+        text-align: center;
+        padding: 2rem 1.5rem;
+        position: relative;
+      }
+      .pull-quote::before {
+        content: '"';
+        font-size: 4rem;
+        line-height: 0;
+        color: var(--gold);
+        opacity: 0.25;
+        font-family: Georgia, serif;
+        position: absolute;
+        top: 1.5rem;
+        left: 50%;
+        transform: translateX(-50%);
+      }
+      .pull-quote p {
+        font-size: clamp(1.1rem, 2.5vw, 1.4rem);
+        font-style: italic;
+        line-height: 1.7;
+        color: var(--text);
+        position: relative;
+        z-index: 1;
+        margin-bottom: 0.75rem;
+      }
+      .pull-quote cite {
+        font-size: 0.8rem;
+        color: var(--gold);
+        letter-spacing: 0.08em;
+        font-style: normal;
+        text-transform: uppercase;
+      }
+
+      /* ── Actions (Do / Don't) ── */
+      .actions {
+        margin: 3rem 0;
+      }
+      .actions-list {
+        display: flex;
+        flex-direction: column;
+        gap: 0.75rem;
+      }
+      .action {
+        display: flex;
+        align-items: flex-start;
+        gap: 0.75rem;
+        font-size: 0.95rem;
+        line-height: 1.6;
+        color: var(--text);
+      }
+      .action-dot {
+        width: 8px;
+        height: 8px;
+        border-radius: 50%;
+        margin-top: 0.45rem;
+        flex-shrink: 0;
+      }
+      .action.do .action-dot {
+        background: var(--green);
+      }
+      .action.dont .action-dot {
+        background: var(--red);
+      }
+      .action-label {
+        font-size: 0.65rem;
+        letter-spacing: 0.1em;
+        text-transform: uppercase;
+        margin-bottom: 0.15rem;
+      }
+      .action.do .action-label {
+        color: var(--green);
+      }
+      .action.dont .action-label {
+        color: var(--red);
+      }
+
+      /* ── Canvas Zone ── */
+      .canvas-zone {
+        margin: 3rem 0;
+        text-align: center;
+      }
+      .canvas-zone canvas {
+        width: 100%;
+        height: 200px;
+        display: block;
+        border-radius: 12px;
+        background: var(--surface);
+        border: 1px solid var(--border);
+      }
+      .canvas-caption {
+        font-size: 0.85rem;
+        color: var(--text-dim);
+        margin-top: 1rem;
+        line-height: 1.5;
+        font-style: italic;
+      }
+
+      /* ── Chapter Divider ── */
+      .chapter-divider {
+        height: 1px;
+        max-width: 200px;
+        margin: 0 auto;
+        background: linear-gradient(
+          90deg,
+          transparent,
+          var(--border),
+          transparent
+        );
+      }
+
+      /* ══════════════════════════════════════════
+   END SCREEN
+   ══════════════════════════════════════════ */
+      .end-screen {
+        padding: 6rem 1.5rem;
+        text-align: center;
+        border-top: 1px solid var(--border-subtle);
+      }
+      .end-screen .thesis {
+        font-size: clamp(1.1rem, 2.5vw, 1.4rem);
+        color: var(--text);
+        max-width: 600px;
+        margin: 0 auto 2rem;
+        line-height: 1.8;
+        font-weight: 300;
+      }
+      .end-screen .attribution {
+        font-size: 0.85rem;
+        color: var(--text-muted);
+        letter-spacing: 0.06em;
+      }
+      .end-screen .sign-off {
+        font-size: 0.8rem;
+        color: var(--text-muted);
+        margin-top: 3rem;
+        font-style: italic;
+      }
+
+      /* ══════════════════════════════════════════
+   SCROLL ANIMATIONS
+   ══════════════════════════════════════════ */
+      .fade-in {
+        opacity: 0;
+        transform: translateY(20px);
+        transition:
+          opacity 0.6s ease,
+          transform 0.6s ease;
+      }
+      .fade-in.visible {
+        opacity: 1;
+        transform: translateY(0);
+      }
+
+      /* Stagger children */
+      .stagger > * {
+        opacity: 0;
+        transform: translateY(16px);
+        transition:
+          opacity 0.5s ease,
+          transform 0.5s ease;
+      }
+      .stagger.visible > * {
+        opacity: 1;
+        transform: translateY(0);
+      }
+      .stagger.visible > *:nth-child(1) {
+        transition-delay: 0s;
+      }
+      .stagger.visible > *:nth-child(2) {
+        transition-delay: 0.08s;
+      }
+      .stagger.visible > *:nth-child(3) {
+        transition-delay: 0.16s;
+      }
+      .stagger.visible > *:nth-child(4) {
+        transition-delay: 0.24s;
+      }
+      .stagger.visible > *:nth-child(5) {
+        transition-delay: 0.32s;
+      }
+      .stagger.visible > *:nth-child(6) {
+        transition-delay: 0.4s;
+      }
+      .stagger.visible > *:nth-child(7) {
+        transition-delay: 0.48s;
+      }
+      .stagger.visible > *:nth-child(8) {
+        transition-delay: 0.56s;
+      }
+
+      /* ══════════════════════════════════════════
+   RTL SUPPORT
+   The dir="rtl" attribute on <html> handles most layout.
+   These rules fix components that need manual mirroring.
+   ══════════════════════════════════════════ */
+      [dir='rtl'] .sidebar {
+        left: auto;
+        right: 0;
+        border-right: none;
+        border-left: 1px solid var(--border);
+        transform: translateX(100%);
+      }
+      [dir='rtl'] .sidebar.open {
+        transform: translateX(0);
+      }
+      [dir='rtl'] .sidebar-chapter {
+        border-left: none;
+        border-right: 3px solid transparent;
+      }
+      [dir='rtl'] .sidebar-chapter.active {
+        border-right-color: var(--accent);
+        border-left: none;
+      }
+      [dir='rtl'] .key-idea {
+        border-left: none;
+        border-right: 3px solid var(--gold);
+        border-radius: 10px 0 0 10px;
+      }
+
+      /* ══════════════════════════════════════════
+   HOVER GLOSSARY (CSS-only tooltips)
+   ══════════════════════════════════════════ */
+      .glossary-term {
+        border-bottom: 1px dashed var(--accent);
+        position: relative;
+        cursor: help;
+        display: inline;
+      }
+      .glossary-term:hover::after,
+      .glossary-term:focus::after {
+        content: attr(data-def);
+        position: absolute;
+        bottom: calc(100% + 6px);
+        left: 50%;
+        transform: translateX(-50%);
+        background: var(--surface-2);
+        color: var(--text);
+        border: 1px solid var(--border);
+        border-radius: 8px;
+        padding: 8px 12px;
+        font-size: 0.8rem;
+        line-height: 1.4;
+        white-space: normal;
+        min-width: 180px;
+        max-width: 280px;
+        z-index: 100;
+        box-shadow: var(--shadow);
+        pointer-events: none;
+      }
+      /* Arrow on tooltip */
+      .glossary-term:hover::before,
+      .glossary-term:focus::before {
+        content: '';
+        position: absolute;
+        bottom: calc(100% + 1px);
+        left: 50%;
+        transform: translateX(-50%);
+        border: 5px solid transparent;
+        border-top-color: var(--border);
+        z-index: 100;
+        pointer-events: none;
+      }
+
+      /* ══════════════════════════════════════════
+   COPY BUTTON (end screen)
+   ══════════════════════════════════════════ */
+      .copy-btn {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.5rem;
+        background: var(--accent-dim);
+        border: 1px solid var(--accent);
+        color: var(--accent);
+        padding: 0.6rem 1.2rem;
+        border-radius: 8px;
+        font-size: 0.85rem;
+        cursor: pointer;
+        font-family: inherit;
+        transition:
+          background 0.15s,
+          color 0.15s;
+        margin-top: 1.5rem;
+      }
+      .copy-btn:hover {
+        background: var(--accent);
+        color: var(--bg);
+      }
+
+      /* ══════════════════════════════════════════
+   FOCUS MODE AUDIO TOGGLE
+   ══════════════════════════════════════════ */
+      .toggle-btn.active-audio {
+        color: var(--accent);
+        background: var(--accent-dim);
+      }
+
+      /* ══════════════════════════════════════════
+    MINI-MAP NAVIGATION
+    Thin scrollable strip on right with chapter positions
+    ══════════════════════════════════════════ */
+      .mini-map {
+        position: fixed;
+        right: 0;
+        top: 48px;
+        bottom: 0;
+        width: 24px;
+        background: var(--surface);
+        border-left: 1px solid var(--border);
+        z-index: 900;
+        overflow: hidden;
+        cursor: pointer;
+      }
+      .mini-map-inner {
+        position: relative;
+        width: 100%;
+        height: 100%;
+      }
+      .mini-map-chapter {
+        background: var(--border-subtle);
+        transition:
+          background 0.2s ease,
+          height 0.2s ease;
+      }
+      .mini-map-chapter:hover {
+        background: var(--accent-2-dim);
+      }
+      .mini-map-chapter.active {
+        background: var(--accent);
+      }
+      .mini-map-progress {
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        height: 2px;
+        background: var(--accent-2);
+        transition: height 0.1s linear;
+        opacity: 0.6;
+      }
+
+      /* Mini-map positioning indicator (visible on hover) */
+      .mini-map .chapter-indicator {
+        position: absolute;
+        right: 6px;
+        width: 4px;
+        height: 1px;
+        background: var(--text-dim);
+        pointer-events: none;
+        opacity: 0;
+        transition: opacity 0.2s;
+      }
+      .mini-map:hover .chapter-indicator {
+        opacity: 1;
+      }
+
+      /* Hide mini-map on small screens */
+      @media (max-width: 1024px) {
+        .mini-map {
+          display: none;
+        }
+      }
+
+      /* ══════════════════════════════════════════
+    FOCUS MODE
+    Hide UI, narrow width, dim surrounding content
+    ══════════════════════════════════════════ */
+      body.focus-mode .topbar,
+      body.focus-mode .sidebar,
+      body.focus-mode .sidebar-overlay,
+      body.focus-mode .mini-map,
+      body.focus-mode .settings-dropdown {
+        display: none !important;
+      }
+
+      body.focus-mode {
+        background: var(--bg);
+      }
+
+      body.focus-mode .content,
+      body.focus-mode .content-wide,
+      body.focus-mode .chapter-body {
+        max-width: 520px;
+        transition: max-width 0.3s ease;
+      }
+
+      body.focus-mode .chapter-body p {
+        opacity: 0.4;
+        transition: opacity 0.3s ease;
+      }
+
+      body.focus-mode .chapter-body p.focus-active,
+      body.focus-mode .chapter-body p:hover {
+        opacity: 1;
+        transition: opacity 0.2s ease;
+      }
+
+      body.focus-mode .book-hero {
+        padding: 4rem 1.5rem 3rem;
+      }
+
+      body.focus-mode .chapter-hero {
+        padding: 4rem 1.5rem 2rem;
+      }
+
+      body.focus-mode .chapter-number {
+        display: none;
+      }
+
+      body.focus-mode .pull-quote,
+      body.focus-mode .key-idea,
+      body.focus-mode .comparison,
+      body.focus-mode .stats,
+      body.focus-mode .canvas-zone {
+        opacity: 0.6;
+      }
+
+      body.focus-mode .actions,
+      body.focus-mode .end-screen {
+        opacity: 0.5;
+      }
+
+      /* Press Esc to exit hint in focus mode */
+      body.focus-mode::after {
+        content: 'Press Esc to exit focus mode';
+        position: fixed;
+        bottom: 20px;
+        left: 50%;
+        transform: translateX(-50%);
+        background: var(--surface-2);
+        color: var(--text-dim);
+        padding: 8px 16px;
+        border-radius: 20px;
+        font-size: 0.75rem;
+        white-space: nowrap;
+        z-index: 9999;
+        opacity: 0.7;
+        animation: focus-hint 3s ease-in-out 2s forwards;
+      }
+
+      @keyframes focus-hint {
+        0% {
+          opacity: 0.7;
+        }
+        70% {
+          opacity: 0.7;
+        }
+        100% {
+          opacity: 0;
+        }
+      }
+
+      /* ══════════════════════════════════════════
+    SETTINGS DROPDOWN (mobile-first)
+    ══════════════════════════════════════════ */
+      .settings-btn {
+        background: none;
+        border: none;
+        color: var(--text-dim);
+        font-size: 1.2rem;
+        cursor: pointer;
+        padding: 6px 8px;
+        border-radius: 6px;
+        transition:
+          background 0.15s,
+          color 0.15s;
+        line-height: 1;
+      }
+      .settings-btn:hover {
+        background: var(--accent-dim);
+        color: var(--text);
+      }
+
+      .settings-dropdown {
+        position: fixed;
+        top: 48px;
+        right: 0;
+        z-index: 1300;
+        background: var(--surface);
+        border: 1px solid var(--border);
+        border-top: none;
+        border-radius: 0 0 12px 12px;
+        padding: 0.75rem 1rem;
+        min-width: 220px;
+        box-shadow: 0 8px 24px rgba(0, 0, 0, 0.15);
+        opacity: 0;
+        pointer-events: none;
+        transform: translateY(-8px);
+        transition:
+          opacity 0.2s,
+          transform 0.2s;
+      }
+      .settings-dropdown.open {
+        opacity: 1;
+        pointer-events: auto;
+        transform: translateY(0);
+      }
+
+      .settings-row {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 0.5rem 0;
+        border-bottom: 1px solid var(--border-subtle);
+      }
+      .settings-row:last-child {
+        border-bottom: none;
+      }
+
+      .settings-label {
+        font-size: 0.75rem;
+        letter-spacing: 0.06em;
+        text-transform: uppercase;
+        color: var(--text-muted);
+      }
+      .settings-buttons {
+        display: flex;
+        gap: 0.35rem;
+      }
+      .settings-buttons .toggle-btn {
+        padding: 5px 10px;
+        font-size: 0.8rem;
+      }
+
+      /* Font size slider */
+      .font-size-control {
+        display: flex;
+        align-items: center;
+        gap: 0.6rem;
+        width: 100%;
+      }
+      .font-size-control span {
+        font-size: 0.65rem;
+        color: var(--text-muted);
+        flex-shrink: 0;
+      }
+      .font-size-control input[type='range'] {
+        -webkit-appearance: none;
+        appearance: none;
+        width: 100%;
+        height: 4px;
+        background: var(--border);
+        border-radius: 4px;
+        outline: none;
+        cursor: pointer;
+      }
+      .font-size-control input[type='range']::-webkit-slider-thumb {
+        -webkit-appearance: none;
+        appearance: none;
+        width: 16px;
+        height: 16px;
+        border-radius: 50%;
+        background: var(--accent);
+        cursor: pointer;
+        border: 2px solid var(--surface);
+        box-shadow: 0 1px 4px rgba(0, 0, 0, 0.2);
+      }
+      .font-size-control input[type='range']::-moz-range-thumb {
+        width: 16px;
+        height: 16px;
+        border-radius: 50%;
+        background: var(--accent);
+        cursor: pointer;
+        border: 2px solid var(--surface);
+        box-shadow: 0 1px 4px rgba(0, 0, 0, 0.2);
+      }
+
+      /* Width slider */
+      .width-control {
+        display: flex;
+        align-items: center;
+        gap: 0.4rem;
+        width: 100%;
+      }
+      .width-control span {
+        font-size: 0.75rem;
+        color: var(--text-muted);
+        flex-shrink: 0;
+        user-select: none;
+      }
+      .width-control input[type='range'] {
+        -webkit-appearance: none;
+        appearance: none;
+        width: 100%;
+        height: 4px;
+        background: var(--border);
+        border-radius: 4px;
+        outline: none;
+        cursor: pointer;
+      }
+      .width-control input[type='range']::-webkit-slider-thumb {
+        -webkit-appearance: none;
+        appearance: none;
+        width: 16px;
+        height: 16px;
+        border-radius: 50%;
+        background: var(--accent-2);
+        cursor: pointer;
+        border: 2px solid var(--surface);
+        box-shadow: 0 1px 4px rgba(0, 0, 0, 0.2);
+      }
+      .width-control input[type='range']::-moz-range-thumb {
+        width: 16px;
+        height: 16px;
+        border-radius: 50%;
+        background: var(--accent-2);
+        cursor: pointer;
+        border: 2px solid var(--surface);
+        box-shadow: 0 1px 4px rgba(0, 0, 0, 0.2);
+      }
+
+      /* Line height slider */
+      .spacing-control {
+        display: flex;
+        align-items: center;
+        gap: 0.4rem;
+        width: 100%;
+      }
+      .spacing-control span {
+        font-size: 0.75rem;
+        color: var(--text-muted);
+        flex-shrink: 0;
+        user-select: none;
+      }
+      .spacing-control input[type='range'] {
+        -webkit-appearance: none;
+        appearance: none;
+        width: 100%;
+        height: 4px;
+        background: var(--border);
+        border-radius: 4px;
+        outline: none;
+        cursor: pointer;
+      }
+      .spacing-control input[type='range']::-webkit-slider-thumb {
+        -webkit-appearance: none;
+        appearance: none;
+        width: 16px;
+        height: 16px;
+        border-radius: 50%;
+        background: var(--gold);
+        cursor: pointer;
+        border: 2px solid var(--surface);
+        box-shadow: 0 1px 4px rgba(0, 0, 0, 0.2);
+      }
+      .spacing-control input[type='range']::-moz-range-thumb {
+        width: 16px;
+        height: 16px;
+        border-radius: 50%;
+        background: var(--gold);
+        cursor: pointer;
+        border: 2px solid var(--surface);
+        box-shadow: 0 1px 4px rgba(0, 0, 0, 0.2);
+      }
+
+      /* ══════════════════════════════════════════
+   RESPONSIVE
+   ══════════════════════════════════════════ */
+      @media (max-width: 640px) {
+        .comparison-grid {
+          grid-template-columns: 1fr;
+        }
+        .comparison-divider {
+          display: block;
+          height: 1px;
+          background: var(--border);
+        }
+        .stats-row {
+          flex-direction: column;
+          align-items: center;
+        }
+        .bar-chapter {
+          max-width: 120px;
+          font-size: 0.7rem;
+        }
+        .progress-track {
+          max-width: 150px;
+        }
+        .chapter-number {
+          font-size: 4rem;
+        }
+
+        /* Mobile header: hide desktop buttons, show burger */
+        .topbar-right .toggle-btn,
+        .topbar-right .bar-time {
+          display: none !important;
+        }
+        .topbar-right .settings-btn {
+          display: block !important;
+        }
+
+        /* Sidebar footer: vertical layout on mobile */
+        .sidebar-footer {
+          flex-direction: column;
+          gap: 0.75rem;
+        }
+        .sidebar-footer .toggle-btn {
+          display: none !important;
+        }
+
+        /* Hide extra controls on mobile (desktop gets more room) */
+        .sidebar-footer .width-control,
+        .sidebar-footer .spacing-control {
+          display: none;
+        }
+      }
+      @media (min-width: 641px) {
+        .settings-btn {
+          display: none;
+        }
+        .settings-dropdown {
+          display: none;
+        }
+
+        /* Desktop: show inline toggle buttons in sidebar footer */
+        .sidebar-footer .toggle-btn {
+          display: flex !important;
+        }
+        .sidebar-footer {
+          flex-wrap: wrap;
+          align-items: center;
+        }
+
+        /* Desktop: sliders get icons only, keep them compact */
+        .sidebar-footer .font-size-control,
+        .sidebar-footer .width-control,
+        .sidebar-footer .spacing-control {
+          width: 120px;
+          flex-shrink: 0;
+        }
+      }
+
+      /* ══════════════════════════════════════════
+   PRINT STYLES
+   Hit Cmd/Ctrl+P to get a clean, readable PDF.
+   All UI is hidden. Content flows naturally.
+   ══════════════════════════════════════════ */
+      @media print {
+        * {
+          color: #000 !important;
+          background: #fff !important;
+          box-shadow: none !important;
+        }
+        .topbar,
+        .sidebar,
+        .sidebar-overlay,
+        .theme-toggle,
+        .toggle-btn,
+        .scroll-hint,
+        .progress-track,
+        .canvas-zone canvas,
+        .copy-btn,
+        .chapter-number,
+        .settings-btn,
+        .settings-dropdown {
+          display: none !important;
+        }
+        .chapter {
+          page-break-before: always;
+          border-top: none;
+          padding: 0;
+        }
+        .chapter:first-of-type {
+          page-break-before: auto;
+        }
+        .key-idea {
+          border: 1px solid #ccc !important;
+          break-inside: avoid;
+        }
+        .comparison-grid {
+          border: 1px solid #ccc;
+        }
+        .pull-quote {
+          border-top: 2px solid #333;
+          border-bottom: 2px solid #333;
+        }
+        .book-hero {
+          min-height: auto;
+          padding: 2rem 0;
+        }
+        .end-screen {
+          page-break-before: always;
+        }
+        a {
+          text-decoration: none;
+        }
+        a::after {
+          content: none;
+        }
+        .glossary-term {
+          border-bottom: 1px dotted #333;
+        }
+        .glossary-term::after,
+        .glossary-term::before {
+          display: none;
+        }
+        body {
+          font-size: 12pt;
+          line-height: 1.5;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <!-- ════════════════════════════════════════════════════════════
+     SVG FILTERS FOR COLOR BLINDNESS ACCESSIBILITY
+     These are invisible — only activated via the a11y toggle.
+     ════════════════════════════════════════════════════════════ -->
+    <svg style="position: absolute; width: 0; height: 0" aria-hidden="true">
+      <defs>
+        <filter id="filter-protanopia">
+          <feColorMatrix
+            type="matrix"
+            values="0.567,0.433,0,0,0 0.558,0.442,0,0,0 0,0.242,0.758,0,0 0,0,0,1,0"
+          />
+        </filter>
+        <filter id="filter-deuteranopia">
+          <feColorMatrix
+            type="matrix"
+            values="0.625,0.375,0,0,0 0.7,0.3,0,0,0 0,0.3,0.7,0,0 0,0,0,1,0"
+          />
+        </filter>
+        <filter id="filter-tritanopia">
+          <feColorMatrix
+            type="matrix"
+            values="0.95,0.05,0,0,0 0,0.433,0.567,0,0 0,0.475,0.525,0,0 0,0,0,1,0"
+          />
+        </filter>
+      </defs>
+    </svg>
+
+    <!-- ════════════════════════════════════════════════════════════
+     TOP BAR
+     Left: sidebar toggle + current chapter title
+     Center: progress bar
+     Right: font toggle + theme toggle + a11y toggle
+     ════════════════════════════════════════════════════════════ -->
+    <header class="topbar">
+      <div class="topbar-left">
+        <button
+          class="sidebar-toggle"
+          onclick="toggleSidebar()"
+          aria-label="Chapter menu"
+        >
+          ☰
+        </button>
+        <span class="bar-chapter" id="barChapter">[Book Title]</span>
+      </div>
+      <div class="topbar-center">
+        <div class="progress-track">
+          <div class="progress-fill" id="progressFill"></div>
+        </div>
+      </div>
+      <div class="topbar-right">
+        <span
+          class="bar-time"
+          id="barTime"
+          style="
+            font-size: 0.7rem;
+            color: var(--text-muted);
+            white-space: nowrap;
+          "
+        ></span>
+        <button
+          class="toggle-btn"
+          onclick="cycleFont()"
+          aria-label="Change font"
+        >
+          <span id="fontIcon">Aa</span>
+        </button>
+        <button
+          class="toggle-btn"
+          onclick="toggleTheme()"
+          aria-label="Toggle theme"
+        >
+          <span id="themeIcon">☾</span>
+        </button>
+        <button
+          class="toggle-btn"
+          onclick="cycleA11y()"
+          aria-label="Accessibility filters"
+        >
+          <span>👁</span>
+        </button>
+        <button
+          class="toggle-btn"
+          id="audioBtn"
+          onclick="toggleAudio()"
+          aria-label="Focus mode audio"
+        >
+          <span>🎧</span>
+        </button>
+        <button
+          class="toggle-btn"
+          id="focusBtn"
+          onclick="toggleFocusMode()"
+          aria-label="Focus mode"
+        >
+          <span>🎯</span>
+        </button>
+        <!-- Mobile settings burger (hidden on desktop via CSS) -->
+        <button
+          class="settings-btn"
+          onclick="toggleSettings()"
+          aria-label="Settings"
+        >
+          ⚙
+        </button>
+      </div>
+    </header>
+
+    <!-- ════════════════════════════════════════════════════════════
+     SETTINGS DROPDOWN (mobile)
+     Appears when the ⚙ burger is tapped.
+     Desktop uses inline buttons instead — this dropdown is hidden via CSS.
+     ════════════════════════════════════════════════════════════ -->
+    <div class="settings-dropdown" id="settingsDropdown">
+      <div class="settings-row">
+        <span class="settings-label">Font</span>
+        <div class="settings-buttons">
+          <button
+            class="toggle-btn"
+            onclick="cycleFont()"
+            aria-label="Change font"
+          >
+            <span id="fontIconMobile">Aa</span>
+          </button>
+          <button
+            class="toggle-btn"
+            onclick="toggleTheme()"
+            aria-label="Toggle theme"
+          >
+            <span id="themeIconMobile">☾</span>
+          </button>
+        </div>
+      </div>
+      <div class="settings-row">
+        <span class="settings-label">Size</span>
+        <div class="font-size-control">
+          <span>A</span>
+          <input
+            type="range"
+            min="13"
+            max="24"
+            step="1"
+            value="16"
+            id="fontSizeSlider"
+            oninput="updateFontSize(this.value)"
+          />
+          <span style="font-size: 1rem">A</span>
+        </div>
+      </div>
+      <div class="settings-row">
+        <span class="settings-label">Width</span>
+        <div class="width-control">
+          <span>←</span>
+          <input
+            type="range"
+            min="480"
+            max="1200"
+            step="20"
+            value="680"
+            id="widthSlider"
+            oninput="updateWidth(this.value)"
+          />
+          <span>→</span>
+        </div>
+      </div>
+      <div class="settings-row">
+        <span class="settings-label">Spacing</span>
+        <div class="spacing-control">
+          <span>─</span>
+          <input
+            type="range"
+            min="14"
+            max="24"
+            step="1"
+            value="17"
+            id="lineHeightSlider"
+            oninput="updateLineHeight(this.value)"
+          />
+          <span>≡</span>
+        </div>
+      </div>
+      <div class="settings-row">
+        <span class="settings-label">Vision</span>
+        <div class="settings-buttons">
+          <button
+            class="toggle-btn"
+            onclick="cycleA11y()"
+            aria-label="Accessibility filters"
+          >
+            👁
+          </button>
+          <button
+            class="toggle-btn"
+            id="audioBtnMobile"
+            onclick="toggleAudio()"
+            aria-label="Focus mode audio"
+          >
+            🎧
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- ════════════════════════════════════════════════════════════
+     SIDEBAR
+     Collapsible left menu. Shows book title + chapter list.
+     Closes on overlay click or chapter click.
+     ════════════════════════════════════════════════════════════ -->
+    <div
+      class="sidebar-overlay"
+      id="sidebarOverlay"
+      onclick="toggleSidebar()"
+    ></div>
+    <nav class="sidebar" id="sidebar">
+      <div class="sidebar-header">
+        <div class="sidebar-title">[Book Title]</div>
+        <div class="sidebar-author">by [Author Name]</div>
+      </div>
+      <div class="sidebar-chapters">
+        <!-- COPY THIS BLOCK FOR EACH CHAPTER -->
+        <a class="sidebar-chapter" href="#chapter-1" onclick="toggleSidebar()">
+          <span class="sidebar-chapter-num">01</span>[Chapter 1 Title]
+        </a>
+        <a class="sidebar-chapter" href="#chapter-2" onclick="toggleSidebar()">
+          <span class="sidebar-chapter-num">02</span>[Chapter 2 Title]
+        </a>
+        <a class="sidebar-chapter" href="#chapter-3" onclick="toggleSidebar()">
+          <span class="sidebar-chapter-num">03</span>[Chapter 3 Title]
+        </a>
+        <!-- END CHAPTER BLOCK -->
+      </div>
+      <div class="sidebar-footer">
+        <!-- Desktop: show inline toggle buttons (hidden on mobile via CSS) -->
+        <button
+          class="toggle-btn"
+          onclick="cycleFont()"
+          aria-label="Change font"
+        >
+          Aa
+        </button>
+        <button
+          class="toggle-btn"
+          onclick="toggleTheme()"
+          aria-label="Toggle theme"
+        >
+          <span id="themeIconSidebar">☾</span>
+        </button>
+        <button
+          class="toggle-btn"
+          onclick="cycleA11y()"
+          aria-label="Accessibility"
+        >
+          👁
+        </button>
+
+        <!-- Sliders (visible on both mobile and desktop via CSS) -->
+        <div class="font-size-control">
+          <span style="font-size: 0.7rem">A</span>
+          <input
+            type="range"
+            min="13"
+            max="24"
+            step="1"
+            value="16"
+            id="fontSizeSliderSidebar"
+            oninput="updateFontSize(this.value)"
+          />
+          <span style="font-size: 1rem">A</span>
+        </div>
+
+        <div class="width-control">
+          <span style="font-size: 0.7rem">←</span>
+          <input
+            type="range"
+            min="480"
+            max="1200"
+            step="20"
+            value="680"
+            id="widthSliderSidebar"
+            oninput="updateWidth(this.value)"
+          />
+          <span style="font-size: 0.7rem">→</span>
+        </div>
+
+        <div class="spacing-control">
+          <span style="font-size: 0.7rem">─</span>
+          <input
+            type="range"
+            min="14"
+            max="24"
+            step="1"
+            value="17"
+            id="lineHeightSliderSidebar"
+            oninput="updateLineHeight(this.value)"
+          />
+          <span style="font-size: 0.7rem">≡</span>
+        </div>
+      </div>
+    </nav>
+
+    <!-- ════════════════════════════════════════════════════════════
+      MINI-MAP NAVIGATION STRIP
+      Right-side chapter position navigator (hidden on mobile)
+      ════════════════════════════════════════════════════════════ -->
+    <div class="mini-map" id="miniMap" onclick="miniMapClick(event)">
+      <div class="mini-map-inner" id="miniMapInner"></div>
+    </div>
+
+    <!-- ════════════════════════════════════════════════════════════
+     BOOK HERO
+     First thing the reader sees. Big, centered, welcoming.
+     ════════════════════════════════════════════════════════════ -->
+    <section class="book-hero">
+      <div class="book-hero-label">Interactive Edition</div>
+
+      <!-- REPLACE: Book title -->
+      <h1>[Book Title]</h1>
+
+      <!-- REPLACE: Author name -->
+      <div class="book-hero-author">by [Author Name]</div>
+
+      <!-- REPLACE: One-sentence tagline about the book -->
+      <p class="book-hero-tagline">
+        [A single sentence that captures what this book is about and why it
+        matters.]
+      </p>
+
+      <div class="book-hero-meta">
+        <span>📖 [N] chapters</span>
+        <span>⏱ ~[X] min read</span>
+        <!-- Reading time: roughly 200 words per minute.
+         Calculate from total word count of all chapters.
+         Or just estimate: short book = 15-20min, medium = 30-40min, long = 60min+ -->
+      </div>
+
+      <div class="scroll-hint">↓ scroll to begin</div>
+    </section>
+
+    <!-- ════════════════════════════════════════════════════════════
+     TABLE OF CONTENTS
+     Overview of all chapters. Not clickable navigation —
+     just a visual map of what's ahead.
+     ════════════════════════════════════════════════════════════ -->
+    <section class="toc-section">
+      <div class="toc-label">Contents</div>
+      <ol class="toc-list">
+        <!-- COPY THIS BLOCK FOR EACH CHAPTER -->
+        <li class="toc-item">
+          <a href="#chapter-1">
+            <span class="toc-num">01</span>
+            <div>
+              <div class="toc-title">[Chapter 1 Title]</div>
+              <div class="toc-hook">[One-line teaser for this chapter]</div>
+            </div>
+          </a>
+        </li>
+        <li class="toc-item">
+          <a href="#chapter-2">
+            <span class="toc-num">02</span>
+            <div>
+              <div class="toc-title">[Chapter 2 Title]</div>
+              <div class="toc-hook">[One-line teaser for this chapter]</div>
+            </div>
+          </a>
+        </li>
+        <li class="toc-item">
+          <a href="#chapter-3">
+            <span class="toc-num">03</span>
+            <div>
+              <div class="toc-title">[Chapter 3 Title]</div>
+              <div class="toc-hook">[One-line teaser for this chapter]</div>
+            </div>
+          </a>
+        </li>
+        <!-- END CHAPTER BLOCK -->
+      </ol>
+    </section>
+
+    <!-- ════════════════════════════════════════════════════════════
+     CHAPTERS
+     Each chapter is a <section class="chapter">.
+     Background alternates automatically via CSS nth-child.
+     Not every section inside is required — delete what you don't need.
+     ════════════════════════════════════════════════════════════ -->
+
+    <!-- ───────────── CHAPTER 1 ───────────── -->
+    <section class="chapter" id="chapter-1">
+      <!-- Chapter Hero -->
+      <div class="chapter-hero">
+        <div class="chapter-number">01</div>
+        <div class="chapter-label">Chapter One</div>
+        <!-- REPLACE: Chapter title -->
+        <h2>[Chapter 1 Title]</h2>
+        <!-- REPLACE: Hook — 1-2 punchy sentences -->
+        <p class="chapter-hook">
+          [A compelling one-liner that makes the reader want to keep going. The
+          thesis of this chapter in a nutshell.]
+        </p>
+      </div>
+
+      <!-- Chapter Body -->
+      <div class="chapter-body">
+        <!-- REPLACE: Summary paragraphs (2-5 paragraphs) -->
+        <p>
+          [First paragraph. Set up the problem or concept. This is where the
+          reader learns what this chapter is about and why they should care.
+          Write in the tone you chose in Step 0.]
+        </p>
+
+        <p>
+          [Second paragraph. Go deeper. Explain the mechanism, the insight, the
+          surprising truth. This is the meat of the chapter. Use
+          <span
+            class="glossary-term"
+            tabindex="0"
+            data-def="A technical or complex term explained here."
+            >glossary terms</span
+          >
+          for jargon — hover or tap to see definitions.]
+        </p>
+
+        <p>
+          [Third paragraph. The "so what." Why does this matter? What changes if
+          the reader understands this? Bring it home.]
+        </p>
+
+        <!-- KEY IDEAS (delete if not needed) -->
+        <div class="key-ideas">
+          <div class="section-label">Key Ideas</div>
+          <div class="key-ideas-grid stagger">
+            <!-- COPY THIS BLOCK FOR EACH IDEA (3-6 per chapter) -->
+            <div class="key-idea">
+              <div class="key-idea-label">01 / [Short Label]</div>
+              <div class="key-idea-text">
+                [One sentence capturing the core of this idea.]
+              </div>
+            </div>
+            <div class="key-idea">
+              <div class="key-idea-label">02 / [Short Label]</div>
+              <div class="key-idea-text">
+                [One sentence capturing the core of this idea.]
+              </div>
+            </div>
+            <div class="key-idea">
+              <div class="key-idea-label">03 / [Short Label]</div>
+              <div class="key-idea-text">
+                [One sentence capturing the core of this idea.]
+              </div>
+            </div>
+            <!-- END IDEA BLOCK -->
+          </div>
+        </div>
+
+        <!-- COMPARISON (delete if not needed) -->
+        <div class="comparison fade-in">
+          <div class="section-label">Comparison</div>
+          <div class="comparison-grid">
+            <div class="comparison-col">
+              <div class="comparison-header">
+                <span class="dot"></span>[Side A Label]
+              </div>
+              <div class="comparison-heading">[Side A Heading]</div>
+              <ul class="comparison-points">
+                <li>[Point 1]</li>
+                <li>[Point 2]</li>
+                <li>[Point 3]</li>
+              </ul>
+            </div>
+            <div class="comparison-divider"></div>
+            <div class="comparison-col">
+              <div class="comparison-header">
+                <span class="dot"></span>[Side B Label]
+              </div>
+              <div class="comparison-heading">[Side B Heading]</div>
+              <ul class="comparison-points">
+                <li>[Point 1]</li>
+                <li>[Point 2]</li>
+                <li>[Point 3]</li>
+              </ul>
+            </div>
+          </div>
+        </div>
+
+        <!-- STATS (delete if not needed) -->
+        <div class="stats fade-in">
+          <div class="section-label">By the Numbers</div>
+          <div class="stats-row">
+            <!-- COPY THIS BLOCK FOR EACH STAT -->
+            <div class="stat">
+              <div class="stat-number" style="color: var(--accent)">[73%]</div>
+              <div class="stat-bar">
+                <div
+                  class="stat-fill"
+                  style="background: var(--accent); --w: 73%"
+                ></div>
+              </div>
+              <div class="stat-label">[What this number means]</div>
+            </div>
+            <div class="stat">
+              <div class="stat-number" style="color: var(--accent-2)">
+                [2.5x]
+              </div>
+              <div class="stat-bar">
+                <div
+                  class="stat-fill"
+                  style="background: var(--accent-2); --w: 60%"
+                ></div>
+              </div>
+              <div class="stat-label">[What this number means]</div>
+            </div>
+            <!-- END STAT BLOCK -->
+          </div>
+        </div>
+
+        <!-- PULL QUOTE (delete if not needed) -->
+        <div class="pull-quote fade-in">
+          <p>
+            [A powerful sentence or short passage that deserves to breathe.
+            Something the reader will remember.]
+          </p>
+          <cite>— [Source / Attribution]</cite>
+        </div>
+
+        <!-- CANVAS ZONE (delete if not needed) -->
+        <div class="canvas-zone fade-in">
+          <div class="section-label">Visual</div>
+          <!-- REPLACE canvas-id with a unique ID per chapter -->
+          <canvas id="canvas-ch1"></canvas>
+          <div class="canvas-caption">
+            [Brief explanation of what this visual represents.]
+          </div>
+        </div>
+
+        <!-- ACTIONS — DO / DON'T (delete if not needed) -->
+        <div class="actions fade-in">
+          <div class="section-label">Takeaways</div>
+          <div class="actions-list">
+            <!-- COPY THIS BLOCK FOR EACH ACTION -->
+            <div class="action do">
+              <div class="action-dot"></div>
+              <div>
+                <div class="action-label">Do</div>
+                [Imperative sentence — what TO do.]
+              </div>
+            </div>
+            <div class="action do">
+              <div class="action-dot"></div>
+              <div>
+                <div class="action-label">Do</div>
+                [Imperative sentence — what TO do.]
+              </div>
+            </div>
+            <div class="action dont">
+              <div class="action-dot"></div>
+              <div>
+                <div class="action-label">Don't</div>
+                [Imperative sentence — what NOT to do.]
+              </div>
+            </div>
+            <!-- END ACTION BLOCK -->
+          </div>
+        </div>
+      </div>
+      <!-- .chapter-body -->
+
+      <div class="chapter-divider"></div>
+    </section>
+
+    <!-- ───────────── CHAPTER 2 ───────────── -->
+    <section class="chapter" id="chapter-2">
+      <div class="chapter-hero">
+        <div class="chapter-number">02</div>
+        <div class="chapter-label">Chapter Two</div>
+        <h2>[Chapter 2 Title]</h2>
+        <p class="chapter-hook">[Hook for chapter 2.]</p>
+      </div>
+      <div class="chapter-body">
+        <p>[Summary paragraph 1 for chapter 2.]</p>
+        <p>[Summary paragraph 2 for chapter 2.]</p>
+
+        <!-- Add or remove sections as needed for this chapter -->
+        <!-- Every chapter can have a different mix of sections -->
+        <!-- Just keep the order: summary → ideas → comparison → stats → quote → canvas → actions -->
+      </div>
+      <div class="chapter-divider"></div>
+    </section>
+
+    <!-- ───────────── CHAPTER 3 ───────────── -->
+    <section class="chapter" id="chapter-3">
+      <div class="chapter-hero">
+        <div class="chapter-number">03</div>
+        <div class="chapter-label">Chapter Three</div>
+        <h2>[Chapter 3 Title]</h2>
+        <p class="chapter-hook">[Hook for chapter 3.]</p>
+      </div>
+      <div class="chapter-body">
+        <p>[Summary paragraph 1 for chapter 3.]</p>
+        <p>[Summary paragraph 2 for chapter 3.]</p>
+      </div>
+      <div class="chapter-divider"></div>
+    </section>
+
+    <!-- ╔══════════════════════════════════════════════════════════╗
+     ║  ADD MORE CHAPTERS:                                      ║
+     ║  Copy any <section class="chapter"> block above.         ║
+     ║  Change the id (chapter-4, chapter-5, etc.)              ║
+     ║  Update the sidebar and ToC to match.                    ║
+     ╚══════════════════════════════════════════════════════════╝ -->
+
+    <!-- ════════════════════════════════════════════════════════════
+     END SCREEN
+     The book's core thesis in 2-3 sentences. Attribution. Done.
+     ════════════════════════════════════════════════════════════ -->
+    <section class="end-screen">
+      <div class="section-label" style="text-align: center">
+        The Core Message
+      </div>
+
+      <!-- REPLACE: The book's thesis in 2-3 sentences -->
+      <p class="thesis">
+        [Two or three sentences that capture the single most important thing
+        this book teaches. The idea that, if the reader remembers nothing else,
+        is worth the entire read.]
+      </p>
+
+      <div class="attribution">
+        <!-- REPLACE: Book title and author -->
+        [Book Title] · [Author Name]
+      </div>
+
+      <div class="sign-off">Built with care.</div>
+
+      <!-- COPY TAKEAWAYS BUTTON -->
+      <button class="copy-btn" onclick="copyTakeaways()" id="copyBtn">
+        📋 Copy all takeaways
+      </button>
+    </section>
+
+    <!-- ════════════════════════════════════════════════════════════
+     JAVASCRIPT
+     Everything the template needs to function.
+     You shouldn't need to touch this — just fill in the HTML.
+     ════════════════════════════════════════════════════════════ -->
+    <script>
+      // ── THEME TOGGLE ──
+      const themes = [
+        'light-pure', // ◯ - white circle
+        'light-paper', // 📄 - paper sheet
+        'light-dusk', // 🌆 - cityscape
+        'dark-vesepia', // ☾ - moon
+        'dark-oled', // ⬛ - black square
+        'dark-dimmed', // 🌑 - new moon
+        'dark-midnight' // 🌌 - milky way
+      ]
+
+      const themeIcons = {
+        'light-pure': '◯',
+        'light-paper': '📄',
+        'light-dusk': '🌆',
+        'dark-vesepia': '☾',
+        'dark-oled': '⬛',
+        'dark-dimmed': '🌑',
+        'dark-midnight': '🌌',
+        // Legacy aliases
+        light: '◯',
+        dark: '☾',
+        none: '◯'
+      }
+
+      const themeNames = {
+        'light-pure': 'Pure White',
+        'light-paper': 'Paper',
+        'light-dusk': 'Dusk',
+        'dark-vesepia': 'Vesepia',
+        'dark-oled': 'OLED Black',
+        'dark-dimmed': 'Dimmed',
+        'dark-midnight': 'Midnight'
+      }
+
+      function toggleTheme() {
+        const root = document.documentElement
+        const current = root.getAttribute('data-theme') || 'dark-vesepia'
+        // Handle legacy light/dark aliases
+        const normalizedCurrent =
+          current === 'light'
+            ? 'light-pure'
+            : current === 'dark'
+              ? 'dark-vesepia'
+              : current
+        const idx = themes.indexOf(normalizedCurrent)
+        const next = themes[(idx + 1) % themes.length]
+
+        if (document.startViewTransition) {
+          document.startViewTransition(() => {
+            root.setAttribute('data-theme', next)
+          })
+        } else {
+          root.setAttribute('data-theme', next)
+        }
+
+        localStorage.setItem('theme', next)
+        updateThemeIcons(next)
+      }
+
+      function updateThemeIcons(theme) {
+        const icon = themeIcons[theme] || themeIcons['light-pure']
+        document.getElementById('themeIcon').textContent = icon
+        const sidebar = document.getElementById('themeIconSidebar')
+        if (sidebar) sidebar.textContent = icon
+        const mobile = document.getElementById('themeIconMobile')
+        if (mobile) mobile.textContent = icon
+      }
+
+      // ── FONT TOGGLE ──
+      const fonts = ['sans', 'serif']
+      function cycleFont() {
+        const root = document.documentElement
+        const current = root.getAttribute('data-font')
+        const idx = fonts.indexOf(current)
+        const next = fonts[(idx + 1) % fonts.length]
+        root.setAttribute('data-font', next)
+        localStorage.setItem('font', next)
+        const icon = next === 'serif' ? 'Ag' : 'Aa'
+        document.getElementById('fontIcon').textContent = icon
+        const mobile = document.getElementById('fontIconMobile')
+        if (mobile) mobile.textContent = icon
+      }
+
+      // ── ACCESSIBILITY TOGGLE ──
+      const a11yModes = ['none', 'protanopia', 'deuteranopia', 'tritanopia']
+      function cycleA11y() {
+        const root = document.documentElement
+        const current = root.getAttribute('data-a11y') || 'none'
+        const idx = a11yModes.indexOf(current)
+        const next = a11yModes[(idx + 1) % a11yModes.length]
+        root.setAttribute('data-a11y', next)
+        localStorage.setItem('a11y', next)
+      }
+
+      // ── SIDEBAR ──
+      function toggleSidebar() {
+        document.getElementById('sidebar').classList.toggle('open')
+        document.getElementById('sidebarOverlay').classList.toggle('open')
+        // Close settings dropdown if open
+        document.getElementById('settingsDropdown')?.classList.remove('open')
+      }
+
+      // ── SETTINGS DROPDOWN ──
+      function toggleSettings() {
+        document.getElementById('settingsDropdown').classList.toggle('open')
+      }
+      // Close settings on outside click
+      document.addEventListener('click', (e) => {
+        const dd = document.getElementById('settingsDropdown')
+        const btn = e.target.closest('.settings-btn')
+        if (!btn && !e.target.closest('.settings-dropdown')) {
+          dd?.classList.remove('open')
+        }
+      })
+
+      // ── FONT SIZE SLIDER ──
+      function updateFontSize(px) {
+        document.documentElement.style.setProperty(
+          '--root-font-size',
+          px + 'px'
+        )
+        localStorage.setItem('fontSize', px)
+        // Sync both sliders
+        document.getElementById('fontSizeSlider').value = px
+        document.getElementById('fontSizeSliderSidebar').value = px
+      }
+
+      // ── WIDTH SLIDER ──
+      function updateWidth(px) {
+        document.documentElement.style.setProperty('--content-width', px + 'px')
+        document.documentElement.style.setProperty(
+          '--content-wide-width',
+          parseInt(px) + 220 + 'px'
+        )
+        localStorage.setItem('contentWidth', px)
+        // Sync both sliders
+        document.getElementById('widthSlider').value = px
+        document.getElementById('widthSliderSidebar').value = px
+      }
+
+      // ── LINE HEIGHT SLIDER ──
+      function updateLineHeight(val) {
+        const lineHeight = (val / 10).toFixed(1)
+        document.documentElement.style.setProperty(
+          '--body-line-height',
+          lineHeight
+        )
+        localStorage.setItem('lineHeight', lineHeight)
+        // Sync both sliders
+        document.getElementById('lineHeightSlider').value = val
+        document.getElementById('lineHeightSliderSidebar').value = val
+      }
+
+      // ── PROGRESS BAR ──
+      const progressFill = document.getElementById('progressFill')
+      function updateProgress() {
+        const scrolled = window.scrollY
+        const total = document.documentElement.scrollHeight - window.innerHeight
+        if (total > 0) {
+          progressFill.style.width = (scrolled / total) * 100 + '%'
+        }
+      }
+
+      // ── CHAPTER TITLE IN TOP BAR ──
+      const barChapter = document.getElementById('barChapter')
+      const chapters = document.querySelectorAll('.chapter')
+      const sidebarLinks = document.querySelectorAll('.sidebar-chapter')
+
+      function updateBarChapter() {
+        let current = null
+        const scrollTop = window.scrollY + 80
+
+        chapters.forEach((ch) => {
+          if (ch.offsetTop <= scrollTop) {
+            current = ch
+          }
+        })
+
+        if (current) {
+          const h2 = current.querySelector('h2')
+          if (h2) barChapter.textContent = h2.textContent
+        } else {
+          barChapter.textContent =
+            document.querySelector('.book-hero h1')?.textContent || ''
+        }
+
+        // Update active sidebar link
+        sidebarLinks.forEach((link) => {
+          link.classList.toggle(
+            'active',
+            current && link.getAttribute('href') === '#' + current.id
+          )
+        })
+      }
+
+      // ── FADE-IN ON SCROLL (IntersectionObserver) ──
+      const fadeObserver = new IntersectionObserver(
+        (entries) => {
+          entries.forEach((entry) => {
+            if (entry.isIntersecting) {
+              entry.target.classList.add('visible')
+            }
+          })
+        },
+        { threshold: 0.15 }
+      )
+
+      document.querySelectorAll('.fade-in, .stagger').forEach((el) => {
+        fadeObserver.observe(el)
+      })
+
+      // ── STAT BAR ANIMATION ──
+      const statObserver = new IntersectionObserver(
+        (entries) => {
+          entries.forEach((entry) => {
+            if (entry.isIntersecting) {
+              entry.target.classList.add('animate')
+            }
+          })
+        },
+        { threshold: 0.3 }
+      )
+
+      document.querySelectorAll('.stats').forEach((el) => {
+        statObserver.observe(el)
+      })
+
+      // ── CANVAS VISIBILITY (start/stop animations) ──
+      // This observer tells you when a canvas enters/leaves the viewport.
+      // Wire up your canvas animation functions to start/stop here.
+      const canvasObserver = new IntersectionObserver(
+        (entries) => {
+          entries.forEach((entry) => {
+            const canvas = entry.target
+            if (entry.isIntersecting) {
+              // START animation for this canvas
+              // Example: startWaveAnimation(canvas);
+              canvas.dataset.visible = 'true'
+            } else {
+              // STOP animation for this canvas
+              // Example: stopWaveAnimation(canvas);
+              canvas.dataset.visible = 'false'
+            }
+          })
+        },
+        { threshold: 0.1 }
+      )
+
+      document.querySelectorAll('.canvas-zone canvas').forEach((canvas) => {
+        canvasObserver.observe(canvas)
+      })
+
+      // ── INIT ──
+      updateProgress()
+      updateBarChapter()
+      updateThemeIcons(document.documentElement.getAttribute('data-theme'))
+
+      // Build mini-map after a short delay to ensure DOM is fully laid out
+      setTimeout(() => {
+        buildMiniMap()
+        updateMiniMap()
+      }, 100)
+
+      // Rebuild mini-map on resize
+      let resizeTimeout
+      window.addEventListener('resize', () => {
+        clearTimeout(resizeTimeout)
+        resizeTimeout = setTimeout(() => {
+          buildMiniMap()
+          updateMiniMap()
+        }, 200)
+      })
+
+      // Set font icon correctly on load
+      const initFont = document.documentElement.getAttribute('data-font')
+      if (initFont === 'serif') {
+        document.getElementById('fontIcon').textContent = 'Ag'
+        const mobile = document.getElementById('fontIconMobile')
+        if (mobile) mobile.textContent = 'Ag'
+      }
+
+      // Init font size from localStorage
+      const savedFontSize = localStorage.getItem('fontSize')
+      if (savedFontSize) {
+        updateFontSize(savedFontSize)
+      }
+
+      // Init content width from localStorage
+      const savedWidth = localStorage.getItem('contentWidth')
+      if (savedWidth) {
+        updateWidth(savedWidth)
+      }
+
+      // Init line height from localStorage
+      const savedLineHeight = localStorage.getItem('lineHeight')
+      if (savedLineHeight) {
+        const lineHeightVal = Math.round(parseFloat(savedLineHeight) * 10)
+        updateLineHeight(lineHeightVal)
+      }
+
+      // ── DYNAMIC TIME REMAINING ──
+      // Calculates word count on load, shows "X min left" as you scroll
+      const barTime = document.getElementById('barTime')
+      const totalWords = document.body.innerText.split(/\s+/).length
+      const totalMinutes = Math.ceil(totalWords / 200) // ~200 words/min
+
+      function updateTimeRemaining() {
+        const scrolled = window.scrollY
+        const total = document.documentElement.scrollHeight - window.innerHeight
+        if (total <= 0) return
+
+        const pct = scrolled / total
+        const remaining = Math.ceil(totalMinutes * (1 - pct))
+
+        if (pct > 0.98) {
+          barTime.textContent = 'Done!'
+        } else if (remaining <= 1) {
+          barTime.textContent = '<1 min left'
+        } else {
+          barTime.textContent = '~' + remaining + ' min left'
+        }
+      }
+
+      // ── COPY TAKEAWAYS ──
+      function copyTakeaways() {
+        const lines = []
+
+        // Collect key ideas
+        document.querySelectorAll('.key-idea').forEach((el) => {
+          const label =
+            el.querySelector('.key-idea-label')?.textContent?.trim() || ''
+          const text =
+            el.querySelector('.key-idea-text')?.textContent?.trim() || ''
+          if (text) lines.push('💡 ' + (label ? label + ': ' : '') + text)
+        })
+
+        // Collect actions
+        document.querySelectorAll('.action').forEach((el) => {
+          const label =
+            el.querySelector('.action-label')?.textContent?.trim() || ''
+          const text = el.textContent.replace(label, '').trim()
+          if (text)
+            lines.push((label === 'Do' ? '✓ ' : '✗ ') + label + ': ' + text)
+        })
+
+        // Collect pull quotes
+        document.querySelectorAll('.pull-quote p').forEach((el) => {
+          const text = el.textContent?.trim()
+          if (text) lines.push('"' + text + '"')
+        })
+
+        if (lines.length === 0) {
+          lines.push(
+            'No takeaways found. Add key-ideas or actions to your chapters!'
+          )
+        }
+
+        const output = lines.join('\n\n')
+        navigator.clipboard
+          .writeText(output)
+          .then(() => {
+            const btn = document.getElementById('copyBtn')
+            btn.textContent = '✓ Copied!'
+            setTimeout(() => {
+              btn.textContent = '📋 Copy all takeaways'
+            }, 2000)
+          })
+          .catch(() => {
+            // Fallback: select text in a temporary textarea
+            const ta = document.createElement('textarea')
+            ta.value = output
+            document.body.appendChild(ta)
+            ta.select()
+            document.execCommand('copy')
+            document.body.removeChild(ta)
+            const btn = document.getElementById('copyBtn')
+            btn.textContent = '✓ Copied!'
+            setTimeout(() => {
+              btn.textContent = '📋 Copy all takeaways'
+            }, 2000)
+          })
+      }
+
+      // ── FOCUS MODE ──
+      let focusMode = false
+      function toggleFocusMode() {
+        focusMode = !focusMode
+        document.body.classList.toggle('focus-mode', focusMode)
+        const btn = document.getElementById('focusBtn')
+        if (focusMode) {
+          btn.classList.add('active-audio')
+          // Close sidebar if open
+          document.getElementById('sidebar')?.classList.remove('open')
+          document.getElementById('sidebarOverlay')?.classList.remove('open')
+          // Close settings dropdown if open
+          document.getElementById('settingsDropdown')?.classList.remove('open')
+        } else {
+          btn.classList.remove('active-audio')
+        }
+      }
+
+      // ── FOCUS MODE AUDIO (brown noise via Web Audio API) ──
+      let audioCtx = null
+      let audioSource = null
+      let audioPlaying = false
+
+      function toggleAudio() {
+        const btn = document.getElementById('audioBtn')
+        if (audioPlaying) {
+          if (audioSource) {
+            audioSource.stop()
+            audioSource = null
+          }
+          if (audioCtx) {
+            audioCtx.close()
+            audioCtx = null
+          }
+          audioPlaying = false
+          btn.classList.remove('active-audio')
+          return
+        }
+
+        // Generate brown noise buffer
+        audioCtx = new (window.AudioContext || window.webkitAudioContext)()
+        const sr = audioCtx.sampleRate
+        const buf = audioCtx.createBuffer(1, sr * 2, sr)
+        const data = buf.getChannelData(0)
+        let last = 0
+        for (let i = 0; i < data.length; i++) {
+          const white = Math.random() * 2 - 1
+          data[i] = (last + 0.02 * white) / 1.02
+          last = data[i]
+          data[i] *= 3.5
+        }
+
+        audioSource = audioCtx.createBufferSource()
+        audioSource.buffer = buf
+        audioSource.loop = true
+
+        // Gentle volume
+        const gain = audioCtx.createGain()
+        gain.gain.value = 0.15
+
+        audioSource.connect(gain)
+        gain.connect(audioCtx.destination)
+        audioSource.start(0)
+
+        audioPlaying = true
+        btn.classList.add('active-audio')
+      }
+
+      // ── SCROLL-SCRUBBED CANVAS HELPER ──
+      // Use this to tie canvas animation frames to scroll position.
+      // Instead of time-based requestAnimationFrame, the user's scroll
+      // position controls which frame to draw.
+      //
+      // Usage in your canvas drawing function:
+      //   function drawMyAnimation(canvas, progress) {
+      //     // progress is 0.0 (not yet visible) to 1.0 (fully scrolled past)
+      //     const ctx = canvas.getContext('2d');
+      //     ctx.clearRect(0, 0, canvas.width, canvas.height);
+      //     // Draw based on progress, e.g.:
+      //     const angle = progress * Math.PI * 2;  // full rotation
+      //     const radius = progress * 100;          // growing circle
+      //     // ...
+      //   }
+      //
+      // The scroll handler below updates canvas zones with their progress.
+
+      function updateCanvasScroll() {
+        document.querySelectorAll('.canvas-zone').forEach((zone) => {
+          const canvas = zone.querySelector('canvas')
+          if (!canvas) return
+
+          const rect = zone.getBoundingClientRect()
+          const viewH = window.innerHeight
+          // progress: 0 when entering viewport from bottom, 1 when leaving from top
+          const progress = Math.max(
+            0,
+            Math.min(1, (viewH - rect.top) / (viewH + rect.height))
+          )
+
+          // Store progress for canvas drawing functions to use
+          canvas.dataset.progress = progress
+
+          // If you have a named drawing function, call it here:
+          // e.g. drawWave(canvas, progress);
+        })
+      }
+
+      // ── MINI-MAP NAVIGATION ──
+      const miniMap = document.getElementById('miniMap')
+      const miniMapInner = document.getElementById('miniMapInner')
+
+      function buildMiniMap() {
+        if (!miniMap || !miniMapInner) return
+
+        miniMapInner.innerHTML = ''
+
+        const chapters = document.querySelectorAll('.chapter')
+        const totalHeight =
+          document.documentElement.scrollHeight - window.innerHeight
+
+        chapters.forEach((ch, idx) => {
+          const chHeight = ch.getBoundingClientRect().height
+          const chTop = ch.offsetTop
+          const heightPercent = (chHeight / totalHeight) * 100
+          const topPercent = (chTop / totalHeight) * 100
+
+          const strip = document.createElement('div')
+          strip.className = 'mini-map-chapter'
+          strip.dataset.chapterId = ch.id
+          strip.style.height = `${Math.max(heightPercent, 2)}%` // Minimum 2% for clickability
+          strip.style.top = `${topPercent}%`
+          strip.style.position = 'absolute'
+          strip.style.left = '0'
+          strip.style.right = '0'
+
+          miniMapInner.appendChild(strip)
+        })
+
+        // Add progress indicator
+        const progress = document.createElement('div')
+        progress.className = 'mini-map-progress'
+        progress.id = 'miniMapProgress'
+        miniMapInner.appendChild(progress)
+      }
+
+      function updateMiniMap() {
+        if (!miniMap || !miniMapInner) return
+
+        const chapters = document.querySelectorAll('.chapter')
+        const scrollTop = window.scrollY
+
+        // Update active chapter
+        chapters.forEach((ch) => {
+          const rect = ch.getBoundingClientRect()
+          const isActive = rect.top <= 100 && rect.bottom > 100
+          const strip = miniMapInner.querySelector(
+            `[data-chapter-id="${ch.id}"]`
+          )
+          if (strip) {
+            strip.classList.toggle('active', isActive)
+          }
+        })
+
+        // Update progress indicator height
+        const totalHeight =
+          document.documentElement.scrollHeight - window.innerHeight
+        const progressPercent = (scrollTop / totalHeight) * 100
+        const progressEl = document.getElementById('miniMapProgress')
+        if (progressEl) {
+          progressEl.style.height = `${progressPercent}%`
+        }
+      }
+
+      function miniMapClick(event) {
+        event.preventDefault()
+        event.stopPropagation()
+
+        const rect = miniMap.getBoundingClientRect()
+        const clickY = event.clientY - rect.top
+        const mapHeight = rect.height
+        const relativeY = clickY / mapHeight
+
+        // Find which chapter strip was clicked
+        const clickedStrip = event.target.closest('.mini-map-chapter')
+        if (clickedStrip) {
+          const chapterId = clickedStrip.dataset.chapterId
+          const chapter = document.getElementById(chapterId)
+          if (chapter) {
+            chapter.scrollIntoView({ behavior: 'smooth' })
+          }
+        } else {
+          // Clicked on empty space, scroll to that position
+          const totalHeight =
+            document.documentElement.scrollHeight - window.innerHeight
+          const scrollTarget = totalHeight * relativeY
+          window.scrollTo({
+            top: scrollTarget,
+            behavior: 'smooth'
+          })
+        }
+      }
+
+      // ════════════════════════════════════════════════════════════
+      // UNIFIED SCROLL HANDLER
+      let scrollTicking = false
+      window.addEventListener('scroll', () => {
+        if (!scrollTicking) {
+          requestAnimationFrame(() => {
+            updateProgress()
+            updateBarChapter()
+            updateTimeRemaining()
+            updateCanvasScroll()
+            updateMiniMap()
+            scrollTicking = false
+          })
+          scrollTicking = true
+        }
+      })
+
+      // ── KEYBOARD SHORTCUTS ──
+      document.addEventListener('keydown', (e) => {
+        // Don't trigger if user is typing in an input/textarea
+        if (e.target.matches('input, textarea')) return
+
+        const key = e.key.toLowerCase()
+
+        // Theme toggle: t
+        if (key === 't') {
+          e.preventDefault()
+          toggleTheme()
+          return
+        }
+
+        // Font toggle: f
+        if (key === 'f') {
+          e.preventDefault()
+          cycleFont()
+          return
+        }
+
+        // Focus mode: s
+        if (key === 's') {
+          e.preventDefault()
+          toggleFocusMode()
+          return
+        }
+
+        // Search: / (basic focus on any search input, or show console for now)
+        if (key === '/') {
+          e.preventDefault()
+          // For now, let's show a browser find dialog
+          // In the future, could implement inline search
+          return
+        }
+
+        // Escape: close sidebar, settings, or exit focus mode
+        if (key === 'escape') {
+          document.getElementById('sidebar')?.classList.remove('open')
+          document.getElementById('sidebarOverlay')?.classList.remove('open')
+          document.getElementById('settingsDropdown')?.classList.remove('open')
+          if (focusMode) {
+            toggleFocusMode()
+          }
+          return
+        }
+
+        // Arrow keys for chapter navigation (optional enhancement)
+        if (focusMode) return // Skip in focus mode
+
+        const chs = document.querySelectorAll('.chapter')
+        const currentChapter = [...chs].find(
+          (ch) =>
+            ch.getBoundingClientRect().top <= 100 &&
+            ch.getBoundingClientRect().bottom > 100
+        )
+        const currentIdx = currentChapter
+          ? [...chs].indexOf(currentChapter)
+          : -1
+
+        // Left arrow: previous chapter
+        if (key === 'arrowleft') {
+          e.preventDefault()
+          if (currentIdx > 0) {
+            chs[currentIdx - 1].scrollIntoView({ behavior: 'smooth' })
+          }
+          return
+        }
+
+        // Right arrow: next chapter
+        if (key === 'arrowright') {
+          e.preventDefault()
+          if (currentIdx < chs.length - 1) {
+            chs[currentIdx + 1].scrollIntoView({ behavior: 'smooth' })
+          }
+          return
+        }
+      })
+
+      // Init time display
+      updateTimeRemaining()
+    </script>
+  </body>
+</html>

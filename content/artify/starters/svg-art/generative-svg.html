@@ -1,0 +1,312 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Generative SVG Art</title>
+  <!--
+    ============================================================
+    SVG ART STARTER — Procedural generative graphics with SVG + JS
+    ============================================================
+
+    WHAT IT DOES:
+    Generates SVG art procedurally — patterns, geometric designs,
+    flow fields, tessellations. Pure SVG + vanilla JS, no canvas.
+    Result is a crisp, scalable, inspectable SVG element.
+
+    THIS STARTER: Flow field with colored paths.
+    Generates smooth curves following a noise field.
+
+    HOW TO CUSTOMIZE:
+    1. Change SVG dimensions in the <svg> tag
+    2. Adjust generation params: NUM_LINES, STEPS, STEP_SIZE, etc.
+    3. Change color palette: COLORS array
+    4. Modify the field function to change the flow pattern
+    5. Press SPACE to regenerate
+
+    SVG ELEMENT CREATION:
+    const svg = document.getElementById('art');
+    const el = document.createElementNS('http://www.w3.org/2000/svg', 'tag');
+
+    Common SVG elements:
+    - <circle cx cy r> — circle
+    - <rect x y width height rx> — rectangle
+    - <line x1 y1 x2 y2> — line
+    - <path d="..."> — path (most powerful)
+    - <ellipse cx cy rx ry> — ellipse
+    - <polygon points="x1,y1 x2,y2 ..."> — polygon
+    - <polyline points="..."> — connected line segments
+    - <text x y> — text
+    - <g> — group (apply transforms to multiple elements)
+    - <defs> — define reusable elements (gradients, patterns)
+    - <clipPath> — clipping regions
+
+    PATH DATA COMMANDS:
+    M x y       — move to (start point)
+    L x y       — line to
+    H x         — horizontal line
+    V y         — vertical line
+    C x1 y1 x2 y2 x y — cubic bezier curve
+    Q x1 y1 x y — quadratic bezier curve
+    A rx ry rot large sweep x y — arc
+    Z           — close path
+
+    SVG ATTRIBUTES:
+    fill — fill color
+    stroke — stroke color
+    stroke-width — stroke width
+    stroke-dasharray — dashed lines ("5,10")
+    stroke-linecap — "butt", "round", "square"
+    stroke-linejoin — "miter", "round", "bevel"
+    opacity — 0 to 1
+    transform — "translate(x,y)", "rotate(deg)", "scale(s)"
+    filter — reference to a filter element
+
+    SVG GRADIENTS (in <defs>):
+    <linearGradient id="grad" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" stop-color="#3b82f6"/>
+      <stop offset="100%" stop-color="#8b5cf6"/>
+    </linearGradient>
+    Use: fill="url(#grad)"
+
+    PERFORMANCE:
+    - SVG elements are DOM nodes — keep count under ~5000 for smooth perf
+    - For massive particle counts, use canvas (p5.js) instead
+    - Use <use> elements to repeat shapes efficiently
+    - Group elements with <g> and transform the group
+
+    MORE DOCS: https://developer.mozilla.org/en-US/docs/Web/SVG
+
+    ============================================================
+  -->
+  <style>
+    * { margin: 0; padding: 0; }
+    body {
+      background: #0a0a0a;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      min-height: 100vh;
+      overflow: hidden;
+    }
+    svg {
+      max-width: 95vmin;
+      max-height: 95vmin;
+    }
+    .info {
+      position: fixed;
+      bottom: 1rem;
+      left: 50%;
+      transform: translateX(-50%);
+      color: #444;
+      font-family: monospace;
+      font-size: 0.75rem;
+    }
+  </style>
+</head>
+<body>
+
+  <svg id="art" viewBox="0 0 800 800" xmlns="http://www.w3.org/2000/svg"></svg>
+  <div class="info">press SPACE to regenerate</div>
+
+  <script>
+    // ============================================================
+    // CONFIG — tweak these to change the art
+    // ============================================================
+    const W = 800;
+    const H = 800;
+    const NUM_LINES = 80;
+    const STEPS = 60;
+    const STEP_SIZE = 8;
+    const NOISE_SCALE = 0.004;
+    const COLORS = [
+      '#3b82f6', '#8b5cf6', '#06b6d4', '#10b981',
+      '#f59e0b', '#ef4444', '#ec4899', '#6366f1',
+    ];
+
+    // ============================================================
+    // Simplex-like noise (compact implementation)
+    // Uses sine/hash for smooth pseudo-randomness
+    // ============================================================
+    function noise(x, y) {
+      const n = Math.sin(x * 12.9898 + y * 78.233) * 43758.5453;
+      return n - Math.floor(n);
+    }
+
+    // Smooth noise with interpolation
+    function smoothNoise(x, y) {
+      const ix = Math.floor(x);
+      const iy = Math.floor(y);
+      const fx = x - ix;
+      const fy = y - iy;
+
+      // Smooth interpolation
+      const sx = fx * fx * (3 - 2 * fx);
+      const sy = fy * fy * (3 - 2 * fy);
+
+      const n00 = noise(ix, iy);
+      const n10 = noise(ix + 1, iy);
+      const n01 = noise(ix, iy + 1);
+      const n11 = noise(ix + 1, iy + 1);
+
+      const nx0 = n00 * (1 - sx) + n10 * sx;
+      const nx1 = n01 * (1 - sx) + n11 * sx;
+
+      return nx0 * (1 - sy) + nx1 * sy;
+    }
+
+    // Multi-octave noise for richer fields
+    function fbm(x, y, octaves = 3) {
+      let value = 0;
+      let amplitude = 1;
+      let frequency = 1;
+      let maxValue = 0;
+
+      for (let i = 0; i < octaves; i++) {
+        value += smoothNoise(x * frequency, y * frequency) * amplitude;
+        maxValue += amplitude;
+        amplitude *= 0.5;
+        frequency *= 2;
+      }
+
+      return value / maxValue;
+    }
+
+    // Flow field angle at a point
+    function fieldAngle(x, y) {
+      return fbm(x * NOISE_SCALE, y * NOISE_SCALE) * Math.PI * 4;
+    }
+
+    // ============================================================
+    // SVG helpers
+    // ============================================================
+    const svg = document.getElementById('art');
+
+    function svgEl(tag, attrs = {}) {
+      const el = document.createElementNS('http://www.w3.org/2000/svg', tag);
+      for (const [k, v] of Object.entries(attrs)) {
+        el.setAttribute(k, v);
+      }
+      return el;
+    }
+
+    // ============================================================
+    // GENERATE — creates the flow field art
+    // ============================================================
+    function generate() {
+      // Clear previous
+      svg.innerHTML = '';
+
+      // Background
+      svg.appendChild(svgEl('rect', {
+        width: W, height: H, fill: '#0a0a0a'
+      }));
+
+      // Generate flow lines
+      for (let i = 0; i < NUM_LINES; i++) {
+        // Random start position
+        let x = Math.random() * W;
+        let y = Math.random() * H;
+
+        const points = [];
+        const color = COLORS[Math.floor(Math.random() * COLORS.length)];
+
+        // Walk the flow field
+        for (let s = 0; s < STEPS; s++) {
+          points.push({ x, y });
+
+          const angle = fieldAngle(x, y);
+          x += Math.cos(angle) * STEP_SIZE;
+          y += Math.sin(angle) * STEP_SIZE;
+
+          // Stop if out of bounds
+          if (x < -20 || x > W + 20 || y < -20 || y > H + 20) break;
+        }
+
+        // Build smooth path with quadratic bezier
+        if (points.length < 3) continue;
+
+        let d = `M ${points[0].x.toFixed(1)} ${points[0].y.toFixed(1)}`;
+        for (let j = 1; j < points.length - 1; j++) {
+          const cx = points[j].x;
+          const cy = points[j].y;
+          const ex = (points[j].x + points[j + 1].x) / 2;
+          const ey = (points[j].y + points[j + 1].y) / 2;
+          d += ` Q ${cx.toFixed(1)} ${cy.toFixed(1)} ${ex.toFixed(1)} ${ey.toFixed(1)}`;
+        }
+
+        const path = svgEl('path', {
+          d: d,
+          fill: 'none',
+          stroke: color,
+          'stroke-width': (0.5 + Math.random() * 1.5).toFixed(1),
+          'stroke-linecap': 'round',
+          opacity: (0.3 + Math.random() * 0.5).toFixed(2),
+        });
+
+        svg.appendChild(path);
+      }
+
+      // ============================================================
+      // OPTIONAL: Add decorative elements
+      // Uncomment and modify to add circles, dots, etc.
+      // ============================================================
+
+      // Scatter dots along paths
+      // for (let i = 0; i < 30; i++) {
+      //   const circle = svgEl('circle', {
+      //     cx: Math.random() * W,
+      //     cy: Math.random() * H,
+      //     r: (1 + Math.random() * 3).toFixed(1),
+      //     fill: COLORS[Math.floor(Math.random() * COLORS.length)],
+      //     opacity: '0.6',
+      //   });
+      //   svg.appendChild(circle);
+      // }
+
+      // Add concentric circles at random points
+      // for (let i = 0; i < 5; i++) {
+      //   const cx = 100 + Math.random() * 600;
+      //   const cy = 100 + Math.random() * 600;
+      //   for (let r = 10; r < 60; r += 10) {
+      //     svg.appendChild(svgEl('circle', {
+      //       cx, cy, r,
+      //       fill: 'none',
+      //       stroke: COLORS[Math.floor(Math.random() * COLORS.length)],
+      //       'stroke-width': '0.5',
+      //       opacity: '0.3',
+      //     }));
+      //   }
+      // }
+    }
+
+    // ============================================================
+    // Generate on load and on SPACE
+    // ============================================================
+    generate();
+
+    window.addEventListener('keydown', (e) => {
+      if (e.code === 'Space') {
+        e.preventDefault();
+        generate();
+      }
+    });
+
+    // ============================================================
+    // CLICK to download SVG
+    // ============================================================
+    svg.addEventListener('dblclick', () => {
+      const svgData = new XMLSerializer().serializeToString(svg);
+      const blob = new Blob([svgData], { type: 'image/svg+xml' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = 'generative-art.svg';
+      a.click();
+      URL.revokeObjectURL(url);
+    });
+  </script>
+
+</body>
+</html>

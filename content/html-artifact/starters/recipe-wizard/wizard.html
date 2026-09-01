@@ -1,0 +1,674 @@
+<!-- 
+  ============================================================
+  RECIPE / STEP-BY-STEP WIZARD STARTER
+  ============================================================
+  
+  WHAT THIS IS:
+  An interactive, progress-aware recipe or tutorial template.
+  The reader doesn't just read — they DO. Each step is a focused
+  action with context, timers, and checklists. This replaces
+  the "wall of text" recipe format with something you can actually
+  follow while your hands are covered in flour.
+  
+  USE THIS FOR:
+  - Recipes (cooking, baking, cocktails)
+  - Assembly instructions (IKEA furniture, tech setup)
+  - Tutorials (learn a new skill, step by step)
+  - Workflows (onboarding sequences, protocols)
+  - Any multi-step process where progress matters
+  
+  HOW TO CUSTOMIZE:
+  1. Find the `recipeData` object in the script block
+  2. Replace title, description, servings, totalTime
+  3. Replace the `ingredients` array with your items:
+     { amount: 2, unit: "cups", name: "flour" }
+  4. Replace the `steps` array:
+     { title: "Mix", body: "...", timer: 300, tip: "..." }
+     - timer is in seconds (300 = 5 min), or omit for no timer
+     - tip is optional — shown as a helpful callout
+  5. Adjust servings for auto-scaling ingredients
+  
+  CORE CONCEPTS:
+  - Alpine.js `x-data` holds all state (current step, checked items, notes)
+  - `stepsCompleted` tracks which steps are done
+  - `ingredientsChecked` tracks which ingredients are gathered
+  - Timer uses setInterval, cleans up properly
+  - `multiplier` scales ingredient amounts: display = amount * multiplier
+  - Print styles in @media print strip the interactive chrome
+  
+  GOTCHAS:
+  - Ingredient scaling: round to 1 decimal to avoid "1.33333 cups"
+  - Timer cleanup: clear interval on step change to avoid zombie timers
+  - Mobile: make sure step controls are thumb-friendly (big buttons)
+  - Print: @media print needs to show ALL steps, not just current one
+  
+  MORE DOCS:
+  - Alpine.js: https://alpinejs.dev/start-here
+  - Tailwind CSS: https://tailwindcss.com/docs
+  ============================================================
+-->
+<!DOCTYPE html>
+<html lang="en" class="scroll-smooth">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Homemade Fresh Pasta — Recipe Wizard</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Playfair+Display:ital,wght@0,700;1,400&display=swap" rel="stylesheet">
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            dark: { bg: '#0d1117', card: '#161b22', border: '#30363d', hover: '#1c2129' },
+            accent: { DEFAULT: '#58a6ff', dim: '#1f6feb', glow: 'rgba(88,166,255,0.15)' },
+            text: { primary: '#e6edf3', secondary: '#8b949e', muted: '#484f58' }
+          },
+          fontFamily: {
+            display: ['"Playfair Display"', 'Georgia', 'serif'],
+            body: ['Inter', 'system-ui', 'sans-serif']
+          }
+        }
+      }
+    }
+  </script>
+  <style>
+    [x-cloak] { display: none !important; }
+
+    body {
+      background-color: #0d1117;
+      color: #e6edf3;
+      font-family: 'Inter', system-ui, sans-serif;
+    }
+
+    /* Custom scrollbar */
+    ::-webkit-scrollbar { width: 6px; }
+    ::-webkit-scrollbar-track { background: #0d1117; }
+    ::-webkit-scrollbar-thumb { background: #30363d; border-radius: 3px; }
+    ::-webkit-scrollbar-thumb:hover { background: #484f58; }
+
+    /* Timer pulse animation */
+    @keyframes timerPulse {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0.6; }
+    }
+    .timer-active { animation: timerPulse 1s ease-in-out infinite; }
+
+    /* Completion confetti burst */
+    @keyframes confettiPop {
+      0% { transform: scale(0.5); opacity: 0; }
+      50% { transform: scale(1.15); }
+      100% { transform: scale(1); opacity: 1; }
+    }
+    .confetti-pop { animation: confettiPop 0.4s ease-out; }
+
+    /* Smooth step transitions */
+    .step-enter { animation: stepSlideIn 0.35s ease-out; }
+    @keyframes stepSlideIn {
+      from { opacity: 0; transform: translateY(12px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    /* Progress bar glow */
+    .progress-glow {
+      box-shadow: 0 0 12px rgba(88,166,255,0.4), 0 0 4px rgba(88,166,255,0.2);
+    }
+
+    /* Checkbox custom style */
+    .ingredient-check:checked + .check-label {
+      text-decoration: line-through;
+      opacity: 0.4;
+    }
+
+    /* Print styles */
+    @media print {
+      body { background: white !important; color: #111 !important; }
+      .dark-card { background: #f9f9f9 !important; border: 1px solid #ccc !important; box-shadow: none !important; }
+      .print-hide { display: none !important; }
+      .print-show { display: block !important; }
+      .no-print { display: none !important; }
+      .print-text-dark { color: #111 !important; }
+      .print-text-muted { color: #555 !important; }
+      .print-bg-white { background: white !important; }
+      .step-print-visible { display: block !important; opacity: 1 !important; }
+      .ingredient-check:checked + .check-label { text-decoration: none; opacity: 1; }
+      a { color: #111 !important; text-decoration: none !important; }
+      * { color: #111 !important; border-color: #ccc !important; }
+      .accent-colored { color: #1a5fb4 !important; }
+    }
+  </style>
+</head>
+
+<body class="min-h-screen" x-data="recipeWizard()" x-cloak>
+
+  <!-- ===== TOP NAV BAR ===== -->
+  <nav class="sticky top-0 z-50 bg-dark-bg/80 backdrop-blur-xl border-b border-dark-border print-hide">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 py-3 flex items-center justify-between">
+      <div class="flex items-center gap-3">
+        <span class="text-2xl">🍝</span>
+        <span class="font-display text-lg font-bold text-text-primary hidden sm:inline">Recipe Wizard</span>
+      </div>
+      <div class="flex items-center gap-3">
+        <button @click="print()" class="text-text-secondary hover:text-text-primary transition p-2 rounded-lg hover:bg-dark-card" title="Print recipe">
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z"/></svg>
+        </button>
+        <button @click="sidebarOpen = !sidebarOpen" class="lg:hidden text-text-secondary hover:text-text-primary transition p-2 rounded-lg hover:bg-dark-card">
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"/></svg>
+        </button>
+      </div>
+    </div>
+  </nav>
+
+  <!-- ===== PROGRESS BAR (global) ===== -->
+  <div class="sticky top-[57px] z-40 bg-dark-bg/60 backdrop-blur-sm border-b border-dark-border print-hide" style="top:57px">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 py-2">
+      <div class="flex items-center gap-4">
+        <div class="flex-1 h-2 bg-dark-card rounded-full overflow-hidden">
+          <div class="h-full bg-gradient-to-r from-accent-dim to-accent rounded-full transition-all duration-500 ease-out progress-glow"
+               :style="`width: ${progressPercent}%`"></div>
+        </div>
+        <span class="text-sm font-medium text-text-secondary whitespace-nowrap">
+          Step <span class="text-accent" x-text="currentStep + 1"></span> of <span x-text="steps.length"></span>
+        </span>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===== MAIN LAYOUT ===== -->
+  <div class="max-w-7xl mx-auto px-4 sm:px-6 py-8 lg:py-10">
+    <div class="flex flex-col lg:flex-row gap-8">
+
+      <!-- ===== MAIN CONTENT ===== -->
+      <main class="flex-1 min-w-0 space-y-8">
+
+        <!-- ===== RECIPE HEADER ===== -->
+        <header class="dark-card bg-dark-card rounded-2xl border border-dark-border p-6 sm:p-8">
+          <div class="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4">
+            <div class="flex-1">
+              <h1 class="font-display text-3xl sm:text-4xl font-bold text-text-primary leading-tight">
+                Homemade Fresh Pasta
+              </h1>
+              <p class="mt-3 text-text-secondary text-base leading-relaxed max-w-2xl">
+                Silky, tender, and impossibly satisfying — making pasta from scratch is one of cooking's great pleasures. 
+                All you need is flour, eggs, and a little patience. The result is leagues ahead of anything dried.
+              </p>
+            </div>
+            <span class="shrink-0 inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-sm font-semibold bg-amber-500/15 text-amber-400 border border-amber-500/20">
+              <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20"><path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"/></svg>
+              Intermediate
+            </span>
+          </div>
+
+          <!-- Meta badges -->
+          <div class="mt-6 flex flex-wrap gap-3">
+            <div class="flex items-center gap-2 px-3.5 py-2 rounded-xl bg-dark-bg border border-dark-border">
+              <svg class="w-4 h-4 text-accent" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+              <span class="text-sm"><span class="text-text-primary font-medium">1 hr 30 min</span> <span class="text-text-muted">total</span></span>
+            </div>
+            <div class="flex items-center gap-2 px-3.5 py-2 rounded-xl bg-dark-bg border border-dark-border">
+              <svg class="w-4 h-4 text-accent" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
+              <span class="text-sm"><span class="text-text-primary font-medium" x-text="baseServings * multiplier"></span> <span class="text-text-muted">servings</span></span>
+            </div>
+            <div class="flex items-center gap-2 px-3.5 py-2 rounded-xl bg-dark-bg border border-dark-border">
+              <svg class="w-4 h-4 text-accent" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/></svg>
+              <span class="text-sm"><span class="text-text-primary font-medium">45 min</span> <span class="text-text-muted">active</span></span>
+            </div>
+          </div>
+        </header>
+
+        <!-- ===== INGREDIENTS CARD ===== -->
+        <section class="dark-card bg-dark-card rounded-2xl border border-dark-border p-6 sm:p-8">
+          <div class="flex items-center justify-between mb-6">
+            <h2 class="font-display text-xl font-bold text-text-primary flex items-center gap-2">
+              <span class="text-lg">🧾</span> Ingredients
+            </h2>
+            <!-- Serving multiplier -->
+            <div class="flex items-center gap-1 bg-dark-bg rounded-xl border border-dark-border p-1 print-hide">
+              <button @click="multiplier = Math.max(0.5, multiplier - 0.5)"
+                      class="w-9 h-9 flex items-center justify-center rounded-lg text-text-secondary hover:text-text-primary hover:bg-dark-card transition text-lg font-bold leading-none">
+                −
+              </button>
+              <div class="px-3 text-sm font-semibold text-text-primary min-w-[3.5rem] text-center">
+                <span x-text="multiplier % 1 === 0 ? multiplier : multiplier.toFixed(1)"></span>×
+              </div>
+              <button @click="multiplier = Math.min(10, multiplier + 0.5)"
+                      class="w-9 h-9 flex items-center justify-center rounded-lg text-text-secondary hover:text-text-primary hover:bg-dark-card transition text-lg font-bold leading-none">
+                +
+              </button>
+            </div>
+          </div>
+
+          <div class="grid sm:grid-cols-2 gap-x-8 gap-y-1">
+            <template x-for="(ing, i) in ingredients" :key="i">
+              <label class="flex items-center gap-3 py-2.5 px-3 rounded-lg hover:bg-dark-bg/50 transition cursor-pointer group">
+                <input type="checkbox"
+                       class="ingredient-check sr-only"
+                       :id="'ing-' + i"
+                       x-model="ingredientsChecked[i]">
+                <span class="check-mark w-5 h-5 rounded-md border-2 flex items-center justify-center transition-all shrink-0"
+                      :class="ingredientsChecked[i] ? 'bg-accent border-accent' : 'border-dark-border group-hover:border-text-muted'"
+                      @click="ingredientsChecked[i] = !ingredientsChecked[i]">
+                  <svg x-show="ingredientsChecked[i]" class="w-3 h-3 text-dark-bg" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7"/></svg>
+                </span>
+                <span class="check-label text-sm transition-all"
+                      :class="ingredientsChecked[i] ? 'line-through text-text-muted' : 'text-text-primary'">
+                  <template x-if="ing.amount">
+                    <span class="font-medium">
+                      <span x-text="formatAmount(ing.amount * multiplier)"></span>
+                      <span x-text="ing.unit"></span>
+                    </span>
+                  </template>
+                  <span x-text="ing.name"></span>
+                </span>
+              </label>
+            </template>
+          </div>
+
+          <div class="mt-4 pt-4 border-t border-dark-border flex items-center justify-between print-hide">
+            <span class="text-xs text-text-muted">
+              <span x-text="ingredientsChecked.filter(Boolean).length"></span> of <span x-text="ingredients.length"></span> gathered
+            </span>
+            <button @click="ingredientsChecked = ingredientsChecked.map(() => false)"
+                    class="text-xs text-text-muted hover:text-accent transition">
+              Reset all
+            </button>
+          </div>
+        </section>
+
+        <!-- ===== STEP CARD ===== -->
+        <section class="dark-card bg-dark-card rounded-2xl border border-dark-border overflow-hidden print-hide">
+          <!-- Step header -->
+          <div class="p-6 sm:p-8 pb-0">
+            <div class="flex items-start gap-4">
+              <div class="w-11 h-11 rounded-xl flex items-center justify-center text-lg font-bold shrink-0 transition-colors"
+                   :class="stepsCompleted[currentStep] ? 'bg-emerald-500/20 text-emerald-400' : 'bg-accent/15 text-accent'">
+                <template x-if="stepsCompleted[currentStep]">
+                  <svg class="w-6 h-6 confetti-pop" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"/></svg>
+                </template>
+                <template x-if="!stepsCompleted[currentStep]">
+                  <span x-text="currentStep + 1"></span>
+                </template>
+              </div>
+              <div class="flex-1 min-w-0">
+                <h3 class="font-display text-xl sm:text-2xl font-bold text-text-primary" x-text="currentStepData.title"></h3>
+                <p class="mt-1 text-sm text-text-muted">Step <span x-text="currentStep + 1"></span> of <span x-text="steps.length"></span></p>
+              </div>
+            </div>
+          </div>
+
+          <!-- Step body -->
+          <div class="p-6 sm:p-8 step-enter" :key="currentStep">
+            <p class="text-text-secondary text-base leading-relaxed whitespace-pre-line" x-text="currentStepData.body"></p>
+
+            <!-- Timer -->
+            <template x-if="currentStepData.timer">
+              <div class="mt-6 p-4 rounded-xl border border-dark-border bg-dark-bg"
+                   :class="timerRunning ? 'border-accent/30' : ''">
+                <div class="flex items-center justify-between">
+                  <div class="flex items-center gap-3">
+                    <div class="w-10 h-10 rounded-lg flex items-center justify-center"
+                         :class="timerRunning ? 'bg-accent/20 timer-active' : 'bg-dark-card'">
+                      <svg class="w-5 h-5" :class="timerRunning ? 'text-accent' : 'text-text-muted'" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                    </div>
+                    <div>
+                      <div class="text-2xl font-bold font-mono"
+                           :class="timerSeconds === 0 && timerFinished ? 'text-emerald-400' : timerRunning ? 'text-accent' : 'text-text-primary'"
+                           x-text="formatTimer(timerSeconds)"></div>
+                      <div class="text-xs text-text-muted mt-0.5" x-text="timerFinished ? 'Timer complete!' : timerRunning ? 'Running...' : 'Countdown timer'"></div>
+                    </div>
+                  </div>
+                  <div class="flex gap-2">
+                    <template x-if="!timerRunning && !timerFinished">
+                      <button @click="startTimer()" class="px-4 py-2 rounded-lg bg-accent/15 text-accent hover:bg-accent/25 transition text-sm font-medium">
+                        Start
+                      </button>
+                    </template>
+                    <template x-if="timerRunning">
+                      <button @click="pauseTimer()" class="px-4 py-2 rounded-lg bg-amber-500/15 text-amber-400 hover:bg-amber-500/25 transition text-sm font-medium">
+                        Pause
+                      </button>
+                    </template>
+                    <template x-if="timerFinished || (timerSeconds < currentStepData.timer && !timerRunning)">
+                      <button @click="resetTimer()" class="px-4 py-2 rounded-lg bg-dark-card text-text-secondary hover:text-text-primary hover:bg-dark-hover transition text-sm font-medium">
+                        Reset
+                      </button>
+                    </template>
+                  </div>
+                </div>
+                <!-- Timer bar -->
+                <template x-if="currentStepData.timer">
+                  <div class="mt-3 h-1.5 bg-dark-card rounded-full overflow-hidden">
+                    <div class="h-full rounded-full transition-all duration-1000 ease-linear"
+                         :class="timerFinished ? 'bg-emerald-500' : 'bg-accent'"
+                         :style="`width: ${((timerSeconds / currentStepData.timer) * 100)}%`"></div>
+                  </div>
+                </template>
+              </div>
+            </template>
+
+            <!-- Tip -->
+            <template x-if="currentStepData.tip">
+              <div class="mt-6 p-4 rounded-xl bg-amber-500/8 border border-amber-500/15 flex gap-3">
+                <span class="text-lg shrink-0 mt-0.5">💡</span>
+                <div>
+                  <span class="text-sm font-semibold text-amber-400">Pro Tip</span>
+                  <p class="text-sm text-text-secondary mt-1" x-text="currentStepData.tip"></p>
+                </div>
+              </div>
+            </template>
+          </div>
+
+          <!-- Step controls -->
+          <div class="px-6 sm:px-8 pb-6 sm:pb-8">
+            <div class="flex items-center gap-3">
+              <button @click="prevStep()"
+                      :disabled="currentStep === 0"
+                      class="flex-1 sm:flex-none px-6 py-3 rounded-xl font-medium text-sm transition
+                             disabled:opacity-30 disabled:cursor-not-allowed
+                             bg-dark-bg border border-dark-border text-text-secondary hover:text-text-primary hover:border-text-muted">
+                ← Previous
+              </button>
+
+              <button @click="toggleStepComplete()"
+                      class="px-4 py-3 rounded-xl font-medium text-sm transition"
+                      :class="stepsCompleted[currentStep]
+                        ? 'bg-emerald-500/15 text-emerald-400 hover:bg-emerald-500/25 border border-emerald-500/25'
+                        : 'bg-dark-bg border border-dark-border text-text-secondary hover:text-text-primary hover:border-text-muted'">
+                <template x-if="stepsCompleted[currentStep]">
+                  <span>✓ Done</span>
+                </template>
+                <template x-if="!stepsCompleted[currentStep]">
+                  <span>Mark done</span>
+                </template>
+              </button>
+
+              <button @click="nextStep()"
+                      :disabled="currentStep === steps.length - 1"
+                      class="flex-1 sm:flex-none px-6 py-3 rounded-xl font-semibold text-sm transition
+                             disabled:opacity-30 disabled:cursor-not-allowed
+                             bg-accent text-dark-bg hover:bg-accent/90 shadow-lg shadow-accent/20">
+                Next Step →
+              </button>
+            </div>
+          </div>
+        </section>
+
+        <!-- ===== ALL STEPS (print view — hidden normally) ===== -->
+        <div class="print-show hidden">
+          <template x-for="(step, i) in steps" :key="'print-' + i">
+            <div class="mb-6 p-6 border border-gray-300 rounded-lg">
+              <h3 class="text-lg font-bold mb-2">
+                Step <span x-text="i + 1"></span>: <span x-text="step.title"></span>
+              </h3>
+              <p class="whitespace-pre-line text-sm" x-text="step.body"></p>
+              <template x-if="step.tip">
+                <p class="mt-2 text-sm italic" x-text="'Tip: ' + step.tip"></p>
+              </template>
+              <template x-if="step.timer">
+                <p class="mt-1 text-xs text-gray-500" x-text="'Timer: ' + formatTimer(step.timer)"></p>
+              </template>
+            </div>
+          </template>
+        </div>
+
+        <!-- ===== NOTES SECTION ===== -->
+        <section class="dark-card bg-dark-card rounded-2xl border border-dark-border p-6 sm:p-8">
+          <h2 class="font-display text-xl font-bold text-text-primary flex items-center gap-2 mb-4">
+            <span class="text-lg">📝</span> My Notes
+          </h2>
+          <textarea
+            x-model="notes"
+            placeholder="Jot down adjustments, timing tweaks, what worked, what didn't..."
+            class="w-full h-32 bg-dark-bg border border-dark-border rounded-xl p-4 text-sm text-text-primary placeholder-text-muted resize-y focus:outline-none focus:ring-2 focus:ring-accent/40 focus:border-accent/50 transition"
+          ></textarea>
+          <p class="mt-2 text-xs text-text-muted">Your notes stay in this session. Copy them somewhere safe to keep.</p>
+        </section>
+
+      </main>
+
+      <!-- ===== SIDEBAR — STEP MINIMAP ===== -->
+      <aside class="lg:w-72 shrink-0 print-hide"
+             :class="sidebarOpen ? 'fixed inset-0 z-50 bg-dark-bg/90 backdrop-blur-sm lg:bg-transparent lg:backdrop-blur-none lg:static lg:inset-auto' : 'hidden lg:block'"
+             @click.self="sidebarOpen = false">
+        <div class="lg:sticky lg:top-[120px] bg-dark-card rounded-2xl border border-dark-border p-5 lg:p-0 lg:bg-transparent lg:border-0"
+             :class="sidebarOpen ? 'mx-4 mt-20 max-w-sm' : ''">
+          <div class="flex items-center justify-between mb-4 lg:mb-4">
+            <h3 class="text-sm font-semibold text-text-muted uppercase tracking-wider">Steps</h3>
+            <button @click="sidebarOpen = false" class="lg:hidden text-text-muted hover:text-text-primary">
+              <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+            </button>
+          </div>
+          <div class="space-y-1.5">
+            <template x-for="(step, i) in steps" :key="'nav-' + i">
+              <button @click="goToStep(i); sidebarOpen = false"
+                      class="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-left text-sm transition group"
+                      :class="i === currentStep ? 'bg-accent/10 border border-accent/25' : 'hover:bg-dark-bg border border-transparent'">
+                <span class="w-7 h-7 rounded-lg flex items-center justify-center text-xs font-bold shrink-0 transition-colors"
+                      :class="stepsCompleted[i] ? 'bg-emerald-500/20 text-emerald-400' : i === currentStep ? 'bg-accent/20 text-accent' : 'bg-dark-border/50 text-text-muted'">
+                  <template x-if="stepsCompleted[i]">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"/></svg>
+                  </template>
+                  <template x-if="!stepsCompleted[i]">
+                    <span x-text="i + 1"></span>
+                  </template>
+                </span>
+                <span class="truncate transition-colors"
+                      :class="i === currentStep ? 'text-text-primary font-medium' : stepsCompleted[i] ? 'text-text-muted line-through' : 'text-text-secondary group-hover:text-text-primary'">
+                  <span x-text="step.title"></span>
+                </span>
+                <template x-if="step.timer">
+                  <svg class="w-3.5 h-3.5 text-text-muted ml-auto shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                </template>
+              </button>
+            </template>
+          </div>
+
+          <!-- Completion summary -->
+          <div class="mt-5 pt-4 border-t border-dark-border">
+            <div class="flex items-center gap-2 text-xs text-text-muted">
+              <div class="flex-1 h-1.5 bg-dark-bg rounded-full overflow-hidden">
+                <div class="h-full bg-emerald-500 rounded-full transition-all duration-500"
+                     :style="`width: ${completionPercent}%`"></div>
+              </div>
+              <span x-text="`${completedCount}/${steps.length}`"></span>
+            </div>
+            <template x-if="completedCount === steps.length">
+              <div class="mt-3 p-3 rounded-xl bg-emerald-500/10 border border-emerald-500/20 text-center confetti-pop">
+                <span class="text-2xl">🎉</span>
+                <p class="text-sm font-semibold text-emerald-400 mt-1">All done! Buon appetito!</p>
+              </div>
+            </template>
+          </div>
+        </div>
+      </aside>
+
+    </div>
+  </div>
+
+  <!-- ===== FOOTER ===== -->
+  <footer class="border-t border-dark-border mt-12 py-6 print-hide">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 text-center text-xs text-text-muted">
+      Recipe Wizard · Made with 🍝 and Alpine.js
+    </div>
+  </footer>
+
+  <!-- ===== ALPINE APP ===== -->
+  <script>
+    function recipeWizard() {
+      return {
+        // ── Recipe Data ──────────────────────────────────
+        baseServings: 4,
+        multiplier: 1,
+        notes: '',
+
+        ingredients: [
+          { amount: 2,    unit: 'cups',  name: '"00" flour (or all-purpose)' },
+          { amount: null, unit: '',      name: 'Semolina flour, for dusting' },
+          { amount: 3,    unit: '',      name: 'large eggs, room temperature' },
+          { amount: 1,    unit: '',      name: 'egg yolk' },
+          { amount: 1,    unit: 'tbsp',  name: 'extra-virgin olive oil' },
+          { amount: 1,    unit: 'tsp',   name: 'fine sea salt' },
+          { amount: null, unit: '',      name: 'Warm water (if needed, 1–2 tsp)' },
+          { amount: null, unit: '',      name: 'Semolina or flour for dusting' },
+          { amount: 2,    unit: 'tbsp',  name: 'butter (for serving)' },
+          { amount: null, unit: '',      name: 'Parmesan, freshly grated' },
+          { amount: null, unit: '',      name: 'Fresh cracked black pepper' },
+        ],
+
+        steps: [
+          {
+            title: 'Build the Flour Well',
+            body: 'Mound the flour on a large clean work surface or in a wide bowl. Create a deep well in the center — think volcano shape. The walls should be tall enough to hold the eggs.\n\nCrack the 3 whole eggs and 1 yolk into the well. Add the olive oil and salt.',
+            timer: null,
+            tip: 'A wooden board is ideal — it grips the flour better than marble or granite.'
+          },
+          {
+            title: 'Mix & Knead the Dough',
+            body: 'Using a fork, gently beat the eggs in the center while gradually pulling flour from the inner walls. Once a shaggy dough forms, set the fork aside and start kneading by hand.\n\nKnead firmly for 8–10 minutes until the dough is smooth, elastic, and springs back when poked. It should feel like Play-Doh — not sticky, not cracking.',
+            timer: 600,
+            tip: 'If the dough is too dry, wet your hands slightly. If too sticky, dust with a tablespoon of flour. Resist adding too much flour — the dough will hydrate as it rests.'
+          },
+          {
+            title: 'Rest the Dough',
+            body: 'Shape the dough into a smooth ball. Wrap tightly in plastic wrap (or cover with an inverted bowl). Let it rest at room temperature for 30 minutes.\n\nThis relaxes the gluten and makes rolling much easier. Don\'t skip this — impatient pasta is tough pasta.',
+            timer: 1800,
+            tip: 'While the dough rests, prep your sauce, clean up your workspace, and set a large pot of salted water on the stove.'
+          },
+          {
+            title: 'Roll Out the Sheets',
+            body: 'Divide the dough into 4 equal pieces. Keep unused portions covered.\n\nFlatten one piece into a thick rectangle. Using a rolling pin (or pasta machine), roll it as thin as possible — you want it almost translucent. If using a machine, start at the widest setting and work down to setting 6 or 7.\n\nDust with semolina between layers to prevent sticking.',
+            timer: null,
+            tip: 'Roll from center outward, rotating the dough 90° after every few passes. If it springs back, let it rest 5 more minutes.'
+          },
+          {
+            title: 'Cut Your Pasta',
+            body: 'Lightly flour the surface of the rolled sheet. Loosely roll the sheet into a flat log.\n\nUsing a sharp knife, cut across the roll:\n• Fettuccine: ¼ inch (6mm) wide\n• Tagliatelle: ⅓ inch (8mm) wide\n• Pappardelle: 1 inch (2.5cm) wide\n\nImmediately unfurl the cut noodles and toss with semolina. Arrange in loose nests on a floured tray.',
+            timer: null,
+            tip: 'A pizza wheel works surprisingly well for clean, straight cuts if your knife technique isn\'t confident yet.'
+          },
+          {
+            title: 'Cook & Serve',
+            body: 'Bring a large pot of generously salted water to a rolling boil (it should taste like the sea).\n\nDrop the fresh pasta in — it cooks fast! Stir gently and taste after 90 seconds. Fresh pasta is done when it floats and is tender but still has a slight bite. Usually 2–4 minutes.\n\nDrain, toss immediately with butter, a splash of pasta water, grated Parmesan, and black pepper. Serve at once.',
+            timer: 180,
+            tip: 'Save a cup of starchy pasta water before draining. It\'s liquid gold for sauces — the starch helps everything cling to the noodles.'
+          }
+        ],
+
+        // ── State ──────────────────────────────────────
+        currentStep: 0,
+        stepsCompleted: [],
+        ingredientsChecked: [],
+        sidebarOpen: false,
+
+        // Timer state
+        timerSeconds: 0,
+        timerRunning: false,
+        timerFinished: false,
+        timerInterval: null,
+
+        // ── Init ───────────────────────────────────────
+        init() {
+          this.stepsCompleted = this.steps.map(() => false);
+          this.ingredientsChecked = this.ingredients.map(() => false);
+          this.timerSeconds = this.currentStepData.timer || 0;
+        },
+
+        // ── Computed ───────────────────────────────────
+        get currentStepData() {
+          return this.steps[this.currentStep];
+        },
+        get progressPercent() {
+          return ((this.currentStep + 1) / this.steps.length) * 100;
+        },
+        get completionPercent() {
+          return (this.completedCount / this.steps.length) * 100;
+        },
+        get completedCount() {
+          return this.stepsCompleted.filter(Boolean).length;
+        },
+
+        // ── Navigation ─────────────────────────────────
+        goToStep(i) {
+          if (i < 0 || i >= this.steps.length) return;
+          this.clearTimerInterval();
+          this.currentStep = i;
+          this.timerSeconds = this.steps[i].timer || 0;
+          this.timerRunning = false;
+          this.timerFinished = false;
+          // Scroll to top of step card on mobile
+          window.scrollTo({ top: 200, behavior: 'smooth' });
+        },
+        nextStep() {
+          if (this.currentStep < this.steps.length - 1) {
+            this.goToStep(this.currentStep + 1);
+          }
+        },
+        prevStep() {
+          if (this.currentStep > 0) {
+            this.goToStep(this.currentStep - 1);
+          }
+        },
+        toggleStepComplete() {
+          this.stepsCompleted[this.currentStep] = !this.stepsCompleted[this.currentStep];
+        },
+
+        // ── Timer ──────────────────────────────────────
+        startTimer() {
+          if (this.timerFinished) return;
+          this.timerRunning = true;
+          this.timerInterval = setInterval(() => {
+            if (this.timerSeconds <= 0) {
+              this.clearTimerInterval();
+              this.timerRunning = false;
+              this.timerFinished = true;
+              return;
+            }
+            this.timerSeconds--;
+          }, 1000);
+        },
+        pauseTimer() {
+          this.clearTimerInterval();
+          this.timerRunning = false;
+        },
+        resetTimer() {
+          this.clearTimerInterval();
+          this.timerSeconds = this.currentStepData.timer || 0;
+          this.timerRunning = false;
+          this.timerFinished = false;
+        },
+        clearTimerInterval() {
+          if (this.timerInterval) {
+            clearInterval(this.timerInterval);
+            this.timerInterval = null;
+          }
+        },
+
+        // ── Helpers ────────────────────────────────────
+        formatTimer(totalSeconds) {
+          const m = Math.floor(totalSeconds / 60);
+          const s = totalSeconds % 60;
+          return `${m}:${s.toString().padStart(2, '0')}`;
+        },
+        formatAmount(val) {
+          if (val === null || val === undefined) return '';
+          // Nice fractions
+          const frac = val - Math.floor(val);
+          const whole = Math.floor(val);
+          if (frac === 0) return whole.toString();
+          if (Math.abs(frac - 0.25) < 0.01) return whole ? `${whole}¼` : '¼';
+          if (Math.abs(frac - 0.5) < 0.01)  return whole ? `${whole}½` : '½';
+          if (Math.abs(frac - 0.75) < 0.01) return whole ? `${whole}¾` : '¾';
+          if (Math.abs(frac - 0.33) < 0.02) return whole ? `${whole}⅓` : '⅓';
+          if (Math.abs(frac - 0.67) < 0.02) return whole ? `${whole}⅔` : '⅔';
+          // Round to 1 decimal
+          return Number.isInteger(val) ? val.toString() : val.toFixed(1);
+        }
+      };
+    }
+  </script>
+
+</body>
+</html>

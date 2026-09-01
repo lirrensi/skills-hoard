@@ -1,0 +1,12 @@
+%% Starter: service architecture
+C4Container
+    title Platform Containers
+
+    Person(user, "User")
+    Container(web, "Web App", "React", "Frontend")
+    Container(api, "API", "Node.js", "Backend")
+    ContainerDb(db, "Database", "PostgreSQL", "Storage")
+
+    Rel(user, web, "Uses", "HTTPS")
+    Rel(web, api, "Calls", "JSON/HTTPS")
+    Rel(api, db, "Reads/Writes", "SQL")

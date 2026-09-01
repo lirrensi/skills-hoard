@@ -1,0 +1,8 @@
+%% Starter: lifecycle state machine
+stateDiagram-v2
+    [*] --> Draft
+    Draft --> Review : Submit
+    Review --> Published : Approve
+    Review --> Draft : Reject
+    Published --> Archived : Retire
+    Archived --> [*]

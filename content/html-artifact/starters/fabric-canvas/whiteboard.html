@@ -1,0 +1,523 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Interactive Canvas</title>
+  <!--
+    ============================================================
+    FABRIC.JS STARTER — Interactive canvas with draggable objects
+    ============================================================
+
+    WHAT IT DOES:
+    Interactive canvas where you can drag, resize, rotate objects.
+    Drawing tools, shape creation, text editing. Think whiteboard
+    or design tool — NOT generative art (use p5 for that).
+
+    THIS STARTER: Whiteboard with shape tools, freehand drawing,
+    text, color picker, and export.
+
+    HOW TO CUSTOMIZE:
+    1. Add objects: canvas.add(new fabric.Rect({ ... }))
+    2. Handle selection: canvas.on('selection:created', fn)
+    3. Export: canvas.toJSON() for save, canvas.loadFromJSON() for load
+    4. Add custom tools by creating objects on canvas click
+
+    FABRIC.JS CORE API:
+
+    // Create canvas
+    const canvas = new fabric.Canvas('canvasId', {
+      backgroundColor: '#0f172a',
+      selection: true,       // allow multi-select
+      preserveObjectStacking: true,
+    });
+
+    // === OBJECTS ===
+    new fabric.Rect({ left, top, width, height, fill, stroke, strokeWidth, rx, ry, angle })
+    new fabric.Circle({ left, top, radius, fill, stroke, strokeWidth })
+    new fabric.Triangle({ left, top, width, height, fill, stroke })
+    new fabric.Line([x1, y1, x2, y2], { stroke, strokeWidth })
+    new fabric.Textbox('text', { left, top, width, fontSize, fontFamily, fill, editable: true })
+    new fabric.IText('text', { ... }) // inline-editable text (click to type)
+    new fabric.Path('M 0 0 L 100 100', { stroke, strokeWidth, fill: '' })
+    new fabric.Group([obj1, obj2], { left, top })
+
+    // === ADD/MODIFY ===
+    canvas.add(object)
+    canvas.remove(object)
+    canvas.clear()
+    canvas.renderAll()
+    object.set({ left: 100, fill: 'red' })
+    object.setCoords() // call after manual position changes
+
+    // === SELECTION ===
+    canvas.getActiveObject()    // single selected
+    canvas.getActiveObjects()   // multi-selected
+    canvas.discardActiveObject()
+    canvas.on('selection:created', (e) => { ... })
+    canvas.on('selection:updated', (e) => { ... })
+    canvas.on('selection:cleared', (e) => { ... })
+
+    // === EVENTS ===
+    canvas.on('mouse:down', (opt) => { opt.pointer, opt.target })
+    canvas.on('mouse:move', (opt) => { ... })
+    canvas.on('mouse:up', (opt) => { ... })
+    canvas.on('object:added', (e) => { ... })
+    canvas.on('object:modified', (e) => { ... })
+    canvas.on('object:removed', (e) => { ... })
+
+    // === DRAWING MODE ===
+    canvas.isDrawingMode = true/false
+    canvas.freeDrawingBrush.color = '#fff'
+    canvas.freeDrawingBrush.width = 3
+
+    // === LAYER ORDERING ===
+    canvas.sendToBack(object)
+    canvas.sendBackwards(object)
+    canvas.bringToFront(object)
+    canvas.bringForward(object)
+
+    // === GROUPING ===
+    const group = new fabric.ActiveSelection(canvas.getObjects(), { canvas });
+    canvas.setActiveObject(group);
+    canvas.requestRenderAll();
+
+    // === EXPORT/IMPORT ===
+    const json = canvas.toJSON()
+    const svg  = canvas.toSVG()
+    const dataURL = canvas.toDataURL({ format: 'png', quality: 1 })
+    canvas.loadFromJSON(json, () => canvas.renderAll())
+
+    // === CANVAS SIZING ===
+    canvas.setDimensions({ width: 800, height: 600 })
+    canvas.setWidth(800)
+    canvas.setHeight(600)
+
+    // === OBJECT PROPERTIES ===
+    object.left, object.top          — position
+    object.width, object.height      — dimensions (before scaling)
+    object.scaleX, object.scaleY     — scale factors
+    object.angle                     — rotation in degrees
+    object.opacity                   — 0 to 1
+    object.fill                      — fill color
+    object.stroke                    — stroke color
+    object.strokeWidth               — stroke width
+    object.visible                   — true/false
+    object.selectable                — true/false
+    object.evented                   — true/false (receives events)
+    object.lockMovementX/Y           — lock axis movement
+    object.lockRotation              — lock rotation
+    object.lockScalingX/Y            — lock scaling
+    object.hoverCursor               — cursor on hover ('move', 'pointer', etc.)
+
+    MORE DOCS: http://fabricjs.com/docs/
+
+    ============================================================
+  -->
+  <script src="https://cdn.jsdelivr.net/npm/fabric@6/dist/fabric.min.js"></script>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      background: #0f172a;
+      color: #e2e8f0;
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+      height: 100vh;
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+    }
+
+    /* Toolbar */
+    .toolbar {
+      display: flex;
+      align-items: center;
+      gap: 0.25rem;
+      padding: 0.5rem 1rem;
+      background: #1e293b;
+      border-bottom: 1px solid #334155;
+      flex-wrap: wrap;
+    }
+    .toolbar .sep {
+      width: 1px;
+      height: 24px;
+      background: #334155;
+      margin: 0 0.5rem;
+    }
+    .toolbar button {
+      padding: 0.4rem 0.65rem;
+      background: transparent;
+      border: 1px solid transparent;
+      border-radius: 6px;
+      color: #94a3b8;
+      cursor: pointer;
+      font-size: 0.85rem;
+      transition: all 0.15s;
+    }
+    .toolbar button:hover { background: #334155; color: #e2e8f0; }
+    .toolbar button.active { background: #3b82f6; color: #fff; border-color: #3b82f6; }
+    .toolbar input[type="color"] {
+      width: 28px; height: 28px;
+      border: 1px solid #334155;
+      border-radius: 4px;
+      cursor: pointer;
+      background: transparent;
+      padding: 0;
+    }
+    .toolbar input[type="range"] {
+      width: 80px;
+      accent-color: #3b82f6;
+    }
+    .toolbar .label {
+      font-size: 0.75rem;
+      color: #64748b;
+      margin: 0 0.25rem;
+    }
+
+    /* Canvas fills remaining space */
+    .canvas-wrap {
+      flex: 1;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      overflow: hidden;
+      background: #0a0a0a;
+    }
+    .canvas-wrap canvas {
+      box-shadow: 0 0 40px rgba(0,0,0,0.5);
+    }
+
+    /* Status bar */
+    .status-bar {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 0.35rem 1rem;
+      background: #1e293b;
+      border-top: 1px solid #334155;
+      font-size: 0.75rem;
+      color: #64748b;
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Toolbar -->
+  <div class="toolbar">
+    <!-- Tools -->
+    <button id="tool-select" class="active" onclick="setTool('select')" title="Select (V)">⬚ Select</button>
+    <button id="tool-draw" onclick="setTool('draw')" title="Draw (D)">✏️ Draw</button>
+    <div class="sep"></div>
+
+    <!-- Shapes -->
+    <button onclick="addRect()" title="Add Rectangle (R)">▬ Rect</button>
+    <button onclick="addCircle()" title="Add Circle (C)">◯ Circle</button>
+    <button onclick="addTriangle()" title="Add Triangle (T)">△ Tri</button>
+    <button onclick="addText()" title="Add Text (X)">T Text</button>
+    <div class="sep"></div>
+
+    <!-- Color & Size -->
+    <span class="label">Fill</span>
+    <input type="color" id="fillColor" value="#3b82f6" onchange="updateActiveColor()" />
+    <span class="label">Stroke</span>
+    <input type="color" id="strokeColor" value="#e2e8f0" onchange="updateActiveStroke()" />
+    <span class="label">Width</span>
+    <input type="range" id="strokeWidth" min="1" max="20" value="2" oninput="updateActiveStrokeWidth()" />
+    <div class="sep"></div>
+
+    <!-- Brush -->
+    <span class="label">Brush</span>
+    <input type="color" id="brushColor" value="#e2e8f0" onchange="updateBrush()" />
+    <input type="range" id="brushSize" min="1" max="30" value="3" oninput="updateBrush()" />
+    <div class="sep"></div>
+
+    <!-- Actions -->
+    <button onclick="bringForward()" title="Bring Forward">↑</button>
+    <button onclick="sendBackward()" title="Send Backward">↓</button>
+    <button onclick="deleteSelected()" title="Delete (Del)">🗑️</button>
+    <div class="sep"></div>
+    <button onclick="clearAll()" title="Clear All">Clear</button>
+    <button onclick="exportPNG()" title="Export PNG">Export PNG</button>
+    <button onclick="saveJSON()" title="Save">Save</button>
+    <button onclick="loadJSON()" title="Load">Load</button>
+  </div>
+
+  <!-- Canvas -->
+  <div class="canvas-wrap">
+    <canvas id="c"></canvas>
+  </div>
+
+  <!-- Status -->
+  <div class="status-bar">
+    <span id="status">Ready</span>
+    <span id="objCount">0 objects</span>
+  </div>
+
+  <script>
+    // ============================================================
+    // CANVAS INIT
+    // ============================================================
+    const canvas = new fabric.Canvas('c', {
+      width: 1000,
+      height: 650,
+      backgroundColor: '#0f172a',
+      selection: true,
+      preserveObjectStacking: true,
+    });
+
+    let currentTool = 'select';
+
+    // ============================================================
+    // TOOL SWITCHING
+    // ============================================================
+    function setTool(tool) {
+      currentTool = tool;
+
+      // Update UI
+      document.querySelectorAll('.toolbar button[id^="tool-"]').forEach(b => b.classList.remove('active'));
+      document.getElementById(`tool-${tool}`).classList.add('active');
+
+      if (tool === 'draw') {
+        canvas.isDrawingMode = true;
+        updateBrush();
+        setStatus('Drawing mode — click and drag to draw');
+      } else {
+        canvas.isDrawingMode = false;
+        setStatus('Select mode — click objects to select, drag to move');
+      }
+    }
+
+    function updateBrush() {
+      canvas.freeDrawingBrush.color = document.getElementById('brushColor').value;
+      canvas.freeDrawingBrush.width = parseInt(document.getElementById('brushSize').value);
+    }
+
+    // ============================================================
+    // ADD SHAPES
+    // ============================================================
+    function addRect() {
+      const rect = new fabric.Rect({
+        left: 100 + Math.random() * 300,
+        top: 100 + Math.random() * 200,
+        width: 120,
+        height: 80,
+        fill: document.getElementById('fillColor').value,
+        stroke: document.getElementById('strokeColor').value,
+        strokeWidth: parseInt(document.getElementById('strokeWidth').value),
+        rx: 4, ry: 4, // rounded corners
+        cornerStyle: 'circle',
+        cornerColor: '#3b82f6',
+        cornerSize: 10,
+        transparentCorners: false,
+      });
+      canvas.add(rect);
+      canvas.setActiveObject(rect);
+      setStatus('Added rectangle');
+    }
+
+    function addCircle() {
+      const circle = new fabric.Circle({
+        left: 150 + Math.random() * 300,
+        top: 100 + Math.random() * 200,
+        radius: 50,
+        fill: document.getElementById('fillColor').value,
+        stroke: document.getElementById('strokeColor').value,
+        strokeWidth: parseInt(document.getElementById('strokeWidth').value),
+        cornerStyle: 'circle',
+        cornerColor: '#3b82f6',
+        cornerSize: 10,
+        transparentCorners: false,
+      });
+      canvas.add(circle);
+      canvas.setActiveObject(circle);
+      setStatus('Added circle');
+    }
+
+    function addTriangle() {
+      const tri = new fabric.Triangle({
+        left: 150 + Math.random() * 300,
+        top: 100 + Math.random() * 200,
+        width: 100,
+        height: 87,
+        fill: document.getElementById('fillColor').value,
+        stroke: document.getElementById('strokeColor').value,
+        strokeWidth: parseInt(document.getElementById('strokeWidth').value),
+        cornerStyle: 'circle',
+        cornerColor: '#3b82f6',
+        cornerSize: 10,
+        transparentCorners: false,
+      });
+      canvas.add(tri);
+      canvas.setActiveObject(tri);
+      setStatus('Added triangle');
+    }
+
+    function addText() {
+      const text = new fabric.IText('Double-click to edit', {
+        left: 150 + Math.random() * 300,
+        top: 150 + Math.random() * 200,
+        fontSize: 24,
+        fontFamily: '-apple-system, sans-serif',
+        fill: document.getElementById('fillColor').value,
+        cornerStyle: 'circle',
+        cornerColor: '#3b82f6',
+        cornerSize: 10,
+        transparentCorners: false,
+      });
+      canvas.add(text);
+      canvas.setActiveObject(text);
+      setStatus('Added text — double-click to edit');
+    }
+
+    // ============================================================
+    // ACTIVE OBJECT UPDATES
+    // ============================================================
+    function updateActiveColor() {
+      const obj = canvas.getActiveObject();
+      if (obj) {
+        obj.set('fill', document.getElementById('fillColor').value);
+        canvas.requestRenderAll();
+      }
+    }
+
+    function updateActiveStroke() {
+      const obj = canvas.getActiveObject();
+      if (obj) {
+        obj.set('stroke', document.getElementById('strokeColor').value);
+        canvas.requestRenderAll();
+      }
+    }
+
+    function updateActiveStrokeWidth() {
+      const obj = canvas.getActiveObject();
+      if (obj) {
+        obj.set('strokeWidth', parseInt(document.getElementById('strokeWidth').value));
+        canvas.requestRenderAll();
+      }
+    }
+
+    // ============================================================
+    // LAYER ORDERING
+    // ============================================================
+    function bringForward() {
+      const obj = canvas.getActiveObject();
+      if (obj) { canvas.bringForward(obj); setStatus('Brought forward'); }
+    }
+
+    function sendBackward() {
+      const obj = canvas.getActiveObject();
+      if (obj) { canvas.sendBackwards(obj); setStatus('Sent backward'); }
+    }
+
+    // ============================================================
+    // DELETE
+    // ============================================================
+    function deleteSelected() {
+      const active = canvas.getActiveObjects();
+      if (active.length) {
+        active.forEach(obj => canvas.remove(obj));
+        canvas.discardActiveObject();
+        setStatus(`Deleted ${active.length} object(s)`);
+      }
+    }
+
+    // ============================================================
+    // CLEAR
+    // ============================================================
+    function clearAll() {
+      if (confirm('Clear everything?')) {
+        canvas.clear();
+        canvas.backgroundColor = '#0f172a';
+        canvas.renderAll();
+        setStatus('Canvas cleared');
+      }
+    }
+
+    // ============================================================
+    // EXPORT
+    // ============================================================
+    function exportPNG() {
+      const dataURL = canvas.toDataURL({ format: 'png', multiplier: 2 });
+      const a = document.createElement('a');
+      a.href = dataURL;
+      a.download = 'canvas.png';
+      a.click();
+      setStatus('Exported as PNG');
+    }
+
+    // ============================================================
+    // SAVE / LOAD (JSON)
+    // ============================================================
+    function saveJSON() {
+      const json = JSON.stringify(canvas.toJSON());
+      localStorage.setItem('fabric-canvas', json);
+      setStatus('Saved to browser storage');
+    }
+
+    function loadJSON() {
+      const json = localStorage.getItem('fabric-canvas');
+      if (json) {
+        canvas.loadFromJSON(json, () => {
+          canvas.renderAll();
+          setStatus('Loaded from storage');
+        });
+      } else {
+        setStatus('No saved data found');
+      }
+    }
+
+    // ============================================================
+    // KEYBOARD SHORTCUTS
+    // ============================================================
+    window.addEventListener('keydown', (e) => {
+      // Don't intercept when editing text
+      if (canvas.getActiveObject()?.isEditing) return;
+
+      switch (e.key) {
+        case 'Delete':
+        case 'Backspace':
+          e.preventDefault();
+          deleteSelected();
+          break;
+        case 'v': case 'V': setTool('select'); break;
+        case 'd': case 'D': setTool('draw'); break;
+        case 'r': case 'R': addRect(); break;
+        case 'c': case 'C': if (!e.ctrlKey && !e.metaKey) addCircle(); break;
+        case 't': case 'T': addTriangle(); break;
+        case 'x': case 'X': addText(); break;
+        case 'Escape':
+          canvas.discardActiveObject();
+          canvas.requestRenderAll();
+          break;
+      }
+    });
+
+    // ============================================================
+    // STATUS & COUNT
+    // ============================================================
+    function setStatus(msg) {
+      document.getElementById('status').textContent = msg;
+    }
+
+    canvas.on('object:added', updateCount);
+    canvas.on('object:removed', updateCount);
+
+    function updateCount() {
+      document.getElementById('objCount').textContent = `${canvas.getObjects().length} objects`;
+    }
+
+    // ============================================================
+    // SELECTION FEEDBACK
+    // ============================================================
+    canvas.on('selection:created', (e) => {
+      const obj = e.selected[0];
+      const type = obj.type;
+      setStatus(`Selected: ${type} at (${Math.round(obj.left)}, ${Math.round(obj.top)})`);
+    });
+
+    canvas.on('selection:cleared', () => {
+      setStatus('No selection');
+    });
+  </script>
+
+</body>
+</html>

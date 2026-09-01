@@ -1,0 +1,208 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>{{TITLE}}</title>
+  <style>
+    :root {
+      --bg: #0b1020;
+      --panel: #121a31;
+      --border: rgba(255,255,255,0.1);
+      --text: #ecf2ff;
+      --muted: #b8c3e0;
+      --accent: #7dd3fc;
+      --accent-2: #a78bfa;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      font: 15px/1.45 Inter, ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, sans-serif;
+      color: var(--text);
+      background:
+        radial-gradient(circle at top right, rgba(125,211,252,0.12), transparent 28%),
+        radial-gradient(circle at top left, rgba(167,139,250,0.12), transparent 28%),
+        var(--bg);
+    }
+    .app {
+      height: 100vh;
+      display: grid;
+      grid-template-columns: minmax(320px, 460px) 1fr;
+      gap: 16px;
+      padding: 16px;
+    }
+    .panel {
+      background: rgba(255,255,255,0.04);
+      border: 1px solid var(--border);
+      border-radius: 20px;
+      overflow: hidden;
+      box-shadow: 0 20px 60px rgba(0,0,0,0.22);
+      min-height: 0;
+    }
+    .left {
+      display: grid;
+      grid-template-rows: auto auto 1fr auto;
+    }
+    .head {
+      padding: 18px 18px 10px;
+    }
+    .head h1 {
+      margin: 0 0 8px;
+      font-size: 1.2rem;
+    }
+    .head p {
+      margin: 0;
+      color: var(--muted);
+    }
+    .actions {
+      display: flex;
+      gap: 10px;
+      padding: 12px 18px;
+      border-top: 1px solid var(--border);
+      border-bottom: 1px solid var(--border);
+      flex-wrap: wrap;
+    }
+    button {
+      appearance: none;
+      border: 1px solid var(--border);
+      background: linear-gradient(180deg, rgba(255,255,255,0.08), rgba(255,255,255,0.04));
+      color: var(--text);
+      padding: 10px 14px;
+      border-radius: 12px;
+      cursor: pointer;
+      font-weight: 600;
+    }
+    button:hover { transform: translateY(-1px); }
+    .primary {
+      border-color: rgba(125,211,252,0.35);
+      box-shadow: inset 0 1px 0 rgba(255,255,255,0.05), 0 0 0 1px rgba(125,211,252,0.08);
+    }
+    textarea {
+      width: 100%;
+      height: 100%;
+      resize: none;
+      border: 0;
+      outline: none;
+      background: transparent;
+      color: #dbeafe;
+      padding: 18px;
+      font: 14px/1.55 ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+    }
+    .tip {
+      padding: 12px 18px 16px;
+      color: var(--muted);
+      border-top: 1px solid var(--border);
+      font-size: 0.92rem;
+    }
+    .viewer {
+      position: relative;
+      min-height: 0;
+    }
+    .markmap {
+      position: absolute;
+      inset: 0;
+    }
+    .markmap > svg {
+      width: 100%;
+      height: 100%;
+    }
+    @media (max-width: 920px) {
+      .app { grid-template-columns: 1fr; grid-template-rows: 48vh 1fr; }
+    }
+  </style>
+  <script>
+    window.markmap = {
+      autoLoader: {
+        manual: true,
+        toolbar: true,
+      },
+    };
+  </script>
+  <script src="https://cdn.jsdelivr.net/npm/markmap-autoloader@latest"></script>
+</head>
+<body>
+  <div class="app">
+    <section class="panel left">
+      <div class="head">
+        <h1>{{TITLE}}</h1>
+        <p>{{DESCRIPTION}}</p>
+      </div>
+      <div class="actions">
+        <button class="primary" id="renderBtn">Render</button>
+        <button id="sampleBtn">Load sample</button>
+        <button id="clearBtn">Clear</button>
+      </div>
+      <textarea id="editor" spellcheck="false">{{INITIAL_MARKDOWN}}</textarea>
+      <div class="tip">Tip: use one <code>#</code> root title, then <code>##</code> branches, then bullets for details.</div>
+    </section>
+
+    <section class="panel viewer">
+      <div class="markmap" id="mapHost"></div>
+    </section>
+  </div>
+
+  <script>
+    const sample = `---
+markmap:
+  colorFreezeLevel: 2
+  initialExpandLevel: 2
+  maxWidth: 260
+  spacingHorizontal: 100
+---
+
+# Product Strategy
+## Goals
+- Validate market demand
+- Reach first 100 beta users
+- Shorten onboarding time
+## Audience
+- Designers
+- Product managers
+- Small agencies
+## Features
+- Browser-ready mind maps
+- Fast regeneration
+- Shareable HTML output
+## Risks
+- Too much source detail
+- Weak hierarchy
+- Scope creep
+## Next Actions
+- Create landing page
+- Interview 10 users
+- Review onboarding flow`;
+
+    const editor = document.getElementById('editor');
+    const mapHost = document.getElementById('mapHost');
+
+    function safeTemplateText(text) {
+      return text.replace(/<\/script/gi, '<\\/script');
+    }
+
+    function renderMarkmap(markdown) {
+      mapHost.innerHTML = '';
+      const tpl = document.createElement('script');
+      tpl.type = 'text/template';
+      tpl.text = safeTemplateText(markdown.trim() || '# Empty map');
+      mapHost.appendChild(tpl);
+      window.markmap.autoLoader.renderAll();
+    }
+
+    document.getElementById('renderBtn').addEventListener('click', () => {
+      renderMarkmap(editor.value);
+    });
+
+    document.getElementById('sampleBtn').addEventListener('click', () => {
+      editor.value = sample;
+      renderMarkmap(editor.value);
+    });
+
+    document.getElementById('clearBtn').addEventListener('click', () => {
+      editor.value = '';
+      renderMarkmap('# Empty map');
+    });
+
+    renderMarkmap(editor.value || sample);
+  </script>
+</body>
+</html>

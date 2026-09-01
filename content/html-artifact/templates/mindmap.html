@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>{{TITLE}}</title>
+<style>
+  :root { --bg: #ffffff; --fg: #1a1a2e; --muted: #6b7280; }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: 'Segoe UI', system-ui, sans-serif;
+    background: var(--bg);
+    color: var(--fg);
+    padding: 2rem;
+    min-height: 100vh;
+  }
+  h1 { font-size: 1.4rem; margin-bottom: 2rem; font-weight: 600; text-align: center; }
+  .mindmap {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 0;
+    max-width: 1200px;
+    margin: 0 auto;
+  }
+  .center-node {
+    background: #1e40af;
+    color: #fff;
+    padding: 16px 28px;
+    border-radius: 12px;
+    font-size: 1.1rem;
+    font-weight: 700;
+    text-align: center;
+    box-shadow: 0 4px 12px rgba(30,64,175,0.3);
+    flex-shrink: 0;
+  }
+  .branches {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+    padding: 0 1.5rem;
+  }
+  .branch {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+  }
+  .branch-node {
+    padding: 8px 16px;
+    border-radius: 8px;
+    font-size: 0.9rem;
+    font-weight: 600;
+    white-space: nowrap;
+  }
+  .branch-line {
+    width: 24px;
+    height: 2px;
+    flex-shrink: 0;
+  }
+  .leaves {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+  }
+  .leaf {
+    padding: 6px 12px;
+    border-radius: 6px;
+    font-size: 0.85rem;
+    border-left: 3px solid;
+    background: #f9fafb;
+  }
+  /* Color variants */
+  .c-blue .branch-node { background: #dbeafe; color: #1e40af; }
+  .c-blue .branch-line { background: #93c5fd; }
+  .c-blue .leaf { border-color: #3b82f6; }
+  .c-green .branch-node { background: #dcfce7; color: #166534; }
+  .c-green .branch-line { background: #86efac; }
+  .c-green .leaf { border-color: #22c55e; }
+  .c-orange .branch-node { background: #ffedd5; color: #9a3412; }
+  .c-orange .branch-line { background: #fdba74; }
+  .c-orange .leaf { border-color: #f97316; }
+  .c-purple .branch-node { background: #f3e8ff; color: #6b21a8; }
+  .c-purple .branch-line { background: #d8b4fe; }
+  .c-purple .leaf { border-color: #a855f7; }
+  .c-red .branch-node { background: #fef2f2; color: #991b1b; }
+  .c-red .branch-line { background: #fca5a5; }
+  .c-red .leaf { border-color: #ef4444; }
+  .c-teal .branch-node { background: #ccfbf1; color: #115e59; }
+  .c-teal .branch-line { background: #5eead4; }
+  .c-teal .leaf { border-color: #14b8a6; }
+</style>
+</head>
+<body>
+<h1>{{TITLE}}</h1>
+<div class="mindmap">
+  <div class="branches">
+{{LEFT_BRANCHES}}
+  </div>
+  <div class="center-node">{{CENTER}}</div>
+  <div class="branches">
+{{RIGHT_BRANCHES}}
+  </div>
+</div>
+</body>
+</html>

@@ -1,0 +1,244 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Generative Art</title>
+  <!--
+    ============================================================
+    P5.JS STARTER — Generative art, simulations, visual experiments
+    ============================================================
+
+    WHAT IT DOES:
+    Creative coding canvas with p5.js. Draw shapes, animate particles,
+    create patterns, simulate physics, generate art procedurally.
+
+    THIS STARTER: Flowing particle system with connections.
+    Particles drift, connect when close, respond to mouse.
+
+    HOW TO CUSTOMIZE:
+    1. Change canvas size: createCanvas(w, h)
+    2. Change particle count: NUM_PARTICLES
+    3. Change colors: use color() or hex strings
+    4. Change behavior: modify Particle class update() method
+    5. Add your own shapes in draw()
+
+    P5.JS CORE FUNCTIONS (global mode):
+    setup()       — runs once at start, create canvas here
+    draw()        — runs every frame (60fps), animate here
+    createCanvas(w, h) — create the drawing surface
+    background(r, g, b) — clear canvas with color
+    fill(r, g, b, a) — set fill color
+    stroke(r, g, b) — set stroke color
+    noFill() / noStroke() — disable fill/stroke
+    ellipse(x, y, w, h) — draw circle/oval
+    rect(x, y, w, h) — draw rectangle
+    line(x1, y1, x2, y2) — draw line
+    point(x, y) — draw point
+    triangle(x1,y1, x2,y2, x3,y3) — draw triangle
+    beginShape()/vertex(x,y)/endShape() — custom shapes
+    translate(x, y) — move origin
+    rotate(angle) — rotate canvas
+    scale(s) — scale canvas
+    push() / pop() — save/restore transform state
+    noise(x, y, z) — Perlin noise (smooth randomness)
+    random(min, max) — random number
+    map(value, start1, stop1, start2, stop2) — remap range
+    dist(x1, y1, x2, y2) — distance between points
+    constrain(val, min, max) — clamp value
+    lerp(start, stop, amt) — linear interpolation
+    sin(angle) / cos(angle) — trig functions
+    frameCount — number of frames since start
+    mouseX / mouseY — current mouse position
+    width / height — canvas dimensions
+    mousePressed() — function called on mouse click
+    keyPressed() — function called on key press
+
+    DRAWING MODES:
+    rectMode(CENTER) — draw rects from center
+    ellipseMode(CENTER) — draw ellipses from center
+    colorMode(HSB) — use hue/saturation/brightness
+
+    BLEND MODES:
+    blendMode(ADD) — additive blending (glowing)
+    blendMode(BLEND) — normal blending
+
+    MORE DOCS: https://p5js.org/reference/
+
+    ============================================================
+  -->
+  <script src="https://cdn.jsdelivr.net/npm/p5@1/lib/p5.min.js"></script>
+  <style>
+    * { margin: 0; padding: 0; }
+    body {
+      background: #000;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      min-height: 100vh;
+      overflow: hidden;
+    }
+    canvas { display: block; }
+    .info {
+      position: fixed;
+      bottom: 1rem;
+      left: 50%;
+      transform: translateX(-50%);
+      color: #555;
+      font-family: monospace;
+      font-size: 0.75rem;
+    }
+  </style>
+</head>
+<body>
+  <div class="info">move mouse · click to burst · press R to reset</div>
+
+  <script>
+    // ============================================================
+    // CONFIG — adjust these to change the feel
+    // ============================================================
+    const NUM_PARTICLES = 150;
+    const CONNECTION_DIST = 120;
+    const PARTICLE_SPEED = 0.8;
+    const NOISE_SCALE = 0.003;
+    const NOISE_STRENGTH = 2;
+
+    // ============================================================
+    // PARTICLE CLASS
+    // ============================================================
+    class Particle {
+      constructor() {
+        this.pos = createVector(random(width), random(height));
+        this.vel = p5.Vector.random2D().mult(PARTICLE_SPEED);
+        this.acc = createVector(0, 0);
+        this.size = random(2, 5);
+        this.hue = random(360);
+        this.life = 1;
+      }
+
+      update() {
+        // Perlin noise flow field
+        let n = noise(this.pos.x * NOISE_SCALE, this.pos.y * NOISE_SCALE, frameCount * 0.003);
+        let angle = n * TWO_PI * 4;
+        let force = p5.Vector.fromAngle(angle).mult(NOISE_STRENGTH * 0.1);
+        this.acc.add(force);
+
+        // Mouse attraction/repulsion
+        let mouse = createVector(mouseX, mouseY);
+        let dir = p5.Vector.sub(mouse, this.pos);
+        let dist = dir.mag();
+        if (dist < 200 && dist > 0) {
+          dir.normalize().mult(0.5 / (dist * 0.01));
+          this.acc.add(dir); // attract — use .sub() to repel
+        }
+
+        // Physics
+        this.vel.add(this.acc);
+        this.vel.limit(PARTICLE_SPEED * 2);
+        this.pos.add(this.vel);
+        this.acc.mult(0);
+
+        // Wrap edges
+        if (this.pos.x < 0) this.pos.x = width;
+        if (this.pos.x > width) this.pos.x = 0;
+        if (this.pos.y < 0) this.pos.y = height;
+        if (this.pos.y > height) this.pos.y = 0;
+
+        // Slowly shift hue
+        this.hue = (this.hue + 0.2) % 360;
+      }
+
+      draw() {
+        noStroke();
+        colorMode(HSB, 360, 100, 100, 100);
+        fill(this.hue, 80, 90, 80);
+        ellipse(this.pos.x, this.pos.y, this.size);
+        colorMode(RGB, 255);
+      }
+    }
+
+    // ============================================================
+    // GLOBALS
+    // ============================================================
+    let particles = [];
+
+    // ============================================================
+    // SETUP — runs once
+    // ============================================================
+    function setup() {
+      createCanvas(windowWidth, windowHeight);
+      for (let i = 0; i < NUM_PARTICLES; i++) {
+        particles.push(new Particle());
+      }
+    }
+
+    // ============================================================
+    // DRAW — runs every frame
+    // This is where the magic happens. Customize this function.
+    // ============================================================
+    function draw() {
+      // Semi-transparent background creates trails
+      background(0, 0, 0, 25);
+
+      // Update and draw particles
+      for (let p of particles) {
+        p.update();
+        p.draw();
+      }
+
+      // Draw connections between nearby particles
+      stroke(255, 255, 255, 15);
+      strokeWeight(0.5);
+      for (let i = 0; i < particles.length; i++) {
+        for (let j = i + 1; j < particles.length; j++) {
+          let d = dist(
+            particles[i].pos.x, particles[i].pos.y,
+            particles[j].pos.x, particles[j].pos.y
+          );
+          if (d < CONNECTION_DIST) {
+            let alpha = map(d, 0, CONNECTION_DIST, 40, 0);
+            stroke(255, 255, 255, alpha);
+            line(
+              particles[i].pos.x, particles[i].pos.y,
+              particles[j].pos.x, particles[j].pos.y
+            );
+          }
+        }
+      }
+    }
+
+    // ============================================================
+    // INTERACTIONS
+    // ============================================================
+    function mousePressed() {
+      // Burst: push particles away from click
+      let click = createVector(mouseX, mouseY);
+      for (let p of particles) {
+        let dir = p5.Vector.sub(p.pos, click);
+        let d = dir.mag();
+        if (d < 250) {
+          dir.normalize().mult(map(d, 0, 250, 8, 1));
+          p.vel.add(dir);
+        }
+      }
+    }
+
+    function keyPressed() {
+      if (key === 'r' || key === 'R') {
+        particles = [];
+        for (let i = 0; i < NUM_PARTICLES; i++) {
+          particles.push(new Particle());
+        }
+      }
+    }
+
+    // ============================================================
+    // RESIZE
+    // ============================================================
+    function windowResized() {
+      resizeCanvas(windowWidth, windowHeight);
+    }
+  </script>
+
+</body>
+</html>

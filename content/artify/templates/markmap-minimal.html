@@ -1,0 +1,94 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>{{TITLE}}</title>
+  <style>
+    :root {
+      --bg: #f6fbf7;
+      --ink: #17332a;
+      --muted: #527265;
+      --line: rgba(23, 51, 42, 0.10);
+      --panel: rgba(255,255,255,0.82);
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      color: var(--ink);
+      background:
+        radial-gradient(circle at top right, rgba(70, 155, 120, 0.12), transparent 28%),
+        radial-gradient(circle at top left, rgba(202, 164, 76, 0.10), transparent 22%),
+        linear-gradient(180deg, #f8fcf8, #edf6ef);
+      font: 16px/1.5 "Trebuchet MS", Verdana, sans-serif;
+    }
+    .shell {
+      min-height: 100vh;
+      padding: 22px;
+      display: grid;
+      grid-template-rows: auto 1fr;
+      gap: 18px;
+    }
+    .hero {
+      background: var(--panel);
+      border: 1px solid var(--line);
+      border-radius: 24px;
+      padding: 18px 20px;
+      box-shadow: 0 20px 60px rgba(33, 74, 55, 0.08);
+    }
+    h1 {
+      margin: 0 0 4px;
+      font-size: 1.4rem;
+      line-height: 1.1;
+    }
+    p {
+      margin: 0;
+      color: var(--muted);
+    }
+    .markmap-wrap {
+      min-height: 0;
+      background: var(--panel);
+      border: 1px solid var(--line);
+      border-radius: 24px;
+      overflow: hidden;
+      box-shadow: 0 20px 60px rgba(33, 74, 55, 0.08);
+    }
+    .markmap {
+      height: calc(100vh - 140px);
+    }
+    .markmap > svg {
+      width: 100%;
+      height: 100%;
+    }
+    @media (max-width: 720px) {
+      .markmap {
+        height: calc(100vh - 170px);
+      }
+    }
+  </style>
+  <script>
+    window.markmap = {
+      autoLoader: {
+        toolbar: true
+      }
+    };
+  </script>
+  <script src="https://cdn.jsdelivr.net/npm/markmap-autoloader@latest"></script>
+</head>
+<body>
+  <div class="shell">
+    <section class="hero">
+      <h1>{{TITLE}}</h1>
+      <p>Open, pan, zoom, and inspect the map. Replace the embedded Markdown to regenerate the view.</p>
+    </section>
+
+    <section class="markmap-wrap">
+      <div class="markmap">
+        <script type="text/template">
+{{INITIAL_MARKDOWN}}
+        </script>
+      </div>
+    </section>
+  </div>
+</body>
+</html>
