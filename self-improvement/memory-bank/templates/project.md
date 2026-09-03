@@ -6,6 +6,7 @@ memory_type: project
 tags: [domain, topic, status]
 status: active
 confidence: certain
+version: 1
 related: []
 aliases: []
 source: ""

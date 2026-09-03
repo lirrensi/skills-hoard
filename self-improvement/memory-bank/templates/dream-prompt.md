@@ -15,11 +15,12 @@ Then:
 - review the unprocessed material
 - extract meaningful events into `episodic` memory when appropriate
 - update `semantic` memory with durable truths, preferences, state, and constraints
-- update `procedural` memory with reusable workflows, rules, and behavior guidance
+- update `procedural` memory with reusable workflows, rules, and behavior guidance, marking `reuse: once|often` (`often` = you run it every damn time)
+- propose skills for any `reuse: often` + stable 2–3x + validated procedural as `.agents/skills/<name>/` local-only (behavioral never promotes, never global unless asked) — propose, don't auto-create
 - avoid duplicate semantic/procedural files
 - preserve uncertainty when evidence is weak or conflicting
 - record what was processed and what remains
-- rebuild `./memory/INDEX.md` if memory files changed
+- rebuild `./memory/INDEX.md` if memory files changed (it surfaces Skill Candidates automatically)
 
 Environment-specific setup:
 - Queue / inbox location:

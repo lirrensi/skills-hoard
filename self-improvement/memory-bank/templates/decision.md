@@ -6,6 +6,7 @@ memory_type: decision
 tags: [domain, topic, decision]
 status: active
 confidence: certain
+version: 1
 related: []
 aliases: []
 source: ""

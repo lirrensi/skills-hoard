@@ -6,6 +6,9 @@ memory_type: procedural
 tags: [domain, topic, workflow]
 status: active
 confidence: certain
+version: 1
+reuse: once
+skill_ref: ""
 related: []
 aliases: []
 source: ""
@@ -45,3 +48,9 @@ Common failures, exceptions, or nuanced situations and how to handle them.
 
 ## Related Workflows / Patterns
 Links to other procedures or behavioral guides that connect to this one.
+
+## Reuse & Promotion
+- **Frequency:** `once` = cold one-off, `often` = hot workflow you run every damn time (e.g. deploy). Default `once` if unsure.
+- **Should this become a skill?** Only if stable + validated 2–3x + cross-project + tool-heavy. Behavioral guidance never promotes. See `SKILL.md` → Procedural vs Skill.
+- **Skill link:** `skill_ref` frontmatter path when promoted (local-first: `.agents/skills/<name>/SKILL.md`, never global unless asked), else empty.
+- **Parallelizable? (optional, env-agnostic):** note which steps are independent and could run in parallel *when workload is heavy and your environment supports delegation* (subagents, background runners, etc.). Never mandatory — some envs have no delegation. Example: `Steps 2+3 are independent file scans — parallelize if slow, else sequential is fine`.

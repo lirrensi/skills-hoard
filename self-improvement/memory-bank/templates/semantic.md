@@ -6,6 +6,7 @@ memory_type: semantic
 tags: [domain, topic, entity]
 status: active
 confidence: certain
+version: 1
 related: []
 aliases: []
 source: ""

@@ -1,5 +1,18 @@
 #!/usr/bin/env python3
-"""Rebuild memory/INDEX.md and compress old episodic memories into weekly/monthly summaries."""
+"""Rebuild memory/INDEX.md (+ CHANGES.md feed) and compress old episodic memories.
+
+First-attempt run (copypaste, works with or without pyyaml installed):
+
+    uv run --with pyyaml python skills/memory-bank/scripts/index.py
+    # no uv? plain python works too (fallback parser), yaml just parses nicer:
+    python skills/memory-bank/scripts/index.py
+    # permanent install instead:
+    uv add pyyaml   # or: pip install pyyaml
+
+Why uvx won't save you here: `uvx` runs an isolated tool without your
+project cwd on sys.path the way these scripts expect (`./memory` relative
+to project root). Use `uv run --with ... python ...` from project root.
+"""
 
 import re
 import shutil
@@ -8,17 +21,40 @@ from collections import defaultdict
 from datetime import date, datetime, timedelta, timezone
 from pathlib import Path
 
-import yaml
+try:
+    import yaml  # type: ignore
+    _HAS_YAML = True
+except ImportError:  # fallback so first attempt never crashes on missing yaml
+    yaml = None  # type: ignore
+    _HAS_YAML = False
 
 MEMORY_DIR = Path("./memory")
 INDEX_PATH = MEMORY_DIR / "INDEX.md"
+CHANGES_PATH = MEMORY_DIR / "CHANGES.md"
 EPISODIC_DIR = MEMORY_DIR / "episodic"
 ARCHIVE_DIR = MEMORY_DIR / "archive"
 WEEKLY_DIR = MEMORY_DIR / "summaries" / "episodic" / "weekly"
 MONTHLY_DIR = MEMORY_DIR / "summaries" / "episodic" / "monthly"
 
-TYPE_ORDER = ["episodic", "semantic", "procedural", "decision", "person", "project", "unknown"]
+TYPE_ORDER = ["episodic", "semantic", "procedural", "decision", "person", "project", "failed_approach", "gotcha", "convention", "external_ref", "unknown"]
 ARCHIVE_DAYS = 7
+
+
+def _fallback_frontmatter(fm_text: str) -> dict:
+    """Tiny key: value parser for when pyyaml isn't installed. Handles tags/related lists."""
+    out: dict = {}
+    for line in fm_text.splitlines():
+        line = line.strip()
+        if not line or line.startswith("#") or ":" not in line:
+            continue
+        k, v = line.split(":", 1)
+        k, v = k.strip(), v.strip().strip('"').strip("'")
+        if k in ("tags", "related"):
+            v = v.strip("[]")
+            out[k] = [t.strip().strip('"').strip("'") for t in v.split(",") if t.strip()] if v else []
+        else:
+            out[k] = v
+    return out
 
 
 def parse_frontmatter(text: str) -> tuple[dict, str]:
@@ -26,11 +62,13 @@ def parse_frontmatter(text: str) -> tuple[dict, str]:
     match = re.match(r"^---\s*\n(.*?)\n---\s*\n(.*)$", text, re.DOTALL)
     if not match:
         return {}, text
-    try:
-        data = yaml.safe_load(match.group(1)) or {}
-    except yaml.YAMLError:
-        data = {}
-    return data, match.group(2)
+    if _HAS_YAML:
+        try:
+            data = yaml.safe_load(match.group(1)) or {}  # type: ignore[union-attr]
+        except Exception:
+            data = {}
+        return data if isinstance(data, dict) else {}, match.group(2)
+    return _fallback_frontmatter(match.group(1)), match.group(2)
 
 
 def relative_link(full_path: Path) -> str:
@@ -46,7 +84,7 @@ def gather_memories() -> list[dict]:
         return memories
 
     for path in sorted(MEMORY_DIR.rglob("*.md")):
-        if path.name.lower() == "index.md":
+        if path.name.lower() in ("index.md", "pending.md", "seed.md", "changes.md"):
             continue
         # Skip auto-generated summaries — they are navigational, not memories
         try:
@@ -68,6 +106,8 @@ def gather_memories() -> list[dict]:
                 "tags": meta.get("tags", []) or [],
                 "status": str(meta.get("status", "active")).lower().strip(),
                 "updated": str(meta.get("updated", "")),
+                "reuse": str(meta.get("reuse", "once")).lower().strip(),
+                "skill_ref": str(meta.get("skill_ref", "")).strip(),
             }
         )
     return memories
@@ -89,23 +129,25 @@ def build_index(memories: list[dict]) -> str:
     by_type = defaultdict(list)
     for m in memories:
         by_type[m["memory_type"]].append(m)
+    # Any custom types not in TYPE_ORDER still render (future-proof)
+    ordered_types = [t for t in TYPE_ORDER if t in by_type]
+    ordered_types += sorted(t for t in by_type if t not in TYPE_ORDER)
 
     lines.append("## Contents")
     lines.append("")
-    for t in TYPE_ORDER:
-        if t in by_type:
-            count = len(by_type[t])
-            label = t.capitalize()
-            noun = "memory" if count == 1 else "memories"
-            lines.append(f"- [{label}](#{label.lower()}) — {count} {noun}")
+    for t in ordered_types:
+        count = len(by_type[t])
+        label = t.capitalize()
+        noun = "memory" if count == 1 else "memories"
+        lines.append(f"- [{label}](#{label.lower()}) — {count} {noun}")
+    # Skill Candidates are computed, not a memory_type — link them here too
+    lines.append("- [Skill Candidates](#skill-candidates)")
     lines.append("- [Tag Index](#tag-index)")
     lines.append("")
     lines.append("---")
     lines.append("")
 
-    for t in TYPE_ORDER:
-        if t not in by_type:
-            continue
+    for t in ordered_types:
         label = t.capitalize()
         lines.append(f"## {label}")
         lines.append("")
@@ -116,7 +158,49 @@ def build_index(memories: list[dict]) -> str:
             if m["status"] != "active":
                 status_badge = f" `[{m['status']}]`"
             updated = f" _updated {m['updated']}_" if m["updated"] else ""
-            lines.append(f"- {link}{status_badge} — {summary}{updated}")
+            # Surface reuse flag on procedural entries for quick scanning
+            reuse_badge = ""
+            if m["memory_type"] == "procedural" and m.get("reuse") == "often":
+                reuse_badge = " `often`"
+            skill_badge = ""
+            if m.get("skill_ref"):
+                skill_badge = f" → `{m['skill_ref']}`"
+            lines.append(f"- {link}{status_badge}{reuse_badge} — {summary}{updated}{skill_badge}")
+        lines.append("")
+
+    # ── Skill Candidates (reuse: often, no skill_ref yet) + Promoted ──
+    candidates = [
+        m for m in memories
+        if m["memory_type"] == "procedural"
+        and m.get("reuse") == "often"
+        and not m.get("skill_ref")
+    ]
+    promoted = [
+        m for m in memories
+        if m["memory_type"] == "procedural" and m.get("skill_ref")
+    ]
+    lines.append("## Skill Candidates")
+    lines.append("")
+    lines.append("> `reuse: often` + stable + validated → propose local skill at `./.agents/skills/<name>/`. Never global unless asked.")
+    lines.append("")
+    if candidates:
+        lines.append("### Candidates (needs proposal)")
+        lines.append("")
+        for m in candidates:
+            link = relative_link(m["path"])
+            summary = m["summary"] or "*No summary*"
+            lines.append(f"- {link} — {summary}")
+        lines.append("")
+    else:
+        lines.append("_No candidates right now._")
+        lines.append("")
+    if promoted:
+        lines.append("### Promoted (has skill_ref)")
+        lines.append("")
+        for m in promoted:
+            link = relative_link(m["path"])
+            summary = m["summary"] or "*No summary*"
+            lines.append(f"- {link} → `{m['skill_ref']}` — {summary}")
         lines.append("")
 
     tag_map = defaultdict(list)
@@ -356,6 +440,48 @@ def compress_monthly():
             print(f"  Removed stale monthly summary: summaries/episodic/monthly/{stale.name}")
 
 
+# ── CHANGES feed (auto-generated, never hand-edit) ───────────────────
+
+
+def _changes_sort_key(m: dict) -> str:
+    # Newest first by updated, fallback to created, fallback to filename
+    for k in ("updated", "created"):
+        v = str(m["meta"].get(k, "")).strip()
+        if v:
+            return v
+    return m["path"].name
+
+
+def build_changes(memories: list[dict], limit: int = 20) -> str:
+    """Render CHANGES.md — newest-first skim of what the bank learned."""
+    now = datetime.now(timezone.utc).strftime("%Y-%m-%d %H:%M UTC")
+    lines = [
+        "# Changes",
+        "",
+        f"> Last rebuilt: {now}  ",
+        "> Auto-generated by `python skills/memory-bank/scripts/index.py`. Do not hand-edit — it rebuilds from memory files.",
+        "",
+        "---",
+        "",
+    ]
+    if not memories:
+        lines += ["_Nothing yet. Run a `learn` pass and this feed fills itself._", ""]
+        return "\n".join(lines)
+
+    ordered = sorted(memories, key=_changes_sort_key, reverse=True)[:limit]
+    for m in ordered:
+        rel = m["path"].relative_to(MEMORY_DIR).as_posix()
+        link = f"[{m['path'].stem}]({rel})"
+        summary = m["summary"] or "*No summary*"
+        stamp = m["updated"] or str(m["meta"].get("created", ""))
+        stamp = f" _({stamp})_" if stamp else ""
+        lines.append(f"- {link} `{m['memory_type']}` — {summary}{stamp}")
+    lines.append("")
+    lines.append(f"_Showing newest {len(ordered)} of {len(memories)}. Full map: [INDEX.md](INDEX.md)_")
+    lines.append("")
+    return "\n".join(lines)
+
+
 # ── Main ────────────────────────────────────────────────────────────
 
 
@@ -382,6 +508,11 @@ def main():
     content = build_index(memories)
     INDEX_PATH.write_text(content, encoding="utf-8")
     print(f"  Rebuilt {INDEX_PATH} ({len(memories)} memories indexed)")
+
+    print("\nBuilding CHANGES.md...")
+    feed = build_changes(memories)
+    CHANGES_PATH.write_text(feed, encoding="utf-8")
+    print(f"  Rebuilt {CHANGES_PATH} (newest {min(20, len(memories))} of {len(memories)})")
 
     print("\nDone.")
 

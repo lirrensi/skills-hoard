@@ -27,6 +27,36 @@ This folder is currently empty. Once you add memories, re-run the index script.
 3. Run `python skills/memory-bank/scripts/index.py` to rebuild this file
 """
 
+PENDING_STARTER = """# Pending Inbox
+
+> Append-only micro-capture. One line per thought, newest at bottom.
+> Consolidate via `learn` (end-of-session): promote lines into episodic/semantic/procedural, then delete promoted lines.
+> Do not curate here — capture fast, judge later.
+> Capture via: `python skills/memory-bank/scripts/capture.py "text" --tags a,b --type note|failure|idea|fact|todo`
+"""
+
+SEED_STARTER = """# SEED — session bootstrap (~50 lines max)
+
+> Hand-curated, injected at session start. Full store stays lazy.
+> Refresh `Where you left off` at every `learn`. Keep it tiny or it rots.
+
+## Who you are
+- ...
+
+## Where you left off
+- Last session: ...
+- Open blockers: ...
+
+## Top truths (semantic links)
+- ...
+
+## Top hows (procedural links)
+- ...
+
+## Skill candidates
+- None right now. See INDEX.md → Skill Candidates.
+"""
+
 
 def main():
     if MEMORY_DIR.exists():
@@ -44,6 +74,16 @@ def main():
     if not index_path.exists():
         index_path.write_text(INDEX_STARTER, encoding="utf-8")
         print(f"  + {index_path} (starter)")
+
+    pending_path = MEMORY_DIR / "pending.md"
+    if not pending_path.exists():
+        pending_path.write_text(PENDING_STARTER, encoding="utf-8")
+        print(f"  + {pending_path} (inbox)")
+
+    seed_path = MEMORY_DIR / "SEED.md"
+    if not seed_path.exists():
+        seed_path.write_text(SEED_STARTER, encoding="utf-8")
+        print(f"  + {seed_path} (bootstrap)")
 
     print("\nDone. Start creating memories, then run the index script to keep INDEX.md fresh.")
 

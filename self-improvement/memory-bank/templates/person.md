@@ -6,6 +6,7 @@ memory_type: person
 tags: [domain, relationship, team]
 status: active
 confidence: certain
+version: 1
 related: []
 aliases: []
 source: ""

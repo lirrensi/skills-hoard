@@ -25,6 +25,9 @@ Why this matters, background, what triggered it.
 - Point one
 - Point two
 
+## Dead Ends / Failed Approaches
+What did NOT work and why — the wrong turn, the gotcha, the trap. Tag with `failed-approach` / `gotcha` when relevant. Failures > wins for future-you.
+
 ## Lessons Learned
 What this teaches for future work, mistakes to avoid, or patterns worth reusing.
 

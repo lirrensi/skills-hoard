@@ -94,6 +94,8 @@ Example:
 - `semantic`: the user dislikes meetings when hungry
 - `procedural`: avoid scheduling important meetings when they are hungry
 
+Mark `reuse: once|often` at write time. `once` = cold one-off, `often` = hot workflow you run every damn time. No `runbooks/` layer — `runbook == skill`, skill lives outside `memory/` and procedural just points via `skill_ref`. Behavioral guidance never promotes.
+
 ---
 
 ## Update Rules
@@ -124,16 +126,17 @@ Use multiple only when retrieval truly differs.
 
 ## Conflict Rule
 
-If information conflicts:
-- do not silently flatten it
-- newer knowledge usually takes precedence when credible
-- preserve uncertainty when unresolved
-- use `confidence:` or `status:` when needed
+If information conflicts, **cry loudly — never stupidly overwrite**:
+- say what contradicts what, with both sources visible
+- you change a canonical file only when you can cite evidence (session date, pending line, URL, re-validation)
+- no evidence → keep old text, add `## Pending Review` with the specific claim + what would prove it, set `confidence: tentative`
+- newer knowledge takes precedence only when credible + evidenced; otherwise preserve uncertainty
+- use `confidence:` / `status:` to mark the doubt, never silent flattening
 
 Rough routing:
-- conflict **as fact** -> cautious semantic update
-- conflict **as event** -> episodic
-- conflict **that changes behavior** -> procedural
+- conflict **as fact** -> cautious semantic update + Pending Review note
+- conflict **as event** -> episodic (both versions are history, keep both)
+- conflict **that changes behavior** -> procedural, old steps stay struck-through until new steps validated
 
 ---
 
@@ -157,10 +160,13 @@ Promote to **procedural** when it teaches:
 - a better default behavior
 - a reliable way to navigate this user's recurring situations well
 
+Propose a **skill** (don't auto-create) when a procedural is `reuse: often` + stable across 2–3 runs + validated (`confidence: certain|likely`) + cross-project or tool-heavy value. Behavioral guidance never proposes. Say `Candidate: <file> -> .agents/skills/<suggested-skill-name>/ because <evidence>` and wait for approval. New skills are always project-local (`./.agents/skills/`) — never global unless explicitly requested. Most passes propose zero skills — that's success.
+
 Simple promotion rule:
 - what happened -> `episodic`
 - what is true -> `semantic`
 - what works next time -> `procedural`
+- what works every damn time + stable -> propose skill (external, linked via `skill_ref`)
 
 ---
 
@@ -170,7 +176,8 @@ At the end of a dream pass:
 - at least one meaningful memory is created or updated, or one episodic file is created/updated
 - history stays meaningful
 - semantic stays canonical
-- procedural stays reusable
+- procedural stays reusable with `reuse: once|often` marked
+- skill candidates proposed (if any `reuse: often` + stable) or explicitly zero with rationale
 - processed scope is clear
 - duplicate memory spam is avoided
 
