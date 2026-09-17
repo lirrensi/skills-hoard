@@ -151,6 +151,7 @@ The script:
 5. Collects all tags into a tag list.
 6. Captures the current git commit (`git rev-parse --short HEAD`) and branch (`git rev-parse --abbrev-ref HEAD`) from the project root. Records them **only in the root `docs/INDEX.md`** as a `## Git Context` body section (commit + branch). Subfolder INDEX.md files are not touched — this avoids unnecessary diffs while still providing a single source of truth for drift detection. If the directory is not a git repository (or git is unavailable), the section is omitted entirely.
 7. **Wipes and overwrites** every `INDEX.md` with the regenerated content.
+8. Ensures root `AGENTS.md` contains the `docs/INDEX.md` pointer line — patches an existing file, never creates one (creation belongs to `scripts/init.py`). Prints ✓ when present/patched, ⚠️ when missing so it is visible immediately.
 
 ### Git commit breadcrumb
 

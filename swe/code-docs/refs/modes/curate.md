@@ -54,8 +54,7 @@ Add at least one incoming link in frontmatter:
 ### 6. Rebuild INDEX.md
 Run `python scripts/index.py` to regenerate all INDEX.md files from frontmatter.
 **Never hand-edit an INDEX.md — the script wipes and overwrites every INDEX.md.** Any manual change you make will be lost.
-
-Do not create or update those counts; rerun `scripts/index.py` instead.
+The rebuild also ensures root `AGENTS.md` carries the `docs/INDEX.md` pointer (patches if missing, warns visibly).
 
 ### 7. Roster — required when creating a resource
 If the new doc is `node_type: resource` (or anything roster-worthy — a service, component, or artifact that belongs in the project's mental model), **MUST update the roster in the same change** (`docs/ROSTER.md` by default, see `../roster.md`):

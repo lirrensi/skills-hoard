@@ -409,3 +409,44 @@ def build_reverse(graph: dict[Path, list[tuple[Path, str]]]) -> dict[Path, list[
         for target, link_type in edges:
             rev[target].append((src, link_type))
     return dict(rev)
+
+DOCS_POINTER_MARKER = "docs/INDEX.md"
+DOCS_POINTER_LINE = "> 📚 Canonical docs live in `docs/` — start with `docs/INDEX.md` (then `docs/ROSTER.md` if present)."
+
+
+def docs_pointer_present(text: str) -> bool:
+    """True if AGENTS.md text already points at the docs index."""
+    return DOCS_POINTER_MARKER in text
+
+
+def ensure_docs_pointer(project_root: Path, create: bool = False) -> str:
+    """Ensure root AGENTS.md contains the docs pointer line. Idempotent.
+
+    Returns one of: "ok" (already present), "patched" (line appended),
+    "created" (minimal AGENTS.md written, only if create=True),
+    "missing" (no AGENTS.md and create=False), "no-root" (bad path).
+    """
+    try:
+        root = Path(project_root).resolve()
+    except Exception:
+        return "no-root"
+    agents = root / "AGENTS.md"
+    if not agents.exists():
+        if not create:
+            return "missing"
+        agents.write_text(
+            "# Agent Context\n\n" + DOCS_POINTER_LINE + "\n",
+            encoding="utf-8",
+        )
+        return "created"
+    try:
+        text = agents.read_text(encoding="utf-8")
+    except Exception:
+        return "missing"
+    if docs_pointer_present(text):
+        return "ok"
+    if not text.strip():
+        agents.write_text(DOCS_POINTER_LINE + "\n", encoding="utf-8")
+        return "patched"
+    agents.write_text(text.rstrip("\n") + "\n\n" + DOCS_POINTER_LINE + "\n", encoding="utf-8")
+    return "patched"

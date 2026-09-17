@@ -25,6 +25,7 @@ from _ontology import (
     build_graph,
     build_reverse,
     today_str,
+    docs_pointer_present,
 )
 
 
@@ -630,6 +631,14 @@ def main():
 
     # ── Structural Issues ────────────────────────────────────
 
+    # AGENTS.md pointer — visible immediately, not buried.
+    agents_file = root.parent / "AGENTS.md"
+    try:
+        agents_text = agents_file.read_text(encoding="utf-8") if agents_file.exists() else ""
+    except Exception:
+        agents_text = ""
+    pointer_ok = bool(agents_text) and docs_pointer_present(agents_text)
+
     issues_found = bool(
         orphans
         or broken
@@ -639,10 +648,15 @@ def main():
         or untagged
         or missing_dod
         or missing_verification
+        or not pointer_ok
     )
 
     if issues_found:
         print(header("STRUCTURAL ISSUES"))
+
+    if not pointer_ok:
+        print("\n  ⚠️  AGENTS.md missing docs pointer (docs/INDEX.md)")
+        print("     • run scripts/init.py (creates) or scripts/index.py (patches existing)")
 
     if orphans:
         print(f"\n  ❌ {len(orphans)} orphan{'s' if len(orphans) > 1 else ''} (no incoming links)")
@@ -746,6 +760,7 @@ def main():
         + len(unsynced)
         + len(missing_dod)
         + int(missing_verification)
+        + int(not pointer_ok)
     )
     print()
     if total_issues == 0:

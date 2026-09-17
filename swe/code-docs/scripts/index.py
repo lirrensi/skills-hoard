@@ -29,6 +29,8 @@ from _ontology import (
     today_str,
     get_git_commit,
     get_git_branch,
+    ensure_docs_pointer,
+    DOCS_POINTER_MARKER,
 )
 
 
@@ -221,10 +223,12 @@ def build_index(folder: Path, docs_root: Path, reverse: dict, all_docs: dict, dr
             entries.append(link_line)
         all_tags.update(tags)
 
-    # Subfolder entries remain unchanged; the root registry carries the
-    # generated folder tree and counts.
+    # Only link subfolders that will actually have an INDEX.md (matches
+    # the Folder Registry's is_indexed_folder filter). Empty folders get
+    # no INDEX.md, so linking them creates broken INDEX entries.
     for d in subfolders:
-        entries.append(format_subfolder_entry(d))
+        if is_indexed_folder(d):
+            entries.append(format_subfolder_entry(d))
 
     # Build content
     today = today_str()
@@ -339,8 +343,27 @@ def build_all(root: Path, dry_run: bool = False):
         ):
             total_files += files
             total_folders += 1
-
     print(f"\nIndexed {total_files} files across {total_folders} folders.")
+
+    # AGENTS.md pointer: patch existing files, never create. init.py owns creation.
+    if dry_run:
+        agents = root.parent / "AGENTS.md"
+        try:
+            has_pointer = agents.exists() and DOCS_POINTER_MARKER in agents.read_text(encoding="utf-8")
+        except Exception:
+            has_pointer = False
+        if has_pointer:
+            print("  ✓ AGENTS.md — docs pointer present")
+        else:
+            print("  ⚠️  AGENTS.md missing docs pointer (docs/INDEX.md) — would patch (run without --dry-run or scripts/init.py)")
+    else:
+        pointer = ensure_docs_pointer(root.parent, create=False)
+        if pointer == "patched":
+            print("  ✓ AGENTS.md — docs pointer appended (was missing)")
+        elif pointer == "ok":
+            print("  ✓ AGENTS.md — docs pointer present")
+        else:
+            print("  ⚠️  AGENTS.md missing docs pointer (docs/INDEX.md) — run scripts/init.py")
 
     if not dry_run:
         detail = f"rebuilt {total_files} docs across {total_folders} folders"
