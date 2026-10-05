@@ -1,6 +1,6 @@
 ---
 name: exposure-check
-description: Diagnose whether a self-hosted service is reachable the way the user thinks it is, including local bind issues, firewall/NAT trouble, DNS mismatch, TLS fingerprint mismatch, blocked ports, and hoster restrictions. Use whenever the user says debug exposure, why is my site unreachable, check if this port is open, LAN works but public fails, DNS looks wrong, or help me figure out what network mess I created.
+description: 'Diagnose self-hosted reachability: DNS, firewall, NAT, TLS, blocked ports.'
 ---
 
 # exposure-check

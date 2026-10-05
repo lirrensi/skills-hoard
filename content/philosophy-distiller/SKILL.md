@@ -1,6 +1,6 @@
 ---
 name: philosophy-distiller
-description: Distill a living PHILOSOPHY.md from a large body of writing, then iteratively refine it in the same session as new samples or corrections arrive. Use when the user dumps essays, posts, comments, drafts, transcripts, or mixed writing and wants a reusable worldview document rather than a one-off topic summary.
+description: Distill a living PHILOSOPHY.md worldview from a body of writing.
 ---
 
 # Philosophy Distiller

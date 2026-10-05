@@ -1,6 +1,6 @@
 ---
 name: explorable-explanations
-description: Build embeddable explorable explanations in the Bret Victor / Nicky Case / Brilliant tradition — tiny interactive widgets pasted as code inside documents, not separate file artifacts. Use whenever user says explorable, manipulable, interactive widget, learn-by-doing visual, Nicky-Case this, Brilliant-style, let me play with it, or wants sliders/drag/steppers inside prose. Always asks for level first.
+description: Embed tiny interactive widgets inside prose: sliders, drags, live models.
 version: 1
 ---
 

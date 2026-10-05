@@ -1,6 +1,6 @@
 ---
 name: mental-models
-description: Use then user wants to have a thinking session against common biases, errors, and so on. Contains a huge library of thinking tools to check for.
+description: Consult a library of thinking patterns, biases, and reasoning tools.
 ---
 # Mental Models — Thinking Pattern Library
 

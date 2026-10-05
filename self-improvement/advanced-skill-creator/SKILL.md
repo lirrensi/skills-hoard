@@ -1,10 +1,6 @@
 ---
 name: advanced-skill-creator
-description: >
-  Create, distill, improve, and evaluate agent skills from source material and large corpora.
-  Use this skill when the user wants to turn a repo, manual, idea dump, or source corpus into
-  a field-manual-style skill, revise an existing skill folder, sharpen triggering, reduce bloat,
-  or audit a skill using local references and comparison skills instead of inventing guidance.
+description: 'Distill repos and corpora into field-manual skills; revise and evaluate them.'
 ---
 
 # Advanced Skill Creator
@@ -74,9 +70,8 @@ Use nearby local skills as comparison material when improving or creating.
 - Inspect a few strong neighboring skills to borrow structure, not voice.
 - Extract principles, not cargo-cult formatting.
 
-Useful patterns to borrow:
-
 - crisp descriptions that trigger at the right times
+- Hermes-style one-liners: 1–2 sentences, ≤140 chars, verb-first, no trigger lists (`Use when…`/`Trigger on…` never appear in `description:`)
 - clear routing or mode-selection steps
 - lean instructions with little repetition
 - good examples that clarify behavior without overconstraining it

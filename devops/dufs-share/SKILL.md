@@ -1,6 +1,6 @@
 ---
 name: dufs-share
-description: Share any server folder with dufs, including mobile-friendly upload/download links, auth, search, archive downloads, and standalone TLS when there is no domain or proxy. Use whenever the user says dufs, share a folder, serve a directory, file share, upload/download links, folder zip download, LAN share, or wants a quick folder server right now.
+description: Serve any folder instantly with dufs; upload, download, and zip links.
 ---
 
 # dufs-share

@@ -1,6 +1,6 @@
 ---
 name: supertonic-tts
-description: 'On-device multilingual text-to-speech using Supertonic. Generate studio-quality 44.1kHz speech in 31 languages from the command line. No cloud, no API keys, no GPU required. Triggers on: "generate speech", "text to speech", "TTS", "supertonic", "synthesize voice", "make audio from text". NOT for audio editing or speech recognition — use audio-processing or whisper skills for that.'
+description: Synthesize studio-quality speech in 31 languages, fully on-device, no cloud.
 metadata:
   version: 1.0.0
   source: https://github.com/supertone-inc/supertonic

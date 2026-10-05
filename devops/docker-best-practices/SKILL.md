@@ -1,6 +1,6 @@
 ---
 name: docker-best-practices
-description: Harden Docker Compose services for real servers by adding resource limits, restart policy, log rotation, health checks, and volume backup plans. Use whenever the user asks to review or write docker-compose.yml/compose.yaml for production, self-hosting, homelab/server deployment, Docker reliability, container hardening, or why a Compose stack dies overnight, fills the disk, or starts in the wrong order.
+description: 'Harden Docker Compose stacks for production: limits, healthchecks, backups.'
 ---
 
 # docker-best-practices

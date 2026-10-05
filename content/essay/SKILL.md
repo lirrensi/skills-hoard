@@ -1,6 +1,6 @@
 ---
 name: essay
-description: Essay finishing orchestrator for messy notes, partial drafts, and nearly-done essays. Use when the user already has substantial material and wants it finalized, reviewed, or polished while following shared editorial principles from EDITING.md and optional voice guidance from VOICE.md. Optimized for emotionally resonant, broadly accessible essays rather than academic-sounding prose.
+description: Finish messy drafts into polished, resonant essays with editorial discipline.
 ---
 
 # Essay Orchestrator

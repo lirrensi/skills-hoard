@@ -1,13 +1,6 @@
 ---
 name: audio-generation
-description: >
-  Use this skill whenever the user wants to generate audio from text, create podcast
-  episodes, convert articles or long-form content into narrated audio, or produce any
-  kind of spoken-word audio track. Triggers on phrases like "text to speech", "make
-  this into audio", "create a podcast", "read this article aloud", "narrate this",
-  "audiobook", "voice over", "TTS", "generate speech", "audio from text", or any
-  request where text needs to become spoken audio. Covers three domains: general
-  text-to-audio generation, multi-voice podcast production, and long-read narration.
+description: Generate spoken audio, multi-voice podcasts, and long-read narration from text.
 ---
 
 # Audio Generation

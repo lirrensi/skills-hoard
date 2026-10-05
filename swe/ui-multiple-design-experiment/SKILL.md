@@ -1,6 +1,6 @@
 ---
 name: ui-multiple-design-experiment
-description: Generate 5 divergent redesigns of an existing interface from code and/or a screenshot. Use this skill whenever the user wants to explore multiple UI directions, get design variations, see different takes on the same interface, or says anything like "give me 5 versions", "show me variations", "explore different designs", "redesign this", "what could this look like", or submits a UI screenshot or code and wants options. Always use this skill — it produces a single HTML file with tabbed iframes, one per variation.
+description: Generate 5 divergent UI redesigns in one tabbed HTML page.
 ---
 
 # UI multiple design experiments

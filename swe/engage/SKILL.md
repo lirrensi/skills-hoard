@@ -1,12 +1,6 @@
 ---
 name: engage
-description: >
-  Autonomous execution mode triggered by the word "engage". Use when the user has
-  finished planning and wants the agent to execute autonomously without further questions
-  until the workflow is fully complete. The agent must build, test, verify, and deliver
-  proof of work — never exiting with an incomplete or unverified result. Trigger on:
-  "engage", "go autonomous", "execute the plan", "run it", "make it happen", or any
-  explicit signal to switch from planning mode into fully autonomous build-and-verify mode.
+description: Execute the plan autonomously: build, test, verify, prove it works.
 ---
 
 # Engage — Autonomous Execution Mode

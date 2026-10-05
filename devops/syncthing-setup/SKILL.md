@@ -1,6 +1,6 @@
 ---
 name: syncthing-setup
-description: Set up Syncthing for server, local machine, phone, and agent collaboration with secure defaults. Use whenever the user says Syncthing, share folders, sync server and laptop, phone-friendly workspace, headless sync, remote GUI, SSH tunnel, or needs a private file collaboration channel that is richer than chat.
+description: Sync folders across server, laptop, and phone with secure Syncthing defaults.
 ---
 
 # syncthing-agent-collab

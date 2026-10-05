@@ -1,12 +1,6 @@
 ---
 name: batch-task-executor
-description: >
-  Experimental workflow skill for coordinating many related tasks from any source.
-  Use when the user asks to mass-process, batch-execute, fan out, parallelize, audit,
-  review, summarize, migrate, or solve a list of tasks from a file, issue tracker,
-  pasted list, directory, table, CSV, markdown checklist, Jira export, PR list, or
-  direct instructions. The skill first determines how to read tasks and update their
-  status/comments, then analyzes ordering, conflicts, blockers, and safe execution mode.
+description: Coordinate many related tasks from any source: intake, order, execute.
 ---
 
 # Batch Task Executor Skill

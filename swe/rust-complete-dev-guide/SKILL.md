@@ -1,14 +1,6 @@
 ---
 name: rust-complete-dev-guide
-description: >
-  Mega Rust Skill — a progressive-disclosure router into 14 reference modules
-  and 7 domain mini-skills covering ownership, lifetimes, concurrency, async,
-  error handling, type-driven design, testing, performance, anti-patterns,
-  DDD, resource lifecycle, mental models, and domain-specific patterns.
-  Use as the starting point for Rust work: writing code, debugging, reviewing,
-  designing, optimizing, or learning Rust. It is a router and decision aid,
-  not a substitute for the deeper reference modules. Distilled from 43+ community skills,
-  the Rust API Guidelines, Performance Book, and production codebases.
+description: Rust router: ownership, lifetimes, async, testing, performance patterns.
 globs: ["**/*.rs", "**/Cargo.toml", "**/Cargo.lock"]
 user-invocable: true
 ---

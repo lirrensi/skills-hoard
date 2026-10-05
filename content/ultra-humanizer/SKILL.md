@@ -1,10 +1,6 @@
 ---
 name: ultra-humanizer
-description: |
-  Aggressively strip AI-generated writing patterns ("slop") from text and restore a natural human voice.
-  Use whenever the user asks to humanize, de-slop, anti-slop, "make this sound human," "remove AI tells,"
-  or edit/review/revise any prose that feels robotic, generic, LLM-polished, or overly formal.
-  Also trigger when the user pastes draft content and asks for cleanup, voice work, or natural rewriting.
+description: Strip AI slop and restore a natural human voice.
 license: MIT
 version: 2
 allowed-tools:

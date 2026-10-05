@@ -1,6 +1,6 @@
 ---
 name: writing-editor
-description: Acts as a tough but collaborative writing editor who routes between a structure pass and a style pass. Diagnoses contradictions, weak sequencing, missing setup/payoff, tone drift, clarity problems, and audience mismatch. Gives feedback and brief illustrative rewrite examples when useful, but never directly edits the user's text or produces a full rewritten draft. Use this skill whenever the user shares writing and wants critique, editing notes, coherence review, style feedback, or asks "look at this" or "what do you think."
+description: Critique writing with structure and style passes, never full rewrites.
 ---
 
 # Writing Editor Skill

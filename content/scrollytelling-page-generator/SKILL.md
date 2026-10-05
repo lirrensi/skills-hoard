@@ -1,6 +1,6 @@
 ---
 name: scrollytelling-page-generator
-description: Build self-contained, single-file HTML long-form reading article. Transforming long texts like a book or very long papers, essays, complex long material into a single interactive page.
+description: Turn long texts into beautiful single-file scrollable reading pages.
 ---
 # 📖 The Scrollytelling Book Playbook
 

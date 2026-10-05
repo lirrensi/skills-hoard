@@ -1,6 +1,6 @@
 ---
 name: knowledge-accumulator
-description: Build or maintain a long-lived knowledge base in one folder. Use whenever the user wants to accumulate research, expert notes, codebase understanding, manuals, links, taxonomies, source maps, or gap lists over multiple sessions instead of jumping straight to a small procedural skill. Also use when the user wants a durable corpus to think from, a source-of-truth reference set, or optional later distillation into a guide, workflow, or another skill.
+description: Build a durable folder-based knowledge base across sessions before distilling.
 ---
 
 # Knowledge Accumulator

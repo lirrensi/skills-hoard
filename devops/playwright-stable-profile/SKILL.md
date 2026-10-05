@@ -1,6 +1,6 @@
 ---
 name: playwright-stable-profile
-description: Use this skill whenever the user wants Playwright or playwright-cli to reuse a stable real-browser profile with persistent logins, tabs, cookies, or session state. Trigger on: "persistent playwright profile", "reuse chrome profile", "attach playwright to existing browser", "keep logins between runs", "playwright stable profile", "real browser profile for playwright", "launch Chrome with remote debugging and attach", or when the user wants headed browser automation that preserves login state across runs.
+description: Run Playwright against a persistent real-browser profile with saved logins.
 depends: playwright-cli
 ---
 

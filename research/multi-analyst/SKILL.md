@@ -1,6 +1,6 @@
 ---
 name: multi-analyst
-description: Invoke one or more disciplinary analysts to examine a topic through multiple expert lenses simultaneously. Use when the user wants deep analysis from specific perspectives — e.g. "look at this as an economist and ethicist", "give me engineer + psychologist takes", "analyze through multiple lenses", or "what would a historian / futurist / philosopher say about this". Also use when the user asks for multi-perspective thinking, expert panel simulation, or disciplinary analysis on any problem, idea, or decision. Trigger on: "analyze as", "think like a", "what would X say", "multiple perspectives", "expert lens", "disciplinary analysis", "panel of analysts".
+description: Analyze a topic through multiple disciplinary expert lenses at once.
 ---
 
 # Multi-Analyst

@@ -1,6 +1,6 @@
 ---
 name: document-generator
-description: "Use this skill whenever the user wants to create, read, edit, or convert any document file. This includes: PDFs (.pdf), Word documents (.docx), Excel/spreadsheets (.xlsx, .csv), PowerPoint presentations (.pptx), and other office formats. Triggers on any request involving document files — creating new documents from scratch or templates, extracting content, merging/splitting files, filling forms, converting between formats, or any document manipulation task. Do NOT use for database operations, API calls, or non-document file handling."
+description: Create, read, edit, and convert PDF, Word, Excel, and PowerPoint files.
 license: Proprietary. LICENSE.txt has complete terms
 ---
 

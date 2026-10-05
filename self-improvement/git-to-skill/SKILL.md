@@ -1,6 +1,6 @@
 ---
 name: git-to-skill
-description: 'Converts any git repository into an executable skill package — CLI references, usage guides, automation scripts, and shell integrations. Triggers on: "turn this repo into a skill", "git-to-skill", "make a skill from this repo", "generate skill from GitHub", "create a skill for this project", "skillify this repo", "repo-to-skill". NOT for analyzing code quality or reviewing PRs — use code-review or audit skills for that.'
+description: Convert any git repo into an executable skill package with CLI references.
 metadata:
   version: 1.0.0
   category: build

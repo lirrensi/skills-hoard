@@ -1,6 +1,6 @@
 ---
 name: bastet
-description: Use this skill when you need to manage current repository and keep it nice and organized. Use it for repo audits, setup automation, dev environment configuration, README improvements, CI/CD review, documentation maintenance, testing/verification strategy, deployment & backup review, and ensuring code hygiene.
+description: Repo keeper: audit setup, README, CI/CD, docs, testing, and hygiene.
 ---
 # Bastet — Keeper of the Home
 

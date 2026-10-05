@@ -1,6 +1,6 @@
 ---
 name: thinking-graph
-description: Use for hard, ambiguous problems that need deeper graph-style reasoning instead of a fast first answer. Trigger on architecture choices, deep debugging, strategy design, research synthesis, root-cause work, or any task where multiple live hypotheses, reflective pruning, and deliberate convergence will improve the result. Prefer this skill when the user asks for deeper thinking, graph thinking, notebook-style exploration, or persistent reasoning files in the workspace.
+description: Reason through hard problems with graph-style hypothesis tracking.
 ---
 
 # Thinking Graph

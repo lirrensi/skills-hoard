@@ -1,6 +1,6 @@
 ---
 name: artify
-description: Build self-contained, single-file HTML artifacts and serve them with the artify CLI. Use for visualizations, interactive tools, presentations, living documents, forms and quizzes that return structured data via artify snapshot, and any browser-native replacement for static files. Prefer adapting starters when there is a close fit; otherwise build from scratch. No install required — the CLI runs via uv against the bundled standalone package.
+description: Build single-file HTML artifacts and serve them with the artify CLI.
 version: 3
 ---
 

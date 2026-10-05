@@ -1,18 +1,6 @@
 ---
 name: calm-down
-description: >
-  Invoke this skill ONLY when you are actively making edits or executing a plan and
-  the user shows clear frustration with the direction things are going: repeated
-  swearing (3+ expletives in a message), phrases like "that's not what I wanted",
-  "you did it again", "wrong", "stop", "undo that", "you don't understand",
-  capitalization explosions (ALL CAPS bursts), or a general tone of mounting anger
-  at what you are doing.
-
-  DO NOT invoke this at the start of a conversation, during a discussion where no
-  edits have been made, or when the user is frustrated about something unrelated to
-  your current execution. DO NOT invoke for mild frustration or simple correction
-  requests — only when you are clearly heading in the wrong direction and continuing
-  will make things worse.
+description: Stop, reset, and re-plan when the user is frustrated with execution.
 ---
 
 # Calm Down Protocol

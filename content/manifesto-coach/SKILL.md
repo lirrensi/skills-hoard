@@ -1,7 +1,6 @@
 ---
 name: manifesto-coach
-description: >
-  Rhetorical analysis and coaching for persuasive writing — manifestos, essays, speeches, calls to action, op-eds, campaign texts, movement statements, or any text meant to move people. Use this skill whenever a user pastes writing and asks for feedback on how to make it more persuasive, more urgent, more emotionally resonant, more memorable, or more politically effective. Also trigger when the user asks things like "how do I make this hit harder", "what am I missing rhetorically", "how do I make people actually care", "critique this for persuasion", "manifesto feedback", "what techniques should I use here", "make this more movement-building", or "why doesn't this mobilize people". The output is never a rewrite — it is a structured annotation and coaching report that identifies strengths, gaps, and specific upgrade suggestions the user can apply themselves.
+description: Coach persuasive writing with rhetorical diagnostics, never rewrites.
 ---
 
 # Manifesto Coach

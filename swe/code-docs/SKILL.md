@@ -1,6 +1,6 @@
 ---
 name: code-docs
-description: Documentation Keeper — owns the canonical product overview, behavior specs, architecture docs, and project verification strategy. Can search and answer about anything in the codebase, edit docs, and bring them in sync with actual code and verification evidence.
+description: Own canonical docs and behavior specs; keep them synced with code.
 version: 9
 ---
 

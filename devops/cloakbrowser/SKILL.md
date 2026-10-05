@@ -1,6 +1,6 @@
 ---
 name: cloakbrowser
-description: Use this skill whenever the user wants to use CloakBrowser, migrate from Playwright or Puppeteer to CloakBrowser, manage the CloakBrowser binary from the CLI, or do stealth browser automation with a nearly drop-in Playwright API. Trigger on: "cloakbrowser", "CloakBrowser", "stealth playwright", "anti-bot browser automation", "replace playwright with cloakbrowser", "how do I use cloakbrowser from cli", "cloakbrowser install/update/info", or when the user wants Playwright-style browser code but with CloakBrowser stealth.
+description: Drive stealth CloakBrowser automation via a Playwright-compatible CLI.
 depends: playwright-cli
 ---
 

@@ -1,6 +1,6 @@
 ---
 name: video-creator
-description: Use this skill whenever the user wants to create, edit, automate, or package videos with Remotion, MoviePy, or a hybrid pipeline. Trigger for motion-graphics templates, animated title cards, lower thirds, data-driven scenes, stitched footage, subtitles, aspect-ratio variants, audio swaps, batch exports, or Python-orchestrated pipelines where Remotion renders designed segments and MoviePy assembles final deliverables.
+description: Create and package videos with Remotion, MoviePy, or hybrid pipelines.
 ---
 
 # Video Creator

@@ -1,10 +1,6 @@
 ---
 name: ipfs-host
-description: >
-  Host a directory or static site on Kubo-backed IPFS, keep the daemon running, and return a
-  shareable CID plus optional IPNS handoff. Use whenever the user says host on IPFS, deploy to
-  IPFS, give me a CID, keep this IPFS content alive, publish via IPNS, or wants a self-hosted IPFS
-  workflow without relying on pinning services.
+description: Publish folders and static sites to Kubo IPFS; return CID and gateway links.
 ---
 
 # ipfs-host

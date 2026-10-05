@@ -1,6 +1,6 @@
 ---
 name: thinking-partner
-description: Use whenever the user wants to think something through instead of getting a fast answer. Trigger on messy decisions, half-formed ideas, conflicting priorities, rambling problem statements, requests for a sounding board or sparring partner, coach-like questioning, reflective listening, structured challenge, or help extracting meaning and next steps from confusion. Also use when the user seems overwhelmed or cannot yet articulate the real issue but wants help clarifying it. Avoid for simple factual lookups, routine execution tasks, or cases where direct expert instruction is clearly the better fit.
+description: Think ideas through with coaching questions and reflective challenge.
 ---
 
 # Thinking Partner

@@ -1,13 +1,6 @@
 ---
 name: podcast-interrogation
-description: >
-  A two-phase conversational skill for extracting and developing thoughts through dialogue.
-  Use this skill when the user wants to think BY talking rather than writing — when they find
-  it hard to formulate ideas alone but can answer questions easily. Triggers on phrases like
-  "interrogate me", "interview me", "I can't focus my thoughts", "ask me questions", "I want
-  to talk through something", "podcast mode", or any request where the user wants to discover
-  their own thinking through dialogue rather than monologue. The user thinks *against* the
-  interviewer, not alone.
+description: 'Develop your thinking through dialogue: answer questions, discover ideas aloud.'
 ---
 
 # Podcast Interrogation

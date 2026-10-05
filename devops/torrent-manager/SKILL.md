@@ -1,11 +1,6 @@
 ---
 name: torrent-manager
-description: >
-  Manage torrent downloads using qBittorrent (Web API + Python client) or aria2c
-  (lightweight CLI). Use this skill when the user wants to download torrents, manage
-  seeding, check download status, add/remove trackers, set categories, or automate
-  any torrent-related workflow. Supports both full-featured daemon-based management
-  (qBittorrent) and fire-and-forget single-shot downloads (aria2c).
+description: Manage torrent downloads via qBittorrent daemon or lightweight aria2c.
 ---
 
 # Torrent Manager Skill

@@ -1,6 +1,6 @@
 ---
 name: selfsigned-proxy
-description: Build a no-domain reverse proxy with one self-signed certificate, one SHA-256 fingerprint, and multiple local services behind Caddy. Use whenever the user says no domain, self-signed cert, fingerprint pinning, Caddy admin API, one cert many services, or wants a stable server identity without ACME.
+description: Proxy multiple local services behind Caddy with one self-signed certificate.
 ---
 
 # selfsigned-proxy

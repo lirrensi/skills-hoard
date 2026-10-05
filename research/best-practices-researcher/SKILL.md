@@ -1,7 +1,6 @@
 ---
 name: best-practices-researcher
-description: >
-  A meta-skill for researching current best practices and making technology decisions. Use when the user asks about best practices, coding standards, patterns, or needs to choose between technologies for ANY stack. Trigger on "best practices", "industry standard", "recommended way", "how do people usually do X", "is this the right way", "should I use X or Y", or "review my code against best practices". Also triggers when user pastes code and asks if it's correct or well-structured. No per-technology skills needed — this skill is self-contained for all stacks.
+description: Research current best practices and technology choices for any stack.
 version: 1.0
 ---
 

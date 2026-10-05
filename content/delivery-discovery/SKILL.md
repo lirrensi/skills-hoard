@@ -1,6 +1,6 @@
 ---
 name: delivery-discovery
-description: Help a user decide how they want to experience an existing essence. Use when the user is unsure which delivery format or modality fits best, wants examples, or needs recommendations grounded in current workspace capabilities. This skill is conversational guidance, not rendering.
+description: Recommend the best delivery format for finished content via conversation.
 ---
 
 # Delivery Discovery

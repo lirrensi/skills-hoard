@@ -1,10 +1,6 @@
 ---
 name: document-extractor
-description: >
-  Convert hard-to-read files into clear Markdown with MarkItDown. Use for PDF, Word,
-  PowerPoint, Excel, images, audio, HTML, CSV, JSON, XML, ZIP, EPUB, Outlook, and
-  YouTube inputs. Check whether `markitdown` is installed first, prefer `uv tool install`,
-  fall back to `pipx`, and use the upstream docs when needed.
+description: Convert PDFs, Office docs, images, audio, and video into clean Markdown.
 ---
 
 # DocumentExtractor

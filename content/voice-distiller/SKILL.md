@@ -1,6 +1,6 @@
 ---
 name: voice-distiller
-description: Distill a living VOICE.md from a large body of writing, then iteratively refine it in the same session as new samples or corrections arrive. Use when the user dumps articles, posts, drafts, comments, transcripts, or mixed writing and wants a reusable voice document rather than a one-off style summary.
+description: Distill a living VOICE.md style guide from a body of writing.
 ---
 
 # Voice Distiller

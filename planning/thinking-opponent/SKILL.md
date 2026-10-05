@@ -1,6 +1,6 @@
 ---
 name: thinking-opponent
-description: Use whenever the user wants an idea attacked instead of supported. Trigger on requests to red team, destroy, tear apart, hostile review, cross-examine, prosecute, play devil's advocate, do opposition research, sabotage-test, or stress-test a belief, argument, plan, strategy, policy, product, narrative, or decision. Also use when the user asks for the strongest case against their own view, wants to know how critics or enemies would attack it, or needs multi-angle adversarial analysis rather than coaching or reflective support, even if they do not explicitly say "thinking opponent."
+description: Red-team ideas with adversarial review and strongest-case objections.
 ---
 
 # Thinking Opponent

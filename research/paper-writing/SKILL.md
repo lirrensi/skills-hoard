@@ -1,6 +1,6 @@
 ---
 name: paper-writing
-description: End-to-end academic paper production pipeline from literature search to final submission. Use for ANY research paper task: searching papers, writing sections, generating figures/tables, LaTeX formatting, citation management, compilation, or peer review responses.
+description: Produce academic papers end to end, from literature search to submission.
 ---
 
 # Paper Writing Meta-Skill

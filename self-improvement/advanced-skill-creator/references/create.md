@@ -21,6 +21,8 @@ extract the transferable core before drafting the skill.
 3. Distill the transferable core if the source packet is broad.
 4. Decide whether a new skill is actually needed.
 5. Draft a narrow `description` that triggers the right tasks.
+- Hermes-style: 1–2 sentences, ≤140 chars, verb-first (`Build…`/`Distill…`), WHAT not WHEN.
+- NEVER put trigger lists in `description:` — no `Use when…`, `Trigger on…`, quoted utterances. Route in the body instead.
 6. Keep `SKILL.md` lean and move repeated detail into references.
 7. Add scripts only when a repeated step needs deterministic behavior.
 8. Validate against realistic prompts and near-miss prompts.

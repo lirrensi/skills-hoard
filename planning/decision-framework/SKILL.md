@@ -1,6 +1,6 @@
 ---
 name: decision-framework
-description: Use whenever a user needs to move from options to commitment under uncertainty. Invoke for trade-off choices, "should I do X or Y", deciding whether to act now or wait, one-way vs two-way door calls, prioritization, tool or vendor selection, job or partnership choices, stakeholder decisions, or when research/brainstorming now has to land on a defensible choice. Use this even when the user does not say "decision framework" explicitly but is clearly stuck, circling, reopening the same choice, or asking what would change their mind.
+description: Move from options to commitment under uncertainty, with review triggers.
 ---
 
 # Decision Framework

@@ -1,6 +1,6 @@
 ---
 name: task-decomposition
-description: Build a scoped decomposition tree for any broad topic, field, project, or goal. Use whenever the user asks to break something down, wants a knowledge graph, learning map, prerequisite tree, task hierarchy, question array, or a way to see what they do not know yet before acting. Also use when a problem is too big to start and the right move is to map the territory first instead of jumping straight into answers or implementation, or when the real need is a structured intake interrogation before honest decomposition.
+description: Break broad goals into scoped decomposition trees and learning maps.
 ---
 
 # Decomposition

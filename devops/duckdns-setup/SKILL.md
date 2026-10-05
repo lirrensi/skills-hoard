@@ -1,6 +1,6 @@
 ---
 name: duckdns-setup
-description: Set up DuckDNS for a server, keep the hostname updated, and hand it off to HTTPS/self-hosting when the user has no domain. Use whenever the user says DuckDNS, dynamic DNS, free hostname, stable URL, no domain, or needs a server reachable by name without buying a domain.
+description: Claim a free DuckDNS hostname and keep it synced to your public IP.
 ---
 
 # duckdns-setup

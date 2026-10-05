@@ -1,6 +1,6 @@
 ---
 name: social-media-post-creator
-description: Transform any content essence into platform-native social media posts. Use when the user wants to create social media content from structured data (bullet points, outlines, key takeaways), unstructured ideas (messy notes, concepts, presentations), or needs to adapt one piece of content for multiple platforms. Activates for prompts like "turn this into a LinkedIn post", "create Twitter thread from my notes", "adapt this for Instagram", "make this tweet-friendly", or when user provides content essence and names target platform(s).
+description: Transform content into platform-native LinkedIn, X, and Instagram posts.
 ---
 
 # Social Media Post Creator

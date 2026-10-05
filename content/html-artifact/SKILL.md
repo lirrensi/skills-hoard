@@ -1,6 +1,6 @@
 ---
 name: html-artifact
-description: Build self-contained, single-file HTML artifacts and open them in the browser. Use for visualizations, interactive tools, presentations, living documents, and browser-native replacements for PDF, DOCX, PPTX, and spreadsheets. Prefer adapting starters when there is a close fit; otherwise build from scratch.
+description: Build single-file HTML artifacts and open them in the browser.
 version: 1
 ---
 

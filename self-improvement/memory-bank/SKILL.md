@@ -1,6 +1,6 @@
 ---
 name: memory-bank
-description: "Use this skill to save, recall, or organize memories across conversations. Trigger on: 'remember this', 'save this', 'note this', 'what did we discuss about...', 'check your notes', 'do you remember', 'recall'. Also use proactively when the user seems to be resuming previous work, referencing past decisions, or when you discover something genuinely worth preserving for future sessions. This skill is NOT limited to code — use it for business decisions, personal notes, meeting recaps, research, project management, creative work, client history, anything."
+description: Save, recall, and organize persistent memories across conversations.
 ---
 
 # Agent Memory Bank

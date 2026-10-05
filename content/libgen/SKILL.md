@@ -1,9 +1,6 @@
 ---
 name: libgen
-description: >-
-  Search, download, and manage books from Library Genesis (LibGen).
-  Mirror auto-discovery, hybrid HTML+JSON API search, format conversion
-  with calibre, and reading list scanning.
+description: Search, download, and manage books from Library Genesis.
 tags: [libgen, library-genesis, books, downloads, ebooks, research, calibre]
 category: research
 trigger: search (for|in)? libgen|download (from|on) libgen|libgen search|find book (on|via) libgen|grab (a|the) book from libgen|scan (my|the) reading list|libgen mirrors|convert ebook|batch download

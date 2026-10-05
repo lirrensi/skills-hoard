@@ -1,6 +1,6 @@
 ---
 name: brainstorm-ideas
-description: Use when the user needs more and better options before evaluating, deciding, or planning. Trigger on brainstorming, ideation, "give me ideas", "what are other approaches", creative block, early product or architecture exploration, research directions, naming work, or when the current option set is narrow, repetitive, or trapped by assumptions. Prefer this skill when breadth matters, but do not stop at random lists - generate range, cluster the space, and land on promising candidates or next experiments.
+description: Generate, cluster, and shortlist ideas with the right method for the problem.
 ---
 
 # Brainstorm Ideas

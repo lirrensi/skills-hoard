@@ -1,6 +1,6 @@
 ---
 name: thinking-personas
-description: Use when the user wants a cast of distinct personas or worldviews rather than one unified answer. Trigger on requests to generate personas, simulate multiple people, roleplay 6 voices, show how different kinds of minds would see something, create a council of perspectives, expose worldview diversity, invoke a preset pack such as political or psychology personas, or have several personas react independently to the same idea, text, plan, branch, or decision. Avoid when the user mainly wants one best recommendation, heavy synthesis, or adversarial destruction rather than worldview casting.
+description: View ideas through a cast of distinct personas and worldviews.
 ---
 
 # Thinking Personas

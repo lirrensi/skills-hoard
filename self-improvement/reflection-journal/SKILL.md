@@ -1,6 +1,6 @@
 ---
 name: reflection-journal
-description: A thinking instrument for self-knowledge that compounds across sessions. Captures raw brain dumps, stores and tags them over time, and surfaces patterns in your thinking that are invisible in the moment. Use for end-of-day/week/month reflection, "what patterns do you see in my thinking", journal entries, capturing thoughts for later, and spotting recurring mistakes or decisions.
+description: 'Journal brain dumps, tag them over time, and surface hidden thinking patterns.'
 ---
 
 # Reflection Journal — Structured Thinking Over Time

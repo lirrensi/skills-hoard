@@ -1,12 +1,6 @@
 ---
 name: micropatch
-description: >
-  Use this skill when the user wants to capture, document, re-apply, or maintain
-  customizations made to a forked upstream project as semantic MicroPatches.
-  Trigger when the user wants to extract intentional fork changes, carry a feature
-  forward onto a newer upstream release, sync a long-lived fork without relying on
-  brittle merges, or document how a fork-specific feature should survive upstream
-  updates.
+description: Capture fork customizations as semantic patches; re-apply across upgrades.
 ---
 
 # MicroPatch Skill

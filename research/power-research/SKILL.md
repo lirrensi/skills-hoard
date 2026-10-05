@@ -1,13 +1,6 @@
 ---
 name: power-research
-description: >
-  Two-mode research methodology (Plan + Collect) that builds an interrogable corpus,
-  not a dead document. Use when the user wants to research something — investigate,
-  gather information, "let's research X", "look into Y", "find out about Z", "I need
-  to understand". Trigger on any request that needs sustained information gathering
-  and synthesis, especially when the user has a vague goal they want to sharpen first.
-  Also triggers on "power research", "research procedure", or when the user references
-  the Power Research workflow.
+description: Build an interrogable research corpus via Plan plus Collect modes.
 ---
 
 # Power Research

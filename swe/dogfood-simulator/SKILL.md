@@ -1,7 +1,6 @@
 ---
 name: dogfood-tester
-description: |
-  Autonomous dogfooding and real-world product testing focused on MEANING — what users are actually trying to do, where they get confused, and why the product fails them. Use this skill whenever the user wants to test their own product, find missing features, discover gaps, simulate real user experience, do end-to-end workflow validation, or identify what users will actually struggle with. Trigger on phrases like "dogfood", "test my app", "find gaps", "what am I missing", "real user testing", "workflow testing", "product critique", or when the user points at a repository and asks for feedback, improvement ideas, or bug hunting from a user perspective.
+description: Dogfood your product as a real user; find gaps that block workflows.
 ---
 
 # Dogfood Tester

@@ -1,6 +1,6 @@
 ---
 name: essence-workbench
-description: Create editable source-of-truth essence documents from raw material. Use when turning notes, transcripts, research, specs, reports, or mixed source data into structured Markdown or YAML that stays easy to revise. This skill is only for data preparation and essence extraction, not for rendering the final presentation or form.
+description: Turn raw notes and transcripts into editable source-of-truth documents.
 ---
 
 # Essence Workbench

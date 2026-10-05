@@ -1,10 +1,6 @@
 ---
 name: deep-research
-description: >
-  Run file-backed, resumable research inside the current workspace. Use when a task needs
-  multi-source synthesis, comparison, fact-finding, trade-off analysis, current-state checking,
-  or a written brief grounded in collected evidence. Avoid for simple lookups, routine debugging,
-  one-source questions, or tasks that cannot be researched with the tools actually available.
+description: Run resumable, file-backed research with multi-source synthesis and briefs.
 ---
 
 # Deep Research
