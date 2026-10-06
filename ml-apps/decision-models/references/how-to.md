@@ -71,6 +71,8 @@ Answer: `{ "type": "score", "score": 1.05, "legend": {"0": "Calm", "1": "Frustra
 
 **Say what is *required* versus merely *preferred*.** Measured on a live agent: one sentence drawing that distinction roughly **doubled** accuracy on the same decision. Preconditions, exclusions and negations belong in the question — stated, not implied.
 
+**Write `instructions` and `criteria` in English — even when `state` is not.** Measured on one Russian ticket (`is_bug`): Russian questions on clef-flash scored 0.55 (coin flip, wrong); the same questions in English scored 0.95. frida-decisions in Russian scored 0.83, jev in Russian 0.96 — same inputs, three identical repeats, so this is prompt sensitivity, not noise. The question language matters more than the data language; `state` can stay in the original language.
+
 **Always add an `other` option** to a Choice when the input space may exceed your set — otherwise the model is forced into the closest listed option even when none fit. (`other`/`none` should have a description too.)
 
 **Keep order meaningful.** For a Choice, pass criteria as an **ordered list** of `{key, description}` pairs when order matters; a Score is always an ordered array. Options are seen in the order you declare them.

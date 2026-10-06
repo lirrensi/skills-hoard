@@ -75,7 +75,7 @@ Prefer a **general LLM** when you need to _produce_ something (a reply, a summar
 - **No images/audio on hosted Jev** (text/JSON only). Some local checkpoints _do_ take images (OpenJev 27B, Valen) — see the references.
 - **Independent questions only.** One answer cannot inform another _inside the same request_. If a later judgment needs an earlier answer to even be **constructed**, that's a second request — but that's the exception, not the rule.
 - **Not calibrated by default on community checkpoints.** Hosted Jev is RLCD-calibrated; most open models are not. Fit a threshold on your own labels before you trust a number (see `references/how-to.md`).
-- **English-first.** Hosted Jev's primary language is English; other languages work but score lower. Von is English-only.
+- **Question language moves accuracy more than data language.** Write `instructions`/`criteria` in English even for non-English `state` — measured on one Russian ticket: Russian questions scored 0.55 (coin flip, wrong) vs 0.95 in English on the same model. Von is English-only.
 
 ### Small ≠ good — pick the backbone, not the parameter count
 
@@ -179,7 +179,6 @@ Full worked examples of all four, with code, are in `references/how-to.md`.
 - **`references/use-cases.md`** — a big catalogue of decision shapes, industries, and real shipped projects with the numbers people reported.
 
 ## Common Pitfalls
-
 1. **Bundling two decisions into one question** ("is this urgent _and_ who owns it"). Split them — you can't gate or route on a compound answer.
 2. **No `other` option on a Choice.** Without one, the model is forced into the closest listed option even when none fit. Always include `other` when the set may not cover every input.
 3. **Passing Choice criteria as an unordered map** where order matters, or asking a `Score` with <2 or >10 levels. Options are seen in the order you declare them.
@@ -190,6 +189,7 @@ Full worked examples of all four, with code, are in `references/how-to.md`.
 8. **Forgetting `NO_PROXY=localhost,127.0.0.1`** when pointing an SDK at a local server on a box with a system proxy (SDK reports a bogus 502).
 9. **Pinning an alias when you've tuned thresholds.** `jev-latest` moves; pin the versioned id (e.g. `jev-1.13.0`) so a release can't silently shift your numbers.
 10. **Assuming 400 means retry.** A capability/shape mismatch is `400`/`422` (or `501` on llama.cpp) — fix the request; only `429`/`529` are retry-with-backoff.
+11. **Writing questions in the state's language instead of English.** `instructions`/`criteria` in English; `state` can stay native (see `references/how-to.md`).
 
 ## Verification Checklist
 
@@ -199,4 +199,5 @@ Full worked examples of all four, with code, are in `references/how-to.md`.
 - [ ] All independent questions are in a single request (fan-out), not sequential calls.
 - [ ] A confidence/probability gate exists for any action with real consequences.
 - [ ] Questions and threshold constants live in one file for easy review.
+- [ ] `instructions` and `criteria` are in English even when `state` is not.
 - [ ] If using a self-hosted/open checkpoint, a threshold was fit on your own labelled sample.
