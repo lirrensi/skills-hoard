@@ -16,7 +16,8 @@ Pipeline: **assemble → archive → ENCRYPT (mandatory) → upload ciphertext �
 
 ## Step 1 — assemble what goes in the pack (agent work, not scripted)
 
-Default: a good, extensive summary. On request: an **anti-chat export** plus everything needed to continue.
+Default: a good, extensive summary. On request: an **whole chat export** (if harness allows) plus everything needed to continue.
+
 What a pack must answer for a stranger with ZERO chat history:
 
 - what we were doing and why (goal, current state)
@@ -26,8 +27,7 @@ What a pack must answer for a stranger with ZERO chat history:
 - gotchas and already-failed attempts (so they don't repeat them)
 - file inventory
 
-**Anti-chat export** = deliberately NOT a transcript: a de-chatified dossier. No conversational filler, no
-"as I said earlier", no false starts — structured facts another agent can act on directly.
+Avoid large binaries and files unless really requited, priority: text files, code snippets, whole documents allowed, prefer to keep under 50mb.s
 
 **Secrets are ALLOWED inside the pack** — API keys, tokens, connection strings, credentials, private URLs.
 That is deliberate: the far side must be able to _continue_, not come back asking for a key it can't get.
