@@ -6,9 +6,6 @@ description: Send an encrypted handoff pack to another chat or agent.
 # remote-handoff
 
 **Trigger:** "remote handoff" (or any request to move work to another chat / harness / machine / agent).
-⚠️ **Word collision:** plain `handoff` is owned by the hermes-handoff plugin (an in-chat capsule for the next
-session of _this_ conversation). Use "remote handoff" for this skill. If he says just "handoff" and context
-suggests moving work outside this chat, ask in one line which he means.
 
 Pipeline: **assemble → archive → ENCRYPT (mandatory) → upload ciphertext → return the message block.**
 
