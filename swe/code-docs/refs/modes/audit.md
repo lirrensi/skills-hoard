@@ -31,6 +31,7 @@ Scan all `.md` files in `docs/`. Each must have:
 - YAML frontmatter (between `---` delimiters)
 - A valid `node_type` field (must be in the vocabulary)
 
+Skip `AGENTS.md` essence files — they are autoload signposts, not canon docs (no frontmatter expected, see `../agents.md`).
 **Check:**
 - Files with no frontmatter → flag
 - Files with missing `node_type` → flag

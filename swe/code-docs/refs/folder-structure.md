@@ -149,7 +149,7 @@ Add a new folder under `docs/` only when:
 - `INDEX.md` is also the generated folder inventory. It records the exact indexed-folder hierarchy and calculated direct and recursive file totals; do not maintain those values manually.
 - The format is specified in `./index-spec.md`.
 - After creating, moving, or deleting any doc, rebuild the affected INDEX.md files.
-
+- Any folder MAY also carry an `AGENTS.md` essence (what's here, key docs, neighbors, traps). Essences are hand-maintained autoload signposts — tooling never indexes, counts, lints, or migrates them. Format + rhythm: `./agents.md`.
 ---
 
 ## Glossary Guidance

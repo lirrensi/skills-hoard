@@ -22,6 +22,7 @@ The script NEVER touches:
   - the `proposal.md` / `behavior.md` / `design.md` sibling pattern
     used inside docs/changes/<name>/ folders (those are intentionally
     doc-relative by template convention)
+  - `AGENTS.md` essence signposts (hand-maintained autoload files, not canon)
 
 It DOES rewrite:
   - any `../foo/bar.md` and `./foo/bar.md` in frontmatter `links:` and body prose
@@ -39,6 +40,7 @@ from _ontology import (
     parse_frontmatter,
     walk_docs,
     find_project_root,
+    is_signpost,
     _find_docs_root,
     _DOCS_TOP_LEVEL,
     _CODE_TOP_LEVEL,
@@ -339,6 +341,8 @@ def main():
     # Walk all .md files including INDEX.md (we want consistency)
     md_files = sorted(root.rglob("*.md"))
     for fp in md_files:
+        if is_signpost(fp):
+            continue
         try:
             original = fp.read_text(encoding="utf-8")
         except Exception:

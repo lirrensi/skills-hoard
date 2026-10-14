@@ -47,10 +47,10 @@ def read_doc(filepath: Path) -> Optional[dict]:
 
 
 def walk_docs(root: Path) -> list[tuple[Path, dict]]:
-    """Walk docs/ recursively, return sorted list of (filepath, frontmatter). Skips INDEX.md files."""
+    """Walk docs/ recursively, return sorted list of (filepath, frontmatter). Skips INDEX.md and AGENTS.md signposts."""
     results = []
     for f in sorted(root.rglob("*.md")):
-        if f.name == "INDEX.md":
+        if f.name == "INDEX.md" or is_signpost(f):
             continue
         fm = read_doc(f)
         if fm is not None:
@@ -419,23 +419,73 @@ def docs_pointer_present(text: str) -> bool:
     return DOCS_POINTER_MARKER in text
 
 
-def ensure_docs_pointer(project_root: Path, create: bool = False) -> str:
-    """Ensure root AGENTS.md contains the docs pointer line. Idempotent.
+def is_signpost(path: Path) -> bool:
+    """True for autoloaded signpost files (AGENTS.md) — essence, not canon.
 
-    Returns one of: "ok" (already present), "patched" (line appended),
-    "created" (minimal AGENTS.md written, only if create=True),
-    "missing" (no AGENTS.md and create=False), "no-root" (bad path).
+    Signposts are never indexed, counted, linted, or migrated by tooling.
+    Agents read them via filesystem autoload, not via INDEX.md.
+    """
+    return path.name.lower() == "agents.md"
+
+
+DOCS_ESSENCE_START = "<!-- docs-essence:start -->"
+DOCS_ESSENCE_END = "<!-- docs-essence:end -->"
+
+# Root AGENTS.md essence block: pointer + top-folder map, ≤10 lines total.
+# scripts/_ontology.py is the source of truth; refs/agents.md mirrors the format.
+ROOT_ESSENCE_GROUPS = [
+    "`docs/overview/` — why: product, users, non-goals · `docs/spec/` — what: behavior, contracts (`features/` per-feature)",
+    "`docs/architecture/` — how: structure, components, decisions · `docs/verification/` — evidence: strategy, suites, gaps",
+    "`docs/guides/` how-to · `docs/ops/` runbooks · `docs/reference/` glossary+conventions · `docs/resources/` catalogues",
+    "`docs/changes/` proposals · `docs/archive/` history · `docs/stories/` memory",
+]
+
+
+def render_root_block() -> str:
+    """Render the full root AGENTS.md essence block (markers + pointer + groups)."""
+    lines = [DOCS_ESSENCE_START, DOCS_POINTER_LINE]
+    lines += [f"> - {g}" for g in ROOT_ESSENCE_GROUPS]
+    lines.append(DOCS_ESSENCE_END)
+    return "\n".join(lines) + "\n"
+
+
+def root_essence_state(text: str) -> str:
+    """Classify root AGENTS.md docs wiring: fat, thin, custom, or missing.
+
+    fat = essence block present; thin = legacy one-line pointer;
+    custom = mentions docs/INDEX.md in own words; missing = no mention.
+    """
+    if DOCS_ESSENCE_START in text and DOCS_ESSENCE_END in text:
+        return "fat"
+    if DOCS_POINTER_LINE in text:
+        return "thin"
+    if DOCS_POINTER_MARKER in text:
+        return "custom"
+    return "missing"
+
+
+def ensure_root_essence(project_root: Path, create: bool = False) -> str:
+    """Ensure root AGENTS.md carries the essence block. Idempotent.
+
+    Patches an existing file, upgrades the legacy one-line pointer in
+    place, never creates unless create=True (init.py owns creation).
+
+    Returns one of: "ok" (block present), "upgraded" (legacy pointer
+    replaced by block), "patched" (block appended), "created" (minimal
+    AGENTS.md written, only if create=True), "missing" (no AGENTS.md
+    and create=False), "no-root" (bad path).
     """
     try:
         root = Path(project_root).resolve()
     except Exception:
         return "no-root"
     agents = root / "AGENTS.md"
+    block = render_root_block()
     if not agents.exists():
         if not create:
             return "missing"
         agents.write_text(
-            "# Agent Context\n\n" + DOCS_POINTER_LINE + "\n",
+            "# Agent Context\n\n" + block,
             encoding="utf-8",
         )
         return "created"
@@ -443,10 +493,17 @@ def ensure_docs_pointer(project_root: Path, create: bool = False) -> str:
         text = agents.read_text(encoding="utf-8")
     except Exception:
         return "missing"
-    if docs_pointer_present(text):
+    state = root_essence_state(text)
+    if state == "fat":
         return "ok"
+    if state == "thin":
+        new = text.replace(DOCS_POINTER_LINE, block.rstrip("\n"), 1)
+        if not new.endswith("\n"):
+            new += "\n"
+        agents.write_text(new, encoding="utf-8")
+        return "upgraded"
     if not text.strip():
-        agents.write_text(DOCS_POINTER_LINE + "\n", encoding="utf-8")
-        return "patched"
-    agents.write_text(text.rstrip("\n") + "\n\n" + DOCS_POINTER_LINE + "\n", encoding="utf-8")
+        agents.write_text(block, encoding="utf-8")
+    else:
+        agents.write_text(text.rstrip("\n") + "\n\n" + block, encoding="utf-8")
     return "patched"

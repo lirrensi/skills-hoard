@@ -11,9 +11,10 @@ Creates:
     docs/verification/strategy.md (from templates/verification.md)
 
 AGENTS.md contract (see SKILL.md):
-    - init.py MAY create a minimal root AGENTS.md if none exists.
-    - index.py only ever patches an existing AGENTS.md, never creates one.
-    - The pointer line is idempotent: re-running is a safe no-op.
+    - init.py MAY create a minimal root AGENTS.md (with the essence block) if none exists.
+    - init.py also patches/upgrades an existing AGENTS.md that lacks the block.
+    - index.py only ever patches/upgrades an existing AGENTS.md, never creates one.
+    - The essence block (between docs-essence markers) is idempotent: re-running is a safe no-op.
 """
 
 import sys
@@ -25,23 +26,61 @@ SKILL_DIR = Path(__file__).resolve().parent.parent
 DOCS_POINTER_MARKER = "docs/INDEX.md"
 DOCS_POINTER_LINE = "> 📚 Canonical docs live in `docs/` — start with `docs/INDEX.md` (then `docs/ROSTER.md` if present)."
 
+# Mirror of scripts/_ontology.py essence block — keep in sync.
+# Kept local so init.py has no yaml dependency (see module docstring).
+DOCS_ESSENCE_START = "<!-- docs-essence:start -->"
+DOCS_ESSENCE_END = "<!-- docs-essence:end -->"
+ROOT_ESSENCE_GROUPS = [
+    "`docs/overview/` — why: product, users, non-goals · `docs/spec/` — what: behavior, contracts (`features/` per-feature)",
+    "`docs/architecture/` — how: structure, components, decisions · `docs/verification/` — evidence: strategy, suites, gaps",
+    "`docs/guides/` how-to · `docs/ops/` runbooks · `docs/reference/` glossary+conventions · `docs/resources/` catalogues",
+    "`docs/changes/` proposals · `docs/archive/` history · `docs/stories/` memory",
+]
 
-def ensure_docs_pointer_local(project_root: Path) -> str:
-    """Create-or-patch AGENTS.md pointer without importing _ontology (no yaml dep)."""
+
+def render_root_block() -> str:
+    """Render the full root AGENTS.md essence block (markers + pointer + groups)."""
+    lines = [DOCS_ESSENCE_START, DOCS_POINTER_LINE]
+    lines += [f"> - {g}" for g in ROOT_ESSENCE_GROUPS]
+    lines.append(DOCS_ESSENCE_END)
+    return "\n".join(lines) + "\n"
+
+
+def root_essence_state(text: str) -> str:
+    """fat = essence block, thin = legacy pointer line, custom = own words, missing = no mention."""
+    if DOCS_ESSENCE_START in text and DOCS_ESSENCE_END in text:
+        return "fat"
+    if DOCS_POINTER_LINE in text:
+        return "thin"
+    if DOCS_POINTER_MARKER in text:
+        return "custom"
+    return "missing"
+
+
+def ensure_root_essence_local(project_root: Path) -> str:
+    """Create-or-patch-or-upgrade the root essence block without importing _ontology (no yaml dep)."""
     agents = Path(project_root) / "AGENTS.md"
+    block = render_root_block()
     if not agents.exists():
-        agents.write_text("# Agent Context\n\n" + DOCS_POINTER_LINE + "\n", encoding="utf-8")
+        agents.write_text("# Agent Context\n\n" + block, encoding="utf-8")
         return "created"
     try:
         text = agents.read_text(encoding="utf-8")
     except Exception:
         return "missing"
-    if DOCS_POINTER_MARKER in text:
+    state = root_essence_state(text)
+    if state == "fat":
         return "ok"
+    if state == "thin":
+        new = text.replace(DOCS_POINTER_LINE, block.rstrip("\n"), 1)
+        if not new.endswith("\n"):
+            new += "\n"
+        agents.write_text(new, encoding="utf-8")
+        return "upgraded"
     if not text.strip():
-        agents.write_text(DOCS_POINTER_LINE + "\n", encoding="utf-8")
+        agents.write_text(block, encoding="utf-8")
     else:
-        agents.write_text(text.rstrip("\n") + "\n\n" + DOCS_POINTER_LINE + "\n", encoding="utf-8")
+        agents.write_text(text.rstrip("\n") + "\n\n" + block, encoding="utf-8")
     return "patched"
 FOLDERS = [
     "overview",
@@ -95,13 +134,15 @@ def main() -> None:
         dst.write_text(text, encoding="utf-8")
         print(f"  + docs/{dst_rel} (starter)")
 
-    state = ensure_docs_pointer_local(project)
+    state = ensure_root_essence_local(project)
     if state == "created":
-        print("  + AGENTS.md (minimal, with docs pointer)")
+        print("  + AGENTS.md (minimal, with essence block)")
+    elif state == "upgraded":
+        print("  ✓ AGENTS.md — thin pointer upgraded to essence block")
     elif state == "patched":
-        print("  ✓ AGENTS.md — docs pointer appended")
+        print("  ✓ AGENTS.md — essence block appended")
     else:
-        print("  ✓ AGENTS.md — docs pointer already present")
+        print("  ✓ AGENTS.md — essence block already present")
 
     try:
         sys.path.insert(0, str(Path(__file__).resolve().parent))

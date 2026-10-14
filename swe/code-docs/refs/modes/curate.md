@@ -54,7 +54,7 @@ Add at least one incoming link in frontmatter:
 ### 6. Rebuild INDEX.md
 Run `python scripts/index.py` to regenerate all INDEX.md files from frontmatter.
 **Never hand-edit an INDEX.md — the script wipes and overwrites every INDEX.md.** Any manual change you make will be lost.
-The rebuild also ensures root `AGENTS.md` carries the `docs/INDEX.md` pointer (patches if missing, warns visibly).
+The rebuild also upgrades/patches root `AGENTS.md` to the ≤10-line essence block (never creates; warns visibly when missing). Subfolder `AGENTS.md` essences are yours — tooling never touches them, so create/refresh them freely (format: `../agents.md`).
 
 ### 7. Roster — required when creating a resource
 If the new doc is `node_type: resource` (or anything roster-worthy — a service, component, or artifact that belongs in the project's mental model), **MUST update the roster in the same change** (`docs/ROSTER.md` by default, see `../roster.md`):
@@ -161,10 +161,10 @@ Always load for Curate mode:
 - `../ontology.md` — node_type vocabulary, frontmatter spec, link types, status values
 - `../index-spec.md` — INDEX.md format and script usage (`python scripts/index.py`)
 
-Load as needed:
 - `../folder-structure.md` — if placing a new doc or reorganizing
 - `../spec-format.md` — if writing a behavioral spec
 - `../verification.md` — if writing or editing a verification strategy
 - `../principles.md` — if unsure about layer boundaries
 - `../stories.md` — if capturing or editing a `story`
 - `../roster.md` — if creating, moving, or deprecating anything roster-worthy (resources, services, components)
+- `../agents.md` — if creating or refreshing any AGENTS.md essence

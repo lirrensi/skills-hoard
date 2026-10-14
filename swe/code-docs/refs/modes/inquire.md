@@ -9,7 +9,7 @@ This is the **default mode**, especially for subagent use. You are a reader and 
 ## Workflow
 
 ### 1. Orient via INDEX.md
-Start with the root `docs/INDEX.md` to understand the landscape. Then drill into relevant folder INDEX.md files. Never open individual files at random — use the index map first.
+Start with the root `docs/INDEX.md` to understand the landscape. Then drill into relevant folder INDEX.md files. Never open individual files at random — use the index map first. If a folder has an `AGENTS.md` essence, read it alongside its INDEX.md — the essence gives taste, traps, and reading order the map can't say.
 
 ### 2. Follow the stack downward
 Read in order:

@@ -7,6 +7,7 @@ and writes an INDEX.md in each folder with:
 - Graph annotations: outgoing links (→) and incoming links (←) per doc
 - A generated folder registry with hierarchy and file counts
 - A tags section aggregating all tags
+- Ensures root AGENTS.md carries the ≤10-line essence block (signpost AGENTS.md files themselves are never indexed)
 
 Usage:
     python scripts/index.py           # scan docs/ and rebuild all INDEX.md
@@ -29,8 +30,9 @@ from _ontology import (
     today_str,
     get_git_commit,
     get_git_branch,
-    ensure_docs_pointer,
-    DOCS_POINTER_MARKER,
+    ensure_root_essence,
+    root_essence_state,
+    is_signpost,
 )
 
 
@@ -140,7 +142,7 @@ def is_indexed_folder(folder: Path) -> bool:
     if not folder.is_dir():
         return False
     has_docs = any(
-        child.is_file() and child.suffix == ".md" and child.name != "INDEX.md"
+        child.is_file() and child.suffix == ".md" and child.name != "INDEX.md" and not is_signpost(child)
         for child in folder.iterdir()
         if not child.name.startswith(".")
     )
@@ -156,7 +158,7 @@ def folder_stats(folder: Path) -> tuple[int, int, int]:
     direct_files = sum(
         1
         for child in folder.iterdir()
-        if child.is_file() and child.suffix == ".md" and child.name != "INDEX.md"
+        if child.is_file() and child.suffix == ".md" and child.name != "INDEX.md" and not is_signpost(child)
     )
     direct_folders = sum(
         1
@@ -166,7 +168,7 @@ def folder_stats(folder: Path) -> tuple[int, int, int]:
     recursive_files = sum(
         1
         for child in folder.rglob("*.md")
-        if child.name != "INDEX.md"
+        if child.name != "INDEX.md" and not is_signpost(child)
     )
     return direct_files, direct_folders, recursive_files
 
@@ -206,7 +208,7 @@ def build_index(folder: Path, docs_root: Path, reverse: dict, all_docs: dict, dr
     if not folder.is_dir():
         return 0, 0
 
-    md_files = sorted([f for f in folder.iterdir() if f.suffix == ".md" and f.name != "INDEX.md"])
+    md_files = sorted([f for f in folder.iterdir() if f.suffix == ".md" and f.name != "INDEX.md" and not is_signpost(f)])
     subfolders = sorted([d for d in folder.iterdir() if d.is_dir() and not d.name.startswith(".")])
 
     if not md_files and not subfolders:
@@ -301,7 +303,7 @@ def build_all(root: Path, dry_run: bool = False):
 
     all_docs = {}  # resolved_path → frontmatter
     for f in sorted(root.rglob("*.md")):
-        if f.name == "INDEX.md":
+        if f.name == "INDEX.md" or is_signpost(f):
             continue
         try:
             text = f.read_text(encoding="utf-8")
@@ -345,25 +347,30 @@ def build_all(root: Path, dry_run: bool = False):
             total_folders += 1
     print(f"\nIndexed {total_files} files across {total_folders} folders.")
 
-    # AGENTS.md pointer: patch existing files, never create. init.py owns creation.
+    # Root essence block: patch existing files, upgrade legacy pointers, never create. init.py owns creation.
     if dry_run:
         agents = root.parent / "AGENTS.md"
         try:
-            has_pointer = agents.exists() and DOCS_POINTER_MARKER in agents.read_text(encoding="utf-8")
+            agents_text = agents.read_text(encoding="utf-8") if agents.exists() else ""
         except Exception:
-            has_pointer = False
-        if has_pointer:
-            print("  ✓ AGENTS.md — docs pointer present")
+            agents_text = ""
+        essence = root_essence_state(agents_text)
+        if essence == "fat":
+            print("  ✓ AGENTS.md — essence block present")
+        elif essence in ("thin", "custom"):
+            print("  ⚠️  AGENTS.md essence block missing — would patch/upgrade (run without --dry-run or scripts/init.py)")
         else:
-            print("  ⚠️  AGENTS.md missing docs pointer (docs/INDEX.md) — would patch (run without --dry-run or scripts/init.py)")
+            print("  ⚠️  AGENTS.md missing essence block (docs/INDEX.md) — would patch (run without --dry-run or scripts/init.py)")
     else:
-        pointer = ensure_docs_pointer(root.parent, create=False)
-        if pointer == "patched":
-            print("  ✓ AGENTS.md — docs pointer appended (was missing)")
-        elif pointer == "ok":
-            print("  ✓ AGENTS.md — docs pointer present")
+        essence = ensure_root_essence(root.parent, create=False)
+        if essence == "ok":
+            print("  ✓ AGENTS.md — essence block present")
+        elif essence == "upgraded":
+            print("  ✓ AGENTS.md — thin pointer upgraded to essence block")
+        elif essence == "patched":
+            print("  ✓ AGENTS.md — essence block appended (was missing)")
         else:
-            print("  ⚠️  AGENTS.md missing docs pointer (docs/INDEX.md) — run scripts/init.py")
+            print("  ⚠️  AGENTS.md missing essence block (docs/INDEX.md) — run scripts/init.py")
 
     if not dry_run:
         detail = f"rebuilt {total_files} docs across {total_folders} folders"

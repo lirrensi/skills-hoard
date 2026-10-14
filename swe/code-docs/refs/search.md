@@ -9,7 +9,7 @@ The documentation is a **graph**, not a flat pile. You find things by walking th
 This is the primary, intended way to find anything:
 
 ### Step 1: Start at the root
-Read `docs/INDEX.md`. It tells you what each top-level folder contains.
+Read `docs/INDEX.md`. It tells you what each top-level folder contains. Root `AGENTS.md` carries the ≤10-line essence block — the fastest orientation before you open anything.
 
 If `docs/ROSTER.md` exists, read it **before or alongside** the root index. The roster is the curated map of what the project has and why it matters — one scan and you know the whole world. Then INDEX.md tells you where the detail lives.
 

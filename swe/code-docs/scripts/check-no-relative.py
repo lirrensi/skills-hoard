@@ -28,6 +28,8 @@ commit should sneak `../` or `./` or bare `foo.md` back into docs/.
 3. `skills/code-docs/refs/`, `skills/code-docs/templates/` — these
    are skill internals, not user docs. They use `../foo.md` for
    internal navigation. Out of scope.
+4. `docs/**/AGENTS.md` essence signposts — hand-maintained autoload files, not canon.
+   They may use short relative pointers freely. We do NOT lint them.
 
 ## Usage
 
@@ -50,6 +52,7 @@ from pathlib import Path
 from _ontology import (
     parse_frontmatter,
     find_project_root,
+    is_signpost,
 )
 
 
@@ -200,6 +203,12 @@ def main():
             files_skipped += 1
             if verbose:
                 print(f"  ⏭  {fp.relative_to(root)}  (INDEX.md, auto-generated)")
+            continue
+        # Skip AGENTS.md essences (hand-maintained signposts, not canon)
+        if is_signpost(fp):
+            files_skipped += 1
+            if verbose:
+                print(f"  ⏭  {fp.relative_to(root)}  (AGENTS.md essence, not canon)")
             continue
 
         # Special case: docs/changes/*/canonical-artifact.md

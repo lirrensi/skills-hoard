@@ -26,6 +26,7 @@ from _ontology import (
     build_reverse,
     today_str,
     docs_pointer_present,
+    root_essence_state,
 )
 
 
@@ -534,6 +535,30 @@ def compute_age_stats(docs: list[tuple[Path, dict]]) -> dict:
 # ── Main ───────────────────────────────────────────────────────────
 
 
+def essence_coverage(root: Path) -> tuple[int, int]:
+    """Count docs subfolders carrying an AGENTS.md essence. Informational only — never a health gate."""
+    have = total = 0
+    for d in sorted(root.rglob("*")):
+        if not d.is_dir() or d == root:
+            continue
+        try:
+            rel = d.relative_to(root)
+        except ValueError:
+            continue
+        if any(p.startswith(".") for p in rel.parts):
+            continue
+        canon = any(
+            c.is_file() and c.suffix == ".md" and c.name != "INDEX.md" and c.name.lower() != "agents.md"
+            for c in d.iterdir()
+        )
+        kids = any(c.is_dir() and not c.name.startswith(".") for c in d.iterdir())
+        if not (canon or kids):
+            continue
+        total += 1
+        if (d / "AGENTS.md").exists():
+            have += 1
+    return have, total
+
 def main():
     short = "--short" in sys.argv
 
@@ -657,6 +682,10 @@ def main():
     if not pointer_ok:
         print("\n  ⚠️  AGENTS.md missing docs pointer (docs/INDEX.md)")
         print("     • run scripts/init.py (creates) or scripts/index.py (patches existing)")
+    elif root_essence_state(agents_text) != "fat":
+        print("\n  ℹ️  AGENTS.md pointer is thin — run scripts/index.py to expand the ≤10-line essence block")
+    have, total = essence_coverage(root)
+    print(f"\n  ℹ️  folder essences: {have}/{total} docs folders carry AGENTS.md (autoloaded signposts — encouraged, not required)")
 
     if orphans:
         print(f"\n  ❌ {len(orphans)} orphan{'s' if len(orphans) > 1 else ''} (no incoming links)")
