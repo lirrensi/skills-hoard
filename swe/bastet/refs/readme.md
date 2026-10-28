@@ -193,6 +193,16 @@ Report in this order:
 3. what is stale or misleading
 4. what Bastet would change first
 
+### Showcase mode ($10T IPO energy)
+
+When the repo is a public launch that must convert visitors into stargazers — Product Hunt, trending push, "repository of the week" energy:
+
+1. Use the Showcase section order, not the default order.
+2. Fill every tier of the component stack; each missing tier is a conversion leak.
+3. Copy the exemplar for each component from the Showcase exemplar map.
+4. Verify every badge URL, image URL, and install command against the repo.
+5. Never ship placeholder badges, dead demo links, or invented stats.
+
 ---
 
 ## Recommended section order
@@ -361,6 +371,150 @@ Emphasize:
 - tech stack
 - why it was built
 - notable constraints or lessons
+
+## Showcase mode: $10T IPO energy
+
+Goal: the README reads like a funded product's landing page — packed, visual, scannable — while staying 100% true to the repo. Use this order for public launches, Product Hunt pushes, and "repository of the week" ambitions. Internal and private repos stay on the default order.
+
+### Showcase section order
+
+1. Guardrail callouts (optional `> [!WARNING]` / `> [!TIP]` above the logo — positioning, license split, risk note)
+2. Centered hero (dark/light `<picture>` or `#gh-light-mode-only` / `#gh-dark-mode-only` pair)
+3. Badge wall (grouped shields: release, build, version, downloads, license, chat — 3 to 8 that each answer a reader question)
+4. One-line thesis + social-proof numbers (stars, users, throughput — real figures only)
+5. Nav row + language switcher (text row or flag images; skip if untranslated)
+6. Demo above the fold (animated GIF in `<figure>`+`<figcaption>`, else YouTube thumbnail, else screenshot)
+7. Star-us CTA + star-history chart (collapsible `<details>` if the page is long)
+8. Feature index (table or grid; every item links to docs or a demo — prose paragraphs lose)
+9. Quickstart (3 steps max, copy-pasteable, with prerequisites first)
+10. Architecture (diagram + numbered component glossary — Mermaid renders natively on GitHub)
+11. Configuration (env/flag table with required, default, description)
+12. Ecosystem / integrations (client-library matrix, plugins, SDK table)
+13. Contributors + sponsors (contrib.rocks or avatar tables; tiered sponsor tables)
+14. Roadmap / changelog (✅/❌ status table or checkbox list)
+15. FAQ + troubleshooting (`<details>` blocks; real errors with real fixes — almost nobody has this, so it differentiates)
+16. Contributing / support / license (label taxonomy, response-time promise, license)
+
+### Component stack (copy-paste patterns)
+
+Hero with light/dark variants:
+
+```html
+<picture>
+  <source media="(prefers-color-scheme: dark)" srcset="docs/hero-dark.png">
+  <img alt="Product hero" src="docs/hero-light.png">
+</picture>
+```
+
+Badge wall (shields.io; self-host under `docs/badges/` if rate limits bite):
+
+```markdown
+[![Release](https://img.shields.io/github/v/release/OWNER/REPO)](https://github.com/OWNER/REPO/releases)
+[![Build](https://img.shields.io/github/actions/workflow/status/OWNER/REPO/ci.yml)](https://github.com/OWNER/REPO/actions)
+[![License](https://img.shields.io/badge/License-MIT-green.svg)](LICENSE)
+[![Discord](https://img.shields.io/discord/SERVER_ID?label=Discord)](https://discord.gg/INVITE)
+```
+
+Star-history chart (auto-updates daily, zero maintenance):
+
+```markdown
+[![Star History](https://api.star-history.com/svg?repos=OWNER/REPO&type=Date)](https://star-history.com/#OWNER/REPO&Date)
+```
+
+Contributors wall (auto-updates):
+
+```markdown
+<a href="https://github.com/OWNER/REPO/graphs/contributors">
+  <img src="https://contrib.rocks/image?repo=OWNER/REPO" alt="Contributors">
+</a>
+```
+
+Demo GIF with a punchline caption:
+
+```html
+<figure>
+  <img alt="Demo" src="docs/demo.gif">
+  <figcaption>The client above imports <b>zero</b> server code — types only.</figcaption>
+</figure>
+```
+
+Collapsible FAQ entry:
+
+```html
+<details>
+<summary><b>Does it work offline?</b></summary>
+Yes — every feature except cloud sync runs fully local. See <code>docs/offline.md</code>.
+</details>
+```
+
+Back-to-top anchors on long pages: `<a name="readme-top"></a>` under the hero, then `[back to top](#readme-top)` at each section end.
+
+### Showcase canon: the five to copy first
+
+These five are the house style. Copy their exact components before reaching for anything else. All dissected line-by-line, Oct 2026:
+
+| # | Repo | ★ | Steal this |
+|---|---|---|---|
+| 1 | `browser-use/browser-use` | 119k | Light/dark `<picture>` logo + tagline image, self-hosted badge row (demos/docs/blog/merch/GitHub/X/Discord/cloud with spacer `<img>`s), hero canyon photo, `llms.txt` agent callout, "Which product do I need?" responsive SVG (desktop + mobile variants), 3-path quickstart (cloud/CLI/library), benchmark chart, **11-question collapsible FAQ**, related-repos table, BibTeX citation, founder X-follows footer |
+| 2 | `OpenHands/OpenHands` | 92k | Centered logo + `Agent Canvas` H1 + bold thesis, 4 `for-the-badge` shields (CI/npm/docs/Slack), pipe nav row, full-width screenshot, bold-lead 6-row feature table, 4-option quickstart (no-sandbox/docker/multi-docker/source) with `[!WARNING]` guardrails + per-OS blocks, **architecture section with diagram + repository-boundaries table**, docs index |
+| 3 | `PostHog/posthog` | 40k | Dark/light `<picture>` logo, 5 badges (contributors, PRs welcome, docker pulls, commit activity, **closed** issues), 6-link nav, **YouTube demo thumbnail**, 7-category product taxonomy with ~25 linked products, **`<details>` "readme for agents" MCP block** (`npx @posthog/wizard mcp add` + `llms.txt`), free-tier pitch with hard numbers, SDK matrix table (frontend/mobile/backend), hiring gag + easter-egg footer |
+| 4 | `stablyai/orca` | 108k | `<h1>` icon+wordmark, 6 badges (stars/downloads/MIT/Discord/X/platforms), 6-language sub-nav, bold thesis + download CTA, 960px hero shot, **9-row feature wall: text-left + GIF-right `<table>`** (every GIF has a JPG/WebP poster fallback and docs link), "Also in the box" linked overflow list, **`<kbd>`-pill integration wall** (~35 agents with favicons), per-platform install with package-manager block, community grid (Discord/X/WeChat QR), contrib.rocks + star-history footer |
+| 5 | `lobehub/lobehub` | 84k | Reference-style banner, **14-shield group in 3 tiers** (release/docker/vercel/discord + codecov/CI + contributors/forks/stars/issues/license), **7 share-intent badges**, Product Hunt top-post + Trendshift + Vercel OSS badges, collapsible `<details>` TOC, video embed, PH/Discord community table, `Star Us` CTA + collapsible star-history (light+dark), **4 narrative feature chapters** (Operator/Create/Collaborate/Evolve) each with bullets + full-width art, back-to-top after every section, 5-button deploy matrix, env-var table, ecosystem table with per-package shields, **OSSInsight contributor widgets**, sponsor art, FOSSA license block, 60+ reference-style link defs |
+
+### Component → canon mapping
+
+When building a section, copy the canonical repo's exact pattern:
+
+| Component | Copy this canon repo | The pattern |
+|---|---|---|
+| Hero + tagline | `browser-use` or `orca` | Light/dark `<picture>` stack; orca adds icon+wordmark `<h1>` + download CTA |
+| Badge wall | `lobehub` (max) or `orca` (lean) | 14 grouped tiers vs 6 tight badges; both answer real reader questions |
+| Share row | `lobehub` | 7 share-intent shields — free virality, zero maintenance |
+| Launch badges | `lobehub` | Product Hunt + Trendshift + OSS-program badges as trust proof |
+| Demo | `orca` (GIF wall) or `PostHog` (YouTube thumb) | GIF-with-poster per feature, or one video link when GIFs rot too fast |
+| Feature wall | `orca` | Text-left + GIF-right `<table>`, docs link per row, "also in the box" overflow |
+| Feature table | `OpenHands` | Bold-lead 6-row table, every row links to docs |
+| Product taxonomy | `PostHog` | Bold category headings with 3–6 linked bullets each |
+| Narrative chapters | `lobehub` | 4 story arcs with bullets + full-width art + back-to-top |
+| Quickstart paths | `browser-use` | "Which product do I need?" SVG, then one path per audience |
+| Install options | `OpenHands` | Numbered options with prerequisites + warnings + per-OS blocks |
+| Architecture | `OpenHands` | Diagram + repository-boundaries table (who owns what) |
+| Env/config table | `lobehub` | Required/description/example columns with proxy defaults |
+| Integration wall | `orca` | `<kbd>` pills with favicons, "any CLI agent" closer |
+| FAQ | `browser-use` | 11 `<details>` blocks with real code answers, not one-liners |
+| Agents block | `PostHog` | `<details>` MCP endpoint + one-line installer + `llms.txt` links |
+| Related repos | `browser-use` | Table of sibling repos with one-line roles |
+| Contributors | `lobehub` (max) or `orca` (lean) | contrib.rocks + OSSInsight widgets vs single contrib.rocks image |
+| Star history | `lobehub` or `orca` | Collapsible light+dark chart, or static PNG footer |
+| Deploy matrix | `lobehub` | 5 one-click deploy buttons in a centered table |
+| Community | `orca` | Discord/X/WeChat-QR grid + star-CTA |
+| Citation | `browser-use` | BibTeX block for research users |
+| Footer | `PostHog` | Personality closer: hiring gag + easter-egg link |
+
+### Extended exemplars (beyond the canon)
+
+Reach here only when the canon five lack the component:
+
+| Component | Copy this repo | Why it wins |
+|---|---|---|
+| Badge wall (health) | `langgenius/dify` | LFX health/contributor badges, 18-language switcher |
+| Install matrix | `starship/starship` | Per-OS `<details>` with package-manager tables, per-shell setup |
+| Contributors (lean) | `langgenius/dify` | contrib.rocks wall, zero widgets |
+| Sponsor tiers | `biomejs/biome` | 4-tier tables with logos |
+| Benchmarks | `gofiber/fiber` | Chart pair + sponsor tiers + philosophy + limitations |
+| Guardrail callouts | `calcom/cal.diy` | `WARNING`+`TIP` above the logo (risk + positioning first) |
+| Roadmap table | `ghostty-org/ghostty` | ✅/❌ status table inside deep engineering prose |
+| i18n switcher | `anomalyco/opencode` | 21-language row |
+| Social proof | `dubinc/dub.link` | Hard numbers in paragraph two (250M+ clicks, named customers) |
+| Custom art direction | `GyulyVGC/sniffnet` | Hand-drawn SVG header, badges, ruled sections |
+
+### Showcase anti-patterns
+
+- Placeholder badges that 404, demo links that rot, stats nobody can verify — each one burns trust faster than an empty section.
+- Wall of text before the quickstart; the demo and install must land in the first two screens.
+- `PRs welcome` with no process — give branch, test, and response-time promises instead.
+- A `Last updated` stamp that goes stale; update-per-release or omit.
+- Thin contrast: `ollama/ollama` and `openai/codex` convert on brand alone (logo + install, zero badges). Copy them only when the brand already carries the repo.
 
 ---
 
@@ -572,3 +726,4 @@ Before Bastet declares the README polished, confirm:
 - Deeper docs are linked where needed.
 - The README helps a new reader avoid opening source code immediately.
 - If the project voice allows it, the ending leaves a small memorable touch.
+- Showcase mode only: hero renders in light+dark, every badge resolves, demo loads above the fold, star-history + contributors render, FAQ answers real questions, zero invented stats.

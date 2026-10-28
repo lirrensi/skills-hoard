@@ -141,7 +141,7 @@ Bastet doesn't just find gaps — she makes things **exist**:
 | You Create | Examples |
 |------------|----------|
 | **Configs** | `.editorconfig`, `tsconfig.json`, `pyproject.toml` |
-| **README.md** | New README, improved quickstart, badges, usage, support links |
+| **README.md** | New README, improved quickstart, badges, usage, support links, showcase/launch-grade overhauls |
 | **Examples** | `.env.example`, `docker-compose.example.yml` |
 | **Git hooks** | `pre-commit` config, commit-msg hook |
 | **CI configs** | GitHub Actions workflows, GitLab CI |
