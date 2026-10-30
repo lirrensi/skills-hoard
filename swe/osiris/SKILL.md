@@ -25,6 +25,20 @@ Code derived from this documentation. Could be single file or folder.
 Also other docs/ may be present -> check at root level and subfolders for modules.
 
 ---
+## The Parent Rule
+
+The requirement is the parent of both code and test. Every test names its parent clause ID. A test that descends from another test is a regression aid, never evidence.
+
+## Blind Derivation
+
+Requirements-based tests are derived WITHOUT examining the implementation.
+
+| Protocol | Rule |
+|---|---|
+| Derive | PREFER spawning a scout subagent with spec/doc paths ONLY — forbid it code paths — to derive cases; the main agent executes and maps them. |
+| Fallback | Only derive blind in-session when subagents are unavailable, and then never open code files first. |
+| Independence | Solo independence is a different head: the blind agent sees the spec, never the implementation or prior tests. |
+| Taint | If reading the code changed your test, label it implementation-aware — regression aid, not evidence. |
 
 - If asked to write comprehensive tests, assess coverage broadly, or design a test plan for a real repo:
 > First infer the repo shape from the codebase and the user's request.
@@ -40,7 +54,7 @@ Also other docs/ may be present -> check at root level and subfolders for module
 > IF `HAS_SECRETS_ROTATION` or strong operational lifecycle risk is true → bias toward `tests/resilience_ops.md`.
 > IF admin tools, reconciliation, approvals, imports, exports, or async follow-up reads define the real user outcome → bias toward `tests/system_flows.md`.
 > Do not load every testing guide by default.
-> Do not load the legacy master checklist in `tests/tests.md` unless the user explicitly wants the exhaustive checklist.
+> IF the request is to plan, assess, or prioritize tests → THEN load `tests/planning.md`
 
 - Module loading logic: use explicit IF/THEN exclusions too.
 > IF there is no rendered UI → THEN do not load `tests/frontend.md`
@@ -72,6 +86,14 @@ Also other docs/ may be present -> check at root level and subfolders for module
 | **Branch Coverage** | Every `if`/`else` taken | If the condition logic is correct |
 | **Function Coverage** | Every function called | If it does what it's supposed to |
 | **Statement Coverage** | Every statement run | Edge cases, error paths |
+| **Condition/Decision (MC-DC)** | Each condition independently flips the outcome | Condition combos that mask each other |
+| **Path** | Each feasible path through branching/loops taken | Infeasible paths, loop-boundary behavior |
+| **State/Transition** | Each state × event × guard exercised | Illegal transitions, terminal-state traps |
+| **Data-flow (def-use)** | Each define-use pair of a variable covered | Stale, overwritten, or never-consumed writes |
+| **Contract/Consumer** | Each consumer-facing contract clause verified | Provider-side assumptions no consumer checks |
+| **Requirement/Risk** | Each requirement or risk item traced to a test | Untraced requirements, unowned risks |
+| **Changed-lines** | Every added/changed line exercised | Unchanged code that the change silently breaks |
+Coverage is a map of what was exercised, not a score of what was verified. Name which behaviors each metric still misses.
 
 **The Lie:**
 - 100% line coverage can mean 0% behavior verified
@@ -86,13 +108,22 @@ Also other docs/ may be present -> check at root level and subfolders for module
 💀 "Tests pass" + "I changed the code" + "Tests still pass" = DEAD TESTS
 
 
-**Osiris does not count lines. Osiris weighs behavior.**
+**Rigor tier — pick ONCE per project, by blast radius:**
+
+| Tier | Scope | When |
+|---|---|---|
+| Statement | low consequence | failure is cheap and contained |
+| Decision | the sweet spot | default — realistic damage on failure |
+| MC/DC | catastrophic only | failure kills, maims, or ruins |
+
+Tests exist to satisfy requirements, never to produce coverage.
 
 ---
 
 ## The Six Lenses of Judgment
 
 Every codebase shall be weighed against these lenses. Apply ALL of them. Inevitably.
+Lenses 1, 2, 6 (deletion, assumption, mutation) are ANALYSIS — completeness evidence on existing code; they never replace blind requirements-based tests.
 
 ### 🔱 Lens 1: Deletion Immunity
 *"What breaks if I delete this?"*
@@ -211,12 +242,20 @@ Osiris adapts his weapons to the battlefield. Analyze the codebase and load only
 | `tests/mobile.md` | Mobile app or mobile shell exists | Lifecycle, offline, permissions, deep links, device behavior |
 | `tests/system_flows.md` | Request is about end-to-end or cross-boundary truth | Browser flows, CLI flows, API consumer journeys, real workflows |
 | `tests/resilience_ops.md` | Scale, uptime, deploy, restore, or failure recovery matters | Load, chaos, observability, rollout, rollback, disaster recovery |
+| `tests/planning.md` | Request is to plan, assess, or prioritize | Scope, risk, traceability, entry/exit, depth modes |
 
 **Guidance:**
 - `frontend` is not the same as end-to-end. End-to-end belongs in `system_flows`.
 - `backend` includes APIs, queues, workers, CLIs, libraries with side effects, and data boundaries.
-- Mixed repos usually load `core` plus two or three additional modules, not all of them.
 - For focused requests, load the smallest useful set and stay narrow.
+
+## Suite Shape
+
+Many unit, fewer integration, few e2e. One behavior proven at one level.
+- Contract tests at service and package boundaries; smoke tests for deploy; regression at the lowest level that reproduces the bug.
+- Never duplicate one assertion across three levels. E2e proves the wiring, not every branch.
+- Optimize for failure localization and PR runtime.
+- Default budgets (tune per repo): unit suite < 60s, PR suite < 10 min. Quarantine slow tests with an owner.
 
 ---
 
@@ -230,7 +269,12 @@ Osiris adapts his weapons to the battlefield. Analyze the codebase and load only
 | Load vulnerabilities | X | 🔴/🟡/🟢 |
 | Chaos points | X | 🔴/🟡/🟢 |
 | Decorative tests | X | 🔴/🟡/🟢 |
-
+| Severity | Meaning |
+|----------|---------|
+| **Critical** | Primary behavior undefended, or realistic path corrupts data, leaks access, or breaks a critical flow. Blocks release. |
+| **High** | Realistic error, retry, boundary, or concurrency path untested. Likely incident. |
+| **Medium** | Edge or contract detail untested. Degraded behavior. |
+| **Low** | Hygiene or maintainability. No plausible production failure. |
 ## The Mutation Chamber
 
 | File | Mutation Introduced | Test Result | Verdict |
@@ -239,7 +283,11 @@ Osiris adapts his weapons to the battlefield. Analyze the codebase and load only
 | [module] | `return true` → `return false` | FAILED | ✅ CAUGHT |
 | [module] | `timeout: 5000` → `timeout: 0` | PASSED | 💀 DECORATIVE |
 
-**Mutation Score:** X% of mutations killed
+**Mutation Score:** killed / (total − equivalent). Report equivalent mutants separately; never fold them into the kill count.
+Run mutation on changed and high-risk modules by default; whole-repo runs are the exception, not the rule.
+Operators per stack: condition flip, boundary shift, return swap, constant change, statement deletion, null-path removal, await/drop promise, off-by-one in loops, error-path swallow.
+Survivor triage, in order: missing assertion → weak assertion → untested behavior → equivalent mutant.
+The score is never a KPI. Surviving mutants ARE the gap list.
 
 | Interpretation | Score | Meaning |
 |---------------|-------|---------|
@@ -252,13 +300,41 @@ Osiris adapts his weapons to the battlefield. Analyze the codebase and load only
 
 ### [File/Module Name] — 💀 UNDEFENDED
 - **Gap:** [What's missing]
-- **Test to write:** [Specific test case]
-- **Severity:** Critical / High / Medium
+- **Evidence:** [path:line, symbol, or "not present"]
+- **Impact:** [what breaks, for whom]
+- **Test to write:** [Specific test case — one assertion, oracle named]
+- **Severity:** Critical / High / Medium / Low (matches rubric)
 
 ### [File/Module Name] — ⚠️ PARTIAL
 - **Gap:** [What's missing]
 - **Existing coverage:** [What IS tested]
-- **Test to write:** [Specific test case]
+- **Evidence:** [path:line, symbol, or "not present"]
+- **Impact:** [what breaks, for whom]
+- **Test to write:** [Specific test case — one assertion, oracle named]
+- **Severity:** Critical / High / Medium / Low (matches rubric)
+
+### [Module] — ✓ DEFENDED
+- **Evidence:** [path:line of proving tests]
+- **Proving tests/mutations:** [which tests kill which mutations]
+
+### [Code] — UNASKED
+- **Evidence:** [path:line of code with no parent requirement]
+- **Impact:** unasked behavior ships untested
+- **Resolution:** derive-from-spec or delete
+
+### [Decision] — DERIVED REQUIREMENT
+- **Decision:** [what the code decided that the spec never stated]
+- **Label:** DERIVED — traced to [parent clause ID or "none"], flagged upward
+
+### Finding Gate
+Before Output, every finding must pass:
+- Evidence exists (path:line, symbol, or "not present").
+- The test-to-write names one assertion and one oracle.
+- Severity matches the rubric.
+- Impact is concrete: what breaks, for whom.
+- Every unchecked item is GAP or N/A with a reason.
+- Every test names its parent clause ID.
+- Every test is blind-derived or explicitly labeled implementation-aware.
 
 ## The Resurrection Plan
 
@@ -282,6 +358,7 @@ Osiris adapts his weapons to the battlefield. Analyze the codebase and load only
 
 ## Execution Protocol
 
+0. **Extract** — list requirement clauses + run the verifiability litmus (can a stranger write a failing test from this sentence without seeing code?); unverifiable clauses are design notes flagged upward, never tested as written.
 1. **Scan** — Map the entire codebase. Identify all code paths.
 2. **Infer** — Detect codebase type (UI/Backend/Library/Mixed).
 3. **Apply Lenses** — Run all six lenses against every file.
@@ -289,11 +366,45 @@ Osiris adapts his weapons to the battlefield. Analyze the codebase and load only
 5. **Prioritize** — Rank by severity (Critical: will break, High: likely risk, Medium: coverage or edge-case risk).
 6. **Design Tests** — Specify exact test cases to write.
 7. **Output** — Generate Judgment Report.
-8. **Write Tests** — Create the actual test files. Write the assertions.
-9. **Run Them** — Execute the tests. Confirm they fail where expected.
+8. **Write Tests** — Create the actual test files. One behavior each, oracle named.
+9. **Run Them** — Prove RED at the intended assertion, then GREEN; revert-check or mutation-check to prove causality.
 10. **Report** — "I wrote X tests. Y fail. Here is what dies in production."
 
 ---
+
+## When Osiris Cannot Judge
+
+| Blocker | Required behavior |
+|---------|-------------------|
+| No test runner | Write a minimal harness or one-off script; else static gap report marked `UNVERIFIED` |
+| Missing deps or services | Fake or containerize; else mark the surface blocked — never guess results |
+| Suite already red | Record baseline failures first; never attribute them to the new test |
+| No docs or spec | Infer from code; list assumptions explicitly |
+| Huge repo or timebox | Risk-based sample; state method and uncovered areas |
+| Cannot execute | Deliver plan and tests marked `NOT RUN`; never claim passing |
+
+## Calibration Rules
+
+- N/A is not missing: every unchecked item is GAP or N/A with a reason.
+- Stage-aware: prototype and production carry different bars.
+- Framework-agnostic: judge behavior, not tooling.
+- Never penalize generated or vendored code.
+- State unknowns; never guess.
+
+---
+
+## When Not to Test
+
+Zero tolerance is for behavior that matters. Do not test:
+
+- Generated or vendored code — verify the generator or the pin, not the output.
+- Framework internals — test your usage at the boundary, not their implementation.
+- Trivial accessors with no logic, no branch, no observable decision.
+- Behavior already proven at a lower level — e2e proves wiring, not every branch again.
+- Anything with no oracle — that is a blocker to record, not a test to guess.
+- Unverifiable requirements — flag upward as design notes, never tested as written.
+
+Every skipped item is N/A with a one-line reason, never a silent skip.
 
 ## 🚫 FORBIDDEN
 
@@ -332,7 +443,6 @@ Osiris adapts his weapons to the battlefield. Analyze the codebase and load only
 
 ## Output Format
 
-- If user wanted a report on the state tests:
-> Save report to .agents/reports/Osiris_Judgment_{YYYY_MM_DD}.md
-
-- If user wanted to write new tests - just write them and then a simple report.
+- If user wanted a test plan: load `tests/planning.md`, save to `.agents/reports/Osiris_Plan_{YYYY_MM_DD}.md`.
+- If user wanted a report on the state of tests: save judgment to `.agents/reports/Osiris_Judgment_{YYYY_MM_DD}.md`.
+- If user wanted new tests written: write them, prove RED→GREEN with revert/mutation check, then a short report (tests written, failures, what dies in production).

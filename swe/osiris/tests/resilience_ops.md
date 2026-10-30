@@ -12,6 +12,15 @@
 - [ ] HIGH IF the hotspot is unknown -> THEN profile before guessing; averages are not truth, tail latency is truth
 - [ ] HIGH IF the system uses autoscaling, serverless, or bursty queues -> THEN test cold start cost, backlog recovery time, and scaling limits rather than only steady-state load
 
+### Load Test Design
+
+- [ ] CRITICAL IF load tests exist -> THEN cover scenarios: steady-state, spike, soak/endurance, stress-to-failure, recovery
+- [ ] HIGH IF metrics are reported -> THEN use 2–4: P50/P95/P99, throughput, error %, saturation, cost. Tail latency is the verdict.
+- [ ] HIGH IF measurements are taken -> THEN exclude warmup (JIT, cache, connections); fix iterations and duration; report variance and confidence, not just means
+- [ ] HIGH IF results must compare -> THEN capture environment (hardware, runtime, config, isolation, background load) and baseline against the previous release
+- [ ] MEDIUM IF load results are reported -> THEN use the result table: Scenario | Load | P50/P95/P99 | Throughput | Error % | Saturation | Threshold | Verdict
+- [ ] CRITICAL IF load runs in CI -> THEN fail on threshold breach and on variance blow-up
+
 ---
 
 ## Chaos and Failure Recovery

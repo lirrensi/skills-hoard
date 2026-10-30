@@ -37,7 +37,7 @@
 
 > Use this section for code-first review of ML/LLM/agentic systems.
 >
-> Anubis inspects code, configuration, and existing tests. It does not prove safety through live red-team interaction, broad manual prompting, or heavy end-to-end runtime validation. For ML-heavy systems, call out that limitation explicitly in coverage.
+> Standards move. Verify provider guidance and current OWASP LLM / Agentic AI Top 10 before calling behavior non-compliant.
 
 - [ ] 🔴 IF using LLM APIs → THEN implement prompt injection detection & output sanitization — attacker manipulates prompts to bypass restrictions or extract data
 - [ ] 🔴 IF accepting user input as LLM context → THEN separate untrusted content from system prompts — prevents prompt injection via context injection
@@ -94,5 +94,17 @@
 - [ ] 🟡 IF security tooling supports ignore files or suppression rules → THEN review them as attack surface — never let defaults exclude first-party security-sensitive code, providers, plugins, or whole app trees
 - [ ] 🔴 IF CI, agent plugins, or automation install tools at runtime → THEN pin exact package versions and GitHub Actions by immutable version or commit SHA — never use `@latest` in privileged automation
 - [ ] 🔴 IF LLMs or automation can call tools/MCP servers → THEN validate tool inputs, require authorization per tool, and minimize tool permissions/capabilities — tool surfaces are privilege boundaries
+
+### MCP / Tool-Server Review
+
+| Check | Why it matters |
+|---|---|
+| Tool-description poisoning | Descriptions are untrusted input to the model; treat them as prompt-injection surface. |
+| Over-broad scopes | One tool with every capability is one compromise away from full access. |
+| Token passthrough / OBO + audience | Forwarded tokens must carry audience checks; never pass user tokens upstream unchecked. |
+| Server-side validation of LLM args | Model output is untrusted; validate every argument server-side before acting. |
+| Response-size / context budget | Unbounded tool output exhausts context and buries the real signal. |
+| Progressive discovery past ~20 tools | Too many tools degrades selection; expose subsets per task. |
+| Protocol-vs-tool error semantics | Distinguish transport failures from tool failures before retrying. |
 
 ---

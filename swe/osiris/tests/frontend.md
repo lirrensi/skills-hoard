@@ -38,6 +38,9 @@
 - [ ] CRITICAL IF the UI is interactive -> THEN verify keyboard reachability, visible focus, label associations, and error announcement behavior
 - [ ] HIGH IF dialogs, menus, or overlays exist -> THEN test focus trapping, escape handling, dismissal rules, and restoration of focus
 - [ ] HIGH IF user content is rendered -> THEN test escaping and sanitization so the UI does not become an XSS delivery surface
+- [ ] CRITICAL IF the UI is interactive -> THEN meet WCAG 2.2 AA: contrast 4.5:1 text / 3:1 UI, visible focus, keyboard-only path, 200% zoom with reflow, reduced-motion respected
+- [ ] CRITICAL IF forms exist -> THEN announce and associate every error, never use placeholder-only labels, move focus to the first error
+- [ ] HIGH IF a critical flow ships -> THEN run an automated axe pass plus one manual keyboard pass per flow
 
 ---
 
@@ -46,3 +49,15 @@
 - [ ] HIGH IF stable components or pages have historically regressed visually -> THEN add focused visual or snapshot checks for those surfaces
 - [ ] HIGH IF using snapshots -> THEN keep them small, intentional, and reviewable; never snapshot an entire changing page as a rubber stamp
 - [ ] MEDIUM IF responsive layout matters -> THEN test key viewports instead of assuming desktop success means mobile success
+
+## Browser and Device Matrix
+
+- [ ] HIGH IF the UI ships to browsers or devices -> THEN define the supported matrix: browsers, viewports, input modes; test minimum supported, not only latest
+- [ ] HIGH IF journeys are critical -> THEN run cross-browser checks on those journeys, not only the default browser
+
+## Async UI and Network
+
+- [ ] CRITICAL IF concurrent requests can race -> THEN test race and last-write-wins behavior explicitly
+- [ ] HIGH IF the UI works offline or on flaky networks -> THEN test retry, offline, and reconnect behavior
+- [ ] HIGH IF optimistic updates exist -> THEN test optimistic apply, server rejection rollback, and cancellation
+- [ ] MEDIUM IF caching or revalidation exists -> THEN test stale-while-revalidate: stale shown, fresh swapped, no flicker to empty

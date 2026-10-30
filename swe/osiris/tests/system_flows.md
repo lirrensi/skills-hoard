@@ -10,6 +10,17 @@
 - [ ] CRITICAL Browser journeys, CLI commands, API consumer flows, file-processing pipelines, and multi-service workflows all qualify when they prove the full path
 - [ ] HIGH Keep these tests narrow and critical; if a path is not mission-important, it probably belongs in lower-level suites
 
+### Journey Selection
+
+Rank journeys by revenue, trust, irreversibility, and frequency. Require one journey per path:
+1. First contact — install, first run, health.
+2. Happy path — primary business outcome.
+3. Reality path — skipped step, wrong order, resume, retry, double submit.
+4. Power path — bulk, large data, concurrency, automation.
+5. Unexpected path — wrong input, cancel mid-flight, offline, restart, permission denial.
+
+Exploratory charter template: mission, timebox, areas, what was tried, findings, bugs.
+
 ---
 
 ## Workflow Expectations
@@ -34,6 +45,7 @@
 ## Reliability Rules
 
 - [ ] CRITICAL Do not use fixed sleeps; wait on observable readiness, durable state, or explicit events
+- [ ] CRITICAL A sleep is a bug in the test: poll a condition or await a durable signal
 - [ ] CRITICAL Keep tests independent; one flow must not prepare the world for another flow silently
 - [ ] HIGH Run against a production-like environment for the surfaces under test; a fake universe does not prove the real journey
 - [ ] HIGH Capture enough evidence on failure - logs, screenshots, output, traces, persisted artifacts - to explain what died

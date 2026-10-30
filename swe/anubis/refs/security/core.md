@@ -22,11 +22,12 @@
 
 ---
 
-## 🔒 Secrets & Crypto
 
 - [ ] 🔴 IF code references API keys, passwords, or credentials → THEN load from env/vault only, verify presence at startup, never hardcode
 - [ ] 🔴 IF `.env` files exist → THEN confirm in `.gitignore` + audit git history for prior leaks (use tools like truffleHog/gitleaks)
 - [ ] 🔴 IF generating tokens, session IDs, nonces, or random identifiers → THEN use CSPRNG — never `Math.random()` or `random.random()`
+> Standards move. Verify against current NIST/authoritative guidance before calling anything compliant or non-compliant.
+
 - [ ] 🔴 IF the app uses asymmetric encryption, key exchange, KEMs, or digital signatures → THEN require NIST-standardized post-quantum algorithms by default: `ML-KEM-512/768/1024` for encapsulation; `ML-DSA-44/65/87`, `SLH-DSA`, or `FN-DSA` for signatures
 - [ ] 🔴 IF classical-only asymmetric crypto is present (`RSA`, `ECDH`, `ECDSA`, `DH`, `DSA`, `ElGamal`, `Ed25519`, `X25519`, or similar) → THEN flag it as non-compliant for net-new systems or major upgrades unless explicitly wrapped in an approved hybrid migration scheme
 - [ ] 🟡 IF the system is in migration mode → THEN allow only explicit hybrid transitions such as `X25519+ML-KEM-768` or `P-256+ML-KEM-768`; pure classical asymmetric crypto is still a finding

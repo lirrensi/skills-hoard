@@ -86,3 +86,23 @@
 - [ ] 🟡 **High-risk glue layers need integration tests** — Webhooks, actions, extensions, report renderers, wrappers, and auth adapters are where drift and security regressions hide. Unit tests alone are not enough.
 
 ---
+
+## Spec Verifiability & Trace
+
+| Check | Rule |
+|---|---|
+| Verifiability litmus: can a stranger write a FAILING test from this sentence without seeing code? | Unverifiable → SPEC-VER: rewrite the requirement, never test around it |
+| Upstream trace: one tag in spec clause, one in code, one in test; two greps | Code with no parent clause → SPEC-ORPHAN |
+| Derived requirement absorbed silently | SPEC-DERIVED: name it, label it DERIVED, trace it, flag upward |
+| Verification-hostile construct shipped without cost accounting | Finding: flag condition count, manufactured untestable code, or unmapped optimization |
+| Uncovered line without migrated justification | Finding: stale or missing justification |
+
+**Verifiability litmus.** Two failure modes: (1) no quantitative/behavioral acceptance criteria — no values, no observable behavior to assert; (2) implementation detail without behavioral detail — e.g. a state machine described without its full input list and expected outputs, so behavior cannot be inferred at test time.
+
+**Upstream trace.** Downstream trace proves intended function is implemented; upstream proves every implementation element exists to deliver intended function. Unasked code ships untested: delete it or spec it.
+
+**Derived requirements.** Implementation forcing decisions the spec never made — libraries, scheduling, numerical accuracy, defaults, retries, timeouts — is a spec gap. Never absorb silently.
+
+**Verification-hostile constructs.** Decisions with many conditions per decision (flag the count — branch-combination cost grows against whoever must test it); coding-standard-mandated unreachable defaults (manufactured untestable code — demand justification); heavy optimization without object-code mapping.
+
+**Untestable-code justifications.** Uncovered lines need written per-line justification: default cases, defensive code, init/shutdown, language artifacts, unused library code. Justifications migrate with the code; stale or missing → finding.

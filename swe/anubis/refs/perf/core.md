@@ -514,3 +514,7 @@ if message.startswith("error"):  # Much faster
 ```
 
 ---
+
+## Perf Finding Evidence Contract
+
+Every performance finding states its metric (P50/P99/throughput/RSS/bundle), its current baseline (or why the baseline is unknown), the threshold that makes it a problem, and a measurement plan. Anything missing one of these is `[HYPOTHESIS]`, not a defect. Use the optimize-vs-scale triage above as the gate: I/O-bound or algorithmic waste gets optimized first, saturated-but-efficient systems get scaled.

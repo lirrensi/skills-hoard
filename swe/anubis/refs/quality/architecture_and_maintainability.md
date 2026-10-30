@@ -447,3 +447,13 @@ function printCity(data) {
 - [ ] 🟢 **Preserve helpful intermediate variables** — Don't inline everything. A well-named `const` for a complex boolean is self-documenting code. (Pairs with: explaining variables over complex booleans)
 
 ---
+
+## Module Depth & Seams
+
+| Check | Rule |
+|---|---|
+| Deletion test | Delete the module mentally: complexity that vanishes was real, complexity that moves was not. |
+| Shallow vs deep | Shallow modules have interfaces nearly as complex as their implementation; prefer deep ones. |
+| Seam / adapter | One adapter is a hypothetical seam; two real consumers make it a seam. Never add the first speculatively. |
+| Locality / leverage | Related behavior lives together; a small change here should not ripple across the codebase. |
+| Interface is test surface | The public interface is what must be tested and maintained; keep it narrower than the implementation. |

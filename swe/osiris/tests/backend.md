@@ -13,6 +13,25 @@
 - [ ] HIGH IF responses are consumed by other systems -> THEN assert contract shape, field meaning, and backward-compatibility-sensitive behavior
 - [ ] HIGH IF rate limits, idempotency, pagination, filtering, or sorting exist -> THEN test them as first-class behavior rather than optional polish
 
+### CLI and Non-Interactive Surfaces
+
+- [ ] CRITICAL IF the repo exposes CLI commands -> THEN run one REAL invocation per exposed command before claiming it works
+- [ ] CRITICAL IF a command can prompt -> THEN run with stdin closed (`/dev/null`); a hang is a bug
+- [ ] HIGH IF automation or CI calls the CLI -> THEN verify `--yes` / `--non-interactive` and no-TTY operation
+- [ ] HIGH IF output is consumed by scripts or humans -> THEN assert stdout vs stderr separation and machine-parseable `--json` / `--plain`
+- [ ] HIGH IF exit codes exist -> THEN test the taxonomy: success, usage error, validation error, external failure, partial success
+- [ ] HIGH IF long operations can be cancelled -> THEN send SIGINT mid-operation and prove clean state
+- [ ] MEDIUM IF install, upgrade, or uninstall exists -> THEN test config compatibility, leftover files, and rerun safety
+
+### Migration Verification
+
+- [ ] CRITICAL IF migrations exist -> THEN classify each as reversible or irreversible; irreversible requires backup/restore rehearsal or explicit accepted risk
+- [ ] CRITICAL IF rollback is claimed -> THEN test rollback WITH post-migration writes; prove no orphan or corruption
+- [ ] HIGH IF migrations run on real data -> THEN test forward on production-like volume, not dev fixtures
+- [ ] HIGH IF validation matters -> THEN run pre/post validation queries and integrity checks
+- [ ] HIGH IF deploys mix versions -> THEN test the mixed-version window: old code with new schema, new code with old schema
+- [ ] MEDIUM IF tables are large -> THEN smoke-test lock and downtime behavior
+
 ---
 
 ## Data and Persistence

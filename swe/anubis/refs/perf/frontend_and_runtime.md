@@ -272,3 +272,13 @@ python -X importtime your_script.py 2>&1 | grep "import time"
 ```
 
 ---
+
+## Code-Detectable Accessibility
+
+| Check | Rule |
+|---|---|
+| Icon-only controls | Every icon button has an accessible name; silence is a defect. |
+| Click-only handlers | `onClick` on non-interactive elements needs keyboard parity; flag div/span click handlers with no role or key handler. |
+| Focus management | Modals and dialogs trap and restore focus; flag unmanaged focus jumps. |
+| Labeled inputs | Every input has an associated label; placeholders are not labels. |
+| Announced errors | Validation errors are exposed to assistive tech, not color or text alone. |
