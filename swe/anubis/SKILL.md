@@ -96,6 +96,23 @@ Quick triage: for large diffs or full reviews, walk `git log --oneline` first an
 
 When NOT to review: throwaway scripts, generated code, lockfiles, vendored deps, pure formatting diffs. Say so and stop.
 
+## Consistency Sweep
+
+The codebase's own majority is the spec. When 95% of the app does X and one case does Y, Y is presumed a bug — a crime against expected behavior — until proven a decision.
+
+Sweep for these. For each, name the majority pattern (3+ examples with path:line) and the deviant:
+
+- Control flow that differs from sibling cases (one branch returns early, swallows, retries, or orders steps differently).
+- Error handling that breaks the file's contract (one caller checks, one ignores; one path logs, one silences).
+- Defaults, limits, timeouts, retries that disagree across call sites with no reason.
+- Naming or shape drift that changes meaning (same concept, different field/method/unit in one place).
+- Lifecycle or ordering violations (one flow skips init, cleanup, validation, or auth a sibling performs).
+- Security posture gaps (one endpoint missing the check every sibling applies).
+
+The exemption: a comment, commit message, or doc line that clearly states WHY this case deviates. A real reason reads as a decision ("retries disabled: provider bills per attempt"), not a leftover ("TODO", "temp", "fix later", silence). Decision → no finding. Leftover or silence → file it.
+
+Evidence class: majority established by 3+ traced sites → CONFIRMED pattern, deviant is LIKELY defect. Majority thin (< 3 sites) → deviant is HYPOTHESIS. Default severity: HIGH when the deviation touches security, data, money, or auth; MEDIUM otherwise.
+
 ---
 
 ### Quick Reference: CRITICAL Priority
@@ -173,6 +190,26 @@ Calibration:
 - N/A ≠ missing: if a check doesn't apply to this repo shape, say N/A with one-line reason. Never score absence as failure.
 - Compound risk: multiple MEDIUMs sharing one root cause or blast radius escalate — name it under Systemic Risk, don't leave them scattered.
 
+## Fix Scope
+
+Severity says how bad. Scope says how big. Judge both — a CRITICAL one-liner ships today, a MEDIUM re-architecture waits for a plan.
+
+| Scope | Shape of the fix | Typical footprint |
+|---|---|---|
+| **S — Spot** | One line to one function, no callers change | typo-class: wrong operator, missing check, bad constant, inverted condition |
+| **M — Module** | One file or module, internal rework, contract holds | error-path rework, state fix, validation overhaul, defaults alignment |
+| **L — Lateral** | Multiple modules, shared contract or interface changes | API shape change, error-model unification, cross-module refactor, migration |
+| **X — Structural** | Architecture, data model, or platform decision | layer split, storage re-model, auth redesign, framework swap |
+
+Rules:
+- Scope is about the FIX, not the damage. A one-line auth bypass is CRITICAL + S. A sprawling style mess is LOW + L.
+- When scope is uncertain, name the cheaper scope and state what would escalate it.
+- Scheduling hint (default; the developer owns the calendar):
+  - CRITICAL + any scope → now. If X, ship a mitigation first, then the structural fix.
+  - HIGH + S/M → this change. HIGH + L/X → planned work with a tracking issue.
+  - MEDIUM + S → opportunistic (fix with nearby work). MEDIUM + M and up → backlog with a plan.
+  - LOW → whenever touched. Never a dedicated change.
+
 ---
 
 ## How You Report
@@ -189,6 +226,7 @@ Use ONLY sections that have findings. Do not pad empty categories. Group all fin
 **Impact**: [What will go wrong because of this]
 **Fix**: [What should change — as a proposal, not implementation]
 **Recommendation strength**: [Strong | Worth exploring | Speculative — architecture findings only]
+**Scope**: [S — Spot | M — Module | L — Lateral | X — Structural — shape of the fix, not the damage]
 ```
 
 End every review with:
@@ -208,6 +246,7 @@ End every review with:
 - **Analyzed**: [what aspects you reviewed + leaves loaded]
 - **Not analyzed**: [what you skipped or couldn't assess, and why]
 - **Unverified**: [HYPOTHESIS items needing runtime/data to confirm]
+- **Scheduling**: [now / this change / planned / opportunistic / backlog — per Fix Scope rules]
 - **Confidence**: [High / Medium / Low] based on available context
 
 ### Cross-Cutting
@@ -251,6 +290,7 @@ Self-check every report before writing it:
 - Every finding has `path:line` and a taxonomy `Rule` ID.
 - Every finding has `Evidence` class and `Confidence` with reason.
 - Every severity matches the Severity Model, CRITICAL first.
+- Every finding has a Scope rating; Scheduling follows the Fix Scope rules.
 - No two findings describe the same root cause — merge or cross-reference.
 - No style-only findings smuggled in as bugs.
 - Every loaded leaf is named under Analyzed; skipped ones under Not analyzed with reason.

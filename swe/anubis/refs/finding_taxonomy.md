@@ -22,5 +22,6 @@ Stable rule IDs for findings. Every finding carries `**Rule**: <ID>` so repeat r
 | `SPEC-VER` | Unverifiable requirement (no acceptance criteria / behavior missing) | `quality/verification_and_tooling.md` |
 | `SPEC-ORPHAN` | Code with no parent requirement clause | `quality/verification_and_tooling.md` |
 | `SPEC-DERIVED` | Silently absorbed derived requirement (never labeled/traced/flagged) | `quality/verification_and_tooling.md` |
+| `CONSIST` | Deviation from the codebase's own established pattern without documented reason | `quality/core.md` (sweep doctrine: SKILL.md § Consistency Sweep) |
 
 Number findings sequentially per prefix per review: `SEC-INJ-01`, `SEC-INJ-02`. IDs are review-local unless the team tracks them across reviews.
