@@ -377,11 +377,15 @@ Those serve as examples — adapt to language specifics.
 | Check | Question |
 |-------|----------|
 | **Instruction file exists** | Is there an `AGENTS.md`, `CLAUDE.md`, `.cursorrules`, or `.claude/` directory? |
+| **Map first** 🗺️ | Does the instruction file open with a MAP (block locator + reading paths), not rules? Can an agent told "fix the X block" find what X is and where it lives in < 30 seconds? |
+| **Locator current** | Does every domain word in tasks map to a real, existing path + entry file? |
 | **Instruction hygiene** | Is it current? Or full of outdated context, deprecated paths, wrong commands? |
 | **Context bloat** | Are there 50 skill files nobody needs? Agents drown in irrelevant context. |
 | **Signal-to-noise** | Does the agent spend 10k tokens loading context that provides 1k tokens of value? |
 
-**Hunt:** `.cursor/` with 100 files. `AGENTS.md` that references deleted folders. Skills for tools you don't use.
+**Hunt:** `.cursor/` with 100 files. `AGENTS.md` that references deleted folders. Skills for tools you don't use. Rules-only `AGENTS.md` with no map.
+
+> **Writing or fixing an instruction file?** Read `./agents_map.md` — the map-first cartography guide. MAP IS SOP priority: locator + reading paths before rules, purpose last.
 
 ### Agent-Readable Structure
 

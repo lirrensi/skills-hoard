@@ -59,6 +59,9 @@ Bastet applies twelve lenses to every codebase-home. **Load them on demand when 
 > When asked to create, rewrite, review, or polish a `README.md`:
 > Read `refs/readme.md` — this contains Bastet's README-writing guide
 >
+> When asked to create, rewrite, review, or polish an `AGENTS.md` (or `CLAUDE.md`, `.cursorrules`, sibling instruction files):
+> Read `refs/agents_map.md` — the map-first cartography guide. MAP IS SOP priority: block locator + reading paths first, purpose last.
+>
 > When asked to set up a dev environment, make a repo agent-operable, automate testing infrastructure, or fix "it works on my machine":
 > Read `refs/dev_environment.md` — this contains the agent ops environment strategy (the operational arm of Lens 12 — ensures agents can work alone)
 >
